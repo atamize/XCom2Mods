@@ -1,0 +1,48 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Default" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Guid>2b71cdd7-73fc-40d1-ae4e-ea400a6ae633</Guid>
+    <Name>Mission Award Variety</Name>
+    <Description>More mission awards</Description>
+    <SteamPublishID>0</SteamPublishID>
+    <AssemblyName>Mission Award Variety</AssemblyName>
+    <RootNamespace>Mission Award Variety</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Folder Include="Config\" />
+    <Folder Include="Content\" />
+    <Folder Include="Localization\" />
+    <Folder Include="Src\" />
+    <Folder Include="Src\MissionAwardVariety\" />
+    <Folder Include="Src\MissionAwardVariety\Classes\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Config\XComMissionAwardVariety.ini">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Localization\MissionAwardVariety.int">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="ReadMe.txt" />
+    <Content Include="ModPreview.jpg" />
+    <Content Include="Config\XComEditor.ini" />
+    <Content Include="Config\XComEngine.ini" />
+    <Content Include="Config\XComGame.ini" />
+    <Content Include="Src\MissionAwardVariety\Classes\MAV_UIMissionEndScreenListener.uc">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Src\MissionAwardVariety\Classes\MAV_UITacticalHUD_ScreenListener.uc">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Src\MissionAwardVariety\Classes\MAV_Utilities.uc">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Src\MissionAwardVariety\Classes\XComGameState_MissionStats_Root.uc">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Src\MissionAwardVariety\Classes\XComGameState_MissionStats_Unit.uc">
+      <SubType>Content</SubType>
+    </Content>
+  </ItemGroup>
+  <Import Project="$(MSBuildLocalExtensionPath)\XCOM2.targets" />
+</Project>
