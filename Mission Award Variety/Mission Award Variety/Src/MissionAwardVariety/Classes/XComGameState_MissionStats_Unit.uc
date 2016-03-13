@@ -1,7 +1,6 @@
 //---------------------------------------------------------------------------------------
 //  FILE:    XComGameState_MissionStats_Unit
 //  AUTHOR:  atamize
-//
 //  PURPOSE: Store the mission stats of a given unit as a component to XComGameState_Unit
 //
 //--------------------------------------------------------------------------------------- 

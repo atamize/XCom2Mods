@@ -1,9 +1,9 @@
 //---------------------------------------------------------------------------------------
 //  FILE:    XComGameState_MissionStats_Root
 //  AUTHOR:  atamize
-//
 //  PURPOSE: Creates a root gamestate object to watch all ability triggers and capture/update units mission stats
 //
+//  Thanks to Kosmo and the Lifetime Stats mod on which this is based
 //--------------------------------------------------------------------------------------- 
 class XComGameState_MissionStats_Root extends XComGameState_BaseObject;
 
@@ -22,7 +22,6 @@ function RegisterAbilityActivated()
 	local Object ThisObj;
 	ThisObj = self;
 	
-	`log("Force Registered MissionStats_Root to AbilityActivated");
 	`XEVENTMGR.RegisterForEvent(ThisObj, 'AbilityActivated', OnAbilityActivated, ELD_OnVisualizationBlockStarted);
 	`XEVENTMGR.RegisterForEvent(ThisObj, 'UnitTakeEffectDamage', OnUnitTookDamage, ELD_OnVisualizationBlockStarted);
 }
@@ -70,11 +69,7 @@ function EventListenerReturn OnUnitTookDamage(Object EventData, Object EventSour
 	`log("===============  UNIT TOOK DAMAGE  ====================");
 	`log("Attacker: " $ AttackingUnit.GetFullName());
 	`log("Damaged: " $ DamagedUnit.GetFullName());
-	//`log("Executed: " $ damageResult.bFreeKill);
 	`log("DamageAmt: " $ DamageResult.DamageAmount);
-	//`log("MitigationAmt: " $ damageResult.MitigationAmount);
-	//`log("ShieldHP: " $ damageResult.ShieldHP);
-	//`log("Shred: " $ damageResult.Shred);
 	
 	ChangeContainer = class'XComGameStateContext_ChangeContainer'.static.CreateEmptyChangeContainer("Adding Damage UnitStats for " $ AttackingUnit.GetFullName() $ " and " $ DamagedUnit.GetFullName());
 	NewGameState = `XCOMHISTORY.CreateNewGameState(true, ChangeContainer);
@@ -88,40 +83,13 @@ function EventListenerReturn OnUnitTookDamage(Object EventData, Object EventSour
 		
 		NewUnitStats.DamageDealt = UnitStats.DamageDealt + DamageResult.DamageAmount;
 		NewUnitStats.AddDamageToUnit(DamagedUnit.ObjectID, DamageResult.DamageAmount);
-		//NewUnitStats.DamageNegated = UnitStats.damageNegated + DamageResult.MitigationAmount;
-		//NewUnitStats.NumExecutions = UnitStats.numExecutions + (DamageResult.bFreeKill ? 1 : 0);
 	}
-	/*
-	else if (DamagedUnit.IsSoldier())
-	{
-		// Update stats of we were the attacked
-		unitStats = class'MAV_Utilities'.static.ensureHasUnitStats(damagedUnit);
-		newUnit = XComGameState_Unit(newGameState.CreateStateObject(class'XComGameState_Unit', damagedUnit.ObjectID));
-		newUnitStats = XComGameState_MissionStats_Unit(newGameState.CreateStateObject(class'XComGameState_MissionStats_Unit', unitStats.ObjectID));
-		
-		newUnitStats.damageTaken = unitStats.damageTaken + damageResult.DamageAmount;
-		newUnitStats.damageAbsorbed = unitStats.damageAbsorbed + damageResult.MitigationAmount;
-	}
-	*/
 	
 	if (NewUnit != none && NewUnitStats != none)
 	{
-		`log("===============  DamageStats  ====================");
-		`log("Name: " $ NewUnit.GetFullName());
-		`log("DamageDone: " $ NewUnitStats.DamageDealt);
-		//`log("DamageTaken: " $ newUnitStats.damageTaken);
-		//`log("DamageNegated: " $ newUnitStats.damageNegated);
-		//`log("DamageAbsorbed: " $ newUnitStats.damageAbsorbed);
-		//`log("Executions: " $ newUnitStats.numExecutions);
-		
 		// Submit game state
 		NewGameState.AddStateObject(NewUnit);
 		NewGameState.AddStateObject(NewUnitStats);
-		
-		// Trigger eventData
-		//`XEVENTMGR.TriggerEvent('MissionStatsUpdated', newUnitStats, newUnit, newGameState);
-		
-		// Submit gamestate
 		`TACTICALRULES.SubmitGameState(NewGameState);
 	}
 	else
@@ -170,8 +138,6 @@ function XComGameState_MissionStats_Unit UpdateStats(XComGameState_Unit SourceUn
 	// Create and add UnitStats
 	NewUnitStats = XComGameState_MissionStats_Unit(NewGameState.CreateStateObject(class'XComGameState_MissionStats_Unit', UnitStats.ObjectID));
 
-	`log("===== Updating UnitStats for " $ Unit.GetFullName() $ " =======");
-
 	// Calculate luck
 	Chance = Clamp(AbilityContext.ResultContext.CalculatedHitChance, 0, 100);
 	if (IsSoldier)
@@ -189,32 +155,6 @@ function XComGameState_MissionStats_Unit UpdateStats(XComGameState_Unit SourceUn
 		}
 	}
 
-	/*
-	// Calculating new values
-	NewUnitStats.numShots = unitStats.numShots + 1;
-	NewUnitStats.numHits = unitStats.numHits;
-	NewUnitStats.numMisses = unitStats.numMisses;
-	NewUnitStats.expectedHits = unitStats.expectedHits + Clamp(abilityContext.ResultContext.CalculatedHitChance, 0, 100);
-	
-	// Update hit/miss
-	if( abilityContext.IsResultContextHit() ) newUnitStats.numHits++;
-	else newUnitStats.numMisses++;
-	
-	// Update crit
-	if( abilityContext.ResultContext.HitResult == eHit_Crit )
-		newUnitStats.numCrits++;
-		
-	// Update Dodge
-	if( abilityContext.Resultcontext.HitResult == eHit_Graze )
-		newUnitStats.numGrazed++;
-		
-	// Add new stats to nwe gamestate
-	newGameState.AddStateObject(newUnit);
-	newGameState.AddStateObject(newUnitStats);
-	
-	// Trigger eventData
-	`XEVENTMGR.TriggerEvent('MissionStatsUpdated', newUnitStats, newUnit, newGameState);
-	*/
 	`log("===============  AbilityStats  ====================");
 	`log("Name: " $ NewUnit.GetFullName());
 	`log("DamageDone: " $ NewUnitStats.DamageDealt);
@@ -229,5 +169,5 @@ function XComGameState_MissionStats_Unit UpdateStats(XComGameState_Unit SourceUn
 
 defaultproperties
 {
-	CURRENT_VERSION = "0.0.1";
+	CURRENT_VERSION = "1.0.0";
 }

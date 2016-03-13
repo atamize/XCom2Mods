@@ -1,9 +1,9 @@
 //---------------------------------------------------------------------------------------
 //  FILE:    MAV_Utilities
 //  AUTHOR:  atamize
-//
 //  PURPOSE: Provide some helper functions for working with the stats objects
 //
+//  Thanks to Kosmo and the Lifetime Stats mod on which this is based
 //--------------------------------------------------------------------------------------- 
 class MAV_Utilities extends Object config (MissionAwardVariety);
 
@@ -26,8 +26,6 @@ static function XComGameState_MissionStats_Root CheckOrCreateRoot()
 		
 		NewGameState.AddStateObject(RootStats);
 		`XCOMHISTORY.AddGameStateToHistory(NewGameState);
-		
-		`log("==== Added RootStats ====");
 	}
 	else
 	{
@@ -107,8 +105,6 @@ static function XComGameState_MissionStats_Unit EnsureHasUnitStats(XComGameState
 	UnitStats = XComGameState_MissionStats_Unit(Unit.FindComponentObject(class'XComGameState_MissionStats_Unit'));
 	if (UnitStats == none)
 	{
-		`log("===== Adding UnitStats for " $ Unit.GetFullName() $ " =======");
-	
 		// Setup new game state
 		ChangeContainer = class'XComGameStateContext_ChangeContainer'.static.CreateEmptyChangeContainer("Adding UnitStats to " $ unit.GetFullName());
 		NewGameState = History.CreateNewGameState(true, ChangeContainer);
@@ -135,7 +131,6 @@ static function XComGameState_MissionStats_Unit EnsureHasUnitStats(XComGameState
 static function bool IsShotType(name Type)
 {
 	local name BasicShotAbility;
-	`log("Checking shot types length: " $ default.BasicShotAbilities.Length);
 	foreach default.BasicShotAbilities(BasicShotAbility)
 	{
 		if (Type == BasicShotAbility)

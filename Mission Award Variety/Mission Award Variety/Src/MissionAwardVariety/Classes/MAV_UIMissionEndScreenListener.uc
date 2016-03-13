@@ -1,4 +1,12 @@
-class MAV_UIMissionEndScreenListener extends UIScreenListener dependson(XComGameState_MissionStats_Unit);
+//---------------------------------------------------------------------------------------
+//  FILE:    MAV_UITacticalHUD_ScreenListener
+//  AUTHOR:  atamize
+//  PURPOSE: Calculates award winners and displays them on the mission end screen
+//
+//--------------------------------------------------------------------------------------- 
+class MAV_UIMissionEndScreenListener extends UIScreenListener
+	dependson(XComGameState_MissionStats_Unit)
+	config (MissionAwardVariety);
 
 struct EnemyDamageCount
 {
@@ -25,6 +33,8 @@ var localized string m_strLuckiest;
 var localized string m_strSoloSlayer;
 var localized string m_strPowerCouple;
 
+var config bool bOverrideRightList;
+
 function name GetEnemyType(XComGameState_Unit Unit)
 {
 	local name GroupName, TemplateName;
@@ -43,7 +53,7 @@ function name GetEnemyType(XComGameState_Unit Unit)
 		case 'AdvCaptainM1':
 		case 'AdvCaptainM2':
 		case 'AdvCaptainM3':
-			return 'CAPTAINS';
+			return 'OFFICERS';
 
 		case 'AdvStunLancerM1':
 		case 'AdvStunLancerM2':
@@ -99,7 +109,7 @@ function name GetEnemyType(XComGameState_Unit Unit)
 			return 'ANDROMEDONS';
 
 		case 'Faceless':
-			return 'THE FACELESS';
+			return 'FACELESS';
 
 		case 'PsiZombie':
 			return 'ZOMBIES';
@@ -126,7 +136,7 @@ event OnInit(UIScreen Screen)
 	local MAV_DamageResult Result, NewResult;
 	local bool Found;
 	local EnemyDamageCount NewEnemyInfo;
-	local string WinnerName;
+	local string WinnerName, HatedName;
 	local HateCount NewHateCount;
 	local name MostHated;
 	local array<int> SquadScores;
@@ -197,9 +207,16 @@ event OnInit(UIScreen Screen)
 		UnitStats.AddItem(MissionStats);
 	}
 
-	// Clear left list
-	ItemID = 'PostStatLeftRowItem';
-	ItemContainer = MissionEndScreen.LeftList.ItemContainer;
+	if (bOverrideRightList)	// Override default mission awards (Dealt Most Damage)
+	{
+		ItemID = 'PostStatRightRowItem';
+		ItemContainer = MissionEndScreen.RightList.ItemContainer;
+	}
+	else // Override team stats
+	{
+		ItemID = 'PostStatLeftRowItem';
+		ItemContainer = MissionEndScreen.LeftList.ItemContainer;
+	}
 	ItemContainer.RemoveChildren();
 
 	// Hates this particular enemy
@@ -221,7 +238,7 @@ event OnInit(UIScreen Screen)
 
 	if (MostHated == '')
 	{
-		Screen.Spawn(class'UIDropShipBriefing_ListItem', ItemContainer).InitListItem(ItemID, repl(m_strHatesTheMost, "#Unit", "AYYS"), WinnerName);
+		Screen.Spawn(class'UIDropShipBriefing_ListItem', ItemContainer).InitListItem(ItemID, repl(m_strHatesTheMost, "#Unit", "AYYS"), WinnerName, bOverrideRightList);
 	}
 	else
 	{
@@ -248,8 +265,14 @@ event OnInit(UIScreen Screen)
 			}
 		}
 
+		// 'FACELESS' doesn't retain capitalization, probably because a non-capitalized version
+		// already exists and Unrealscript names aren't case-sensitive. Just hack in the name here
+		HatedName = string(MostHated);
+		if (MostHated == 'FACELESS')
+			HatedName = "FACELESS";
+
 		WinnerName = Squad[Winner].GetName(eNameType_FullNick);
-		Screen.Spawn(class'UIDropShipBriefing_ListItem', ItemContainer).InitListItem(ItemID, repl(m_strHatesTheMost, "#Unit", MostHated), WinnerName);
+		Screen.Spawn(class'UIDropShipBriefing_ListItem', ItemContainer).InitListItem(ItemID, repl(m_strHatesTheMost, "#Unit", HatedName), WinnerName, bOverrideRightList);
 	}
 
 	// Determine luckiest
@@ -271,7 +294,7 @@ event OnInit(UIScreen Screen)
 	{
 		WinnerName = Squad[Winner].GetName(eNameType_FullNick);
 	}
-	Screen.Spawn(class'UIDropShipBriefing_ListItem', ItemContainer).InitListItem(ItemID, m_strLuckiest, WinnerName);
+	Screen.Spawn(class'UIDropShipBriefing_ListItem', ItemContainer).InitListItem(ItemID, m_strLuckiest, WinnerName, bOverrideRightList);
 
 
 	// Solo Slayer
@@ -306,7 +329,7 @@ event OnInit(UIScreen Screen)
 	{
 		WinnerName = Squad[Winner].GetName(eNameType_FullNick);
 	}
-	Screen.Spawn(class'UIDropShipBriefing_ListItem', ItemContainer).InitListItem(ItemID, m_strSoloSlayer, WinnerName);
+	Screen.Spawn(class'UIDropShipBriefing_ListItem', ItemContainer).InitListItem(ItemID, m_strSoloSlayer, WinnerName, bOverrideRightList);
 
 	
 	// Power couple
@@ -367,7 +390,7 @@ event OnInit(UIScreen Screen)
 	{
 		WinnerName = Squad[PowerCouples[Winner].Unit1].GetFullName() $ " & " $ Squad[PowerCouples[Winner].Unit2].GetFullName();
 	}
-	Screen.Spawn(class'UIDropShipBriefing_ListItem', ItemContainer).InitListItem(ItemID, m_strPowerCouple, WinnerName);
+	Screen.Spawn(class'UIDropShipBriefing_ListItem', ItemContainer).InitListItem(ItemID, m_strPowerCouple, WinnerName, bOverrideRightList);
 }
 
 defaultproperties
