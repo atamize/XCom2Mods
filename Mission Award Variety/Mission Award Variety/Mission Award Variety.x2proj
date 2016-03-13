@@ -28,6 +28,21 @@
     <Content Include="Config\XComEditor.ini" />
     <Content Include="Config\XComEngine.ini" />
     <Content Include="Config\XComGame.ini" />
+    <Content Include="Src\MissionAwardVariety\Classes\MAV_BaseCategory.uc">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Src\MissionAwardVariety\Classes\MAV_Category_HatesMost.uc">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Src\MissionAwardVariety\Classes\MAV_Category_Luckiest.uc">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Src\MissionAwardVariety\Classes\MAV_Category_PowerCouple.uc">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Src\MissionAwardVariety\Classes\MAV_Category_SoloSlayer.uc">
+      <SubType>Content</SubType>
+    </Content>
     <Content Include="Src\MissionAwardVariety\Classes\MAV_UIMissionEndScreenListener.uc">
       <SubType>Content</SubType>
     </Content>
