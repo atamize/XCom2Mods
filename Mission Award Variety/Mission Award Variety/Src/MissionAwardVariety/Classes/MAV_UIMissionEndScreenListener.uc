@@ -12,8 +12,19 @@ var localized string m_strHatesTheMost;
 var localized string m_strLuckiest;
 var localized string m_strSoloSlayer;
 var localized string m_strPowerCouple;
+var localized string m_strMostAssists;
+var localized string m_strKillStealer;
+var localized string m_strMostCritDamage;
+var localized string m_strUnluckiest;
+var localized string m_strTimeToBleed;
+var localized string m_strTurtle;
+var localized string m_strAlrightKid;
+var localized string m_strTooOld;
+var localized string m_strMostHigh;
 
 var config bool bOverrideRightList;
+
+var array<MAV_BaseCategory> Categories;
 
 function name GetEnemyType(XComGameState_Unit Unit)
 {
@@ -98,6 +109,12 @@ function name GetEnemyType(XComGameState_Unit Unit)
 	return 'AYYS';
 }
 
+private function AddCategory(MAV_BaseCategory Category, string Label, int Size)
+{
+	Category.Initialize(Label, Size);
+	Categories.AddItem(Category);
+}
+
 event OnInit(UIScreen Screen)
 {
 	local UIDropShipBriefing_MissionEnd MissionEndScreen;
@@ -115,7 +132,6 @@ event OnInit(UIScreen Screen)
 	local MAV_DamageResult Result, NewResult;
 	local bool Found;
 	local MAV_MissionStats Stats;
-	local array<MAV_BaseCategory> Categories;
 	local MAV_BaseCategory Category;
 
 	MissionEndScreen = UIDropShipBriefing_MissionEnd(Screen);
@@ -169,41 +185,42 @@ event OnInit(UIScreen Screen)
 	Size = Squad.Length;
 
 	// Create categories
-	Category = new class'MAV_Category_HatesMost';
-	Category.Initialize(m_strHatesTheMost, Size);
-	Categories.AddItem(Category);
+	Categories.Length = 0;
 
-	Category = new class'MAV_Category_Luckiest';
-	Category.Initialize(m_strLuckiest, Size);
-	Categories.AddItem(Category);
-
-	Category = new class'MAV_Category_SoloSlayer';
-	Category.Initialize(m_strSoloSlayer, Size);
-	Categories.AddItem(Category);
-
-	Category = new class'MAV_Category_PowerCouple';
-	Category.Initialize(m_strPowerCouple, Size);
-	Categories.AddItem(Category);
-
-	if (bOverrideRightList)	// Override default mission awards (Dealt Most Damage)
-	{
-		ItemID = 'PostStatRightRowItem';
-		ItemContainer = MissionEndScreen.RightList.ItemContainer;
-	}
-	else // Override team stats
-	{
-		ItemID = 'PostStatLeftRowItem';
-		ItemContainer = MissionEndScreen.LeftList.ItemContainer;
-	}
-	ItemContainer.RemoveChildren();
+	//AddCategory(new class'MAV_Category_HatesMost', m_strHatesTheMost, Size);
+	//AddCategory(new class'MAV_Category_Luckiest', m_strLuckiest, Size);
+	//AddCategory(new class'MAV_Category_SoloSlayer', m_strSoloSlayer, Size);
+	//AddCategory(new class'MAV_Category_PowerCouple', m_strPowerCouple, Size);
+	AddCategory(new class'MAV_Category_MostAssists', m_strMostAssists, Size);
+	AddCategory(new class'MAV_Category_KillStealer', m_strKillStealer, Size);
+	AddCategory(new class'MAV_Category_MostCritDamage', m_strMostCritDamage, Size);
+	AddCategory(new class'MAV_Category_Unluckiest', m_strUnluckiest, Size);
+	AddCategory(new class'MAV_Category_TimeToBleed', m_strTimeToBleed, Size);
+	AddCategory(new class'MAV_Category_Turtle', m_strTurtle, Size);
+	AddCategory(new class'MAV_Category_AlrightKid', m_strAlrightKid, Size);
+	AddCategory(new class'MAV_Category_TooOld', m_strTooOld, Size);
 
 	// Calculate and display winners
+	ItemID = 'PostStatLeftRowItem';
+	ItemContainer = MissionEndScreen.LeftList.ItemContainer;
+	ItemContainer.RemoveChildren();
 	for (i = 0; i < 4; ++i)
 	{
 		Category = Categories[i];
 		Category.CalculateWinner(Stats);
-		Screen.Spawn(class'UIDropShipBriefing_ListItem', ItemContainer).InitListItem(ItemID, Category.Label, Category.WinnerName, bOverrideRightList);
-	}	
+		Screen.Spawn(class'UIDropShipBriefing_ListItem', ItemContainer).InitListItem(ItemID, Category.Label, Category.WinnerName, false);
+	}
+
+	ItemID = 'PostStatRightRowItem';
+	ItemContainer = MissionEndScreen.RightList.ItemContainer;
+	ItemContainer.RemoveChildren();
+	`log("MAV Category length " $ Categories.Length);
+	for (i = 4; i < Categories.Length; ++i)
+	{
+		Category = Categories[i];
+		Category.CalculateWinner(Stats);
+		Screen.Spawn(class'UIDropShipBriefing_ListItem', ItemContainer).InitListItem(ItemID, Category.Label, Category.WinnerName, true);
+	}
 }
 
 defaultproperties
