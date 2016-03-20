@@ -20,7 +20,37 @@
     <Content Include="Config\XComMissionAwardVariety.ini">
       <SubType>Content</SubType>
     </Content>
+    <Content Include="Localization\MissionAwardVariety.chn">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Localization\MissionAwardVariety.cht">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Localization\MissionAwardVariety.deu">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Localization\MissionAwardVariety.esn">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Localization\MissionAwardVariety.fra">
+      <SubType>Content</SubType>
+    </Content>
     <Content Include="Localization\MissionAwardVariety.int">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Localization\MissionAwardVariety.ita">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Localization\MissionAwardVariety.jpn">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Localization\MissionAwardVariety.kor">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Localization\MissionAwardVariety.pol">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Localization\MissionAwardVariety.rus">
       <SubType>Content</SubType>
     </Content>
     <Content Include="ReadMe.txt" />
@@ -28,6 +58,54 @@
     <Content Include="Config\XComEditor.ini" />
     <Content Include="Config\XComEngine.ini" />
     <Content Include="Config\XComGame.ini" />
+    <Content Include="Src\MissionAwardVariety\Classes\MAV_BaseCategory.uc">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Src\MissionAwardVariety\Classes\MAV_Category_AlrightKid.uc">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Src\MissionAwardVariety\Classes\MAV_Category_HatesMost.uc">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Src\MissionAwardVariety\Classes\MAV_Category_KillStealer.uc">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Src\MissionAwardVariety\Classes\MAV_Category_Luckiest.uc">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Src\MissionAwardVariety\Classes\MAV_Category_MostAssists.uc">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Src\MissionAwardVariety\Classes\MAV_Category_MostCritDamage.uc">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Src\MissionAwardVariety\Classes\MAV_Category_MostDamage.uc">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Src\MissionAwardVariety\Classes\MAV_Category_MostHigh.uc">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Src\MissionAwardVariety\Classes\MAV_Category_PowerCouple.uc">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Src\MissionAwardVariety\Classes\MAV_Category_SoloSlayer.uc">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Src\MissionAwardVariety\Classes\MAV_Category_TimeToBleed.uc">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Src\MissionAwardVariety\Classes\MAV_Category_TooOld.uc">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Src\MissionAwardVariety\Classes\MAV_Category_Turtle.uc">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Src\MissionAwardVariety\Classes\MAV_Category_UnderFire.uc">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Src\MissionAwardVariety\Classes\MAV_Category_Unluckiest.uc">
+      <SubType>Content</SubType>
+    </Content>
     <Content Include="Src\MissionAwardVariety\Classes\MAV_UIMissionEndScreenListener.uc">
       <SubType>Content</SubType>
     </Content>

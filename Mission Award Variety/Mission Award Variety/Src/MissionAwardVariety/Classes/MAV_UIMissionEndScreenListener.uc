@@ -5,35 +5,23 @@
 //
 //--------------------------------------------------------------------------------------- 
 class MAV_UIMissionEndScreenListener extends UIScreenListener
-	dependson(XComGameState_MissionStats_Unit)
-	config (MissionAwardVariety);
-
-struct EnemyDamageCount
-{
-	var int UnitID;
-	var name Type;
-	var array<MAV_DamageResult> Results;
-};
-
-struct HateCount
-{
-	var name Type;
-	var int Damage;
-};
-
-struct PowerCouple
-{
-	var int Unit1;
-	var int Unit2;
-	var int Damage;
-};
+	dependson(XComGameState_MissionStats_Unit, MAV_BaseCategory);
 
 var localized string m_strHatesTheMost;
 var localized string m_strLuckiest;
 var localized string m_strSoloSlayer;
 var localized string m_strPowerCouple;
+var localized string m_strMostAssists;
+var localized string m_strKillStealer;
+var localized string m_strMostCritDamage;
+var localized string m_strUnluckiest;
+var localized string m_strTimeToBleed;
+var localized string m_strTurtle;
+var localized string m_strAlrightKid;
+var localized string m_strTooOld;
+var localized string m_strMostHigh;
 
-var config bool bOverrideRightList;
+var array<MAV_BaseCategory> Categories;
 
 function name GetEnemyType(XComGameState_Unit Unit)
 {
@@ -118,6 +106,12 @@ function name GetEnemyType(XComGameState_Unit Unit)
 	return 'AYYS';
 }
 
+private function AddCategory(MAV_BaseCategory Category, string Label, int Size)
+{
+	Category.Initialize(Label, Size);
+	Categories.AddItem(Category);
+}
+
 event OnInit(UIScreen Screen)
 {
 	local UIDropShipBriefing_MissionEnd MissionEndScreen;
@@ -129,20 +123,15 @@ event OnInit(UIScreen Screen)
 	local name ItemID;
 	local array<XComGameState_MissionStats_Unit> UnitStats;
 	local array<EnemyDamageCount> EnemyStats;
-	local array<HateCount> HateCounts;
-	local array<MAV_DamageResult> Results;
 	local XComGameState_MissionStats_Unit MissionStats;
-	local int i, j, k, m, Winner, CurrentMax, Value, MaxHate, UnitID, Unit1, Unit2;
+	local int i, j, Size;
+	local EnemyDamageCount NewEnemyInfo;
 	local MAV_DamageResult Result, NewResult;
 	local bool Found;
-	local EnemyDamageCount NewEnemyInfo;
-	local string WinnerName, HatedName;
-	local HateCount NewHateCount;
-	local name MostHated;
-	local array<int> SquadScores;
-	local array<PowerCouple> PowerCouples;
-	local PowerCouple Couple;
-	
+	local MAV_MissionStats Stats;
+	local MAV_BaseCategory Category;
+	local array<MAV_BaseCategory> Winners, Losers;
+
 	MissionEndScreen = UIDropShipBriefing_MissionEnd(Screen);
 	History = `XCOMHISTORY;
 
@@ -152,11 +141,15 @@ event OnInit(UIScreen Screen)
 	{
 		Unit = XComGameState_Unit(History.GetGameStateForObjectId(HQ.Squad[i].ObjectID));
 		Squad.AddItem(Unit);
-		SquadScores.AddItem(0);
 		MissionStats = class'MAV_Utilities'.static.EnsureHasUnitStats(Unit);
 		`log("Stats for " $ Unit.GetName(eNameType_FullNick));
+		`log("Rank: " $ Unit.GetSoldierRank());
 		`log("Damage: " $ MissionStats.DamageDealt);
 		`log("Luck: " $ MissionStats.Luck);
+		`log("Elevation: " $ MissionStats.Elevation);
+		`log("WoundedDamage: " $ MissionStats.WoundedDamage);
+		`log("Turtle: " $ MissionStats.Turtle);
+		`log("Shots Against: " $ MissionStats.ShotsAgainst);
 
 		foreach MissionStats.EnemyStats(Result)
 		{
@@ -184,213 +177,75 @@ event OnInit(UIScreen Screen)
 				NewEnemyInfo.Results.AddItem(NewResult);
 				EnemyStats.AddItem(NewEnemyInfo);
 			}
-
-			Found = false;
-			for (j = 0; j < HateCounts.Length; ++j)
-			{
-				if (HateCounts[j].Type == NewEnemyInfo.Type)
-				{
-					HateCounts[j].Damage += NewResult.Damage;
-					Found = true;
-					break;
-				}
-			}
-
-			if (!Found)
-			{
-				NewHateCount.Type = NewEnemyInfo.Type;
-				NewHateCount.Damage = NewResult.Damage;
-				HateCounts.AddItem(NewHateCount);
-			}
 		}
 
 		UnitStats.AddItem(MissionStats);
 	}
 
-	if (bOverrideRightList)	// Override default mission awards (Dealt Most Damage)
+	Stats.EnemyDamageCounts = EnemyStats;
+	Stats.Squad = Squad;
+	Stats.UnitStats = UnitStats;
+	Size = Squad.Length;
+
+	// Create categories
+	Categories.Length = 0;
+
+	AddCategory(new class'MAV_Category_HatesMost', m_strHatesTheMost, Size);
+	AddCategory(new class'MAV_Category_Luckiest', m_strLuckiest, Size);
+	AddCategory(new class'MAV_Category_SoloSlayer', m_strSoloSlayer, Size);
+	AddCategory(new class'MAV_Category_PowerCouple', m_strPowerCouple, Size);
+	AddCategory(new class'MAV_Category_MostAssists', m_strMostAssists, Size);
+	AddCategory(new class'MAV_Category_KillStealer', m_strKillStealer, Size);
+	AddCategory(new class'MAV_Category_MostHigh', m_strMostHigh, Size);
+	AddCategory(new class'MAV_Category_MostCritDamage', m_strMostCritDamage, Size);
+	AddCategory(new class'MAV_Category_Unluckiest', m_strUnluckiest, Size);
+	AddCategory(new class'MAV_Category_TimeToBleed', m_strTimeToBleed, Size);
+	AddCategory(new class'MAV_Category_Turtle', m_strTurtle, Size);
+	AddCategory(new class'MAV_Category_AlrightKid', m_strAlrightKid, Size);
+	AddCategory(new class'MAV_Category_TooOld', m_strTooOld, Size);
+
+	// Shuffle list
+	for (i = 0; i < Categories.Length; ++i)
 	{
-		ItemID = 'PostStatRightRowItem';
-		ItemContainer = MissionEndScreen.RightList.ItemContainer;
+		Category = Categories[i];
+		j = `SYNC_RAND(Categories.Length);
+		Categories[i] = Categories[j];
+		Categories[j] = Category;
 	}
-	else // Override team stats
+
+	// Determine winners
+	for (i = 0; i < Categories.Length; ++i)
 	{
-		ItemID = 'PostStatLeftRowItem';
-		ItemContainer = MissionEndScreen.LeftList.ItemContainer;
+		Category = Categories[i];
+		Category.CalculateWinner(Stats);
+		
+		if (Category.HasWinner())
+			Winners.AddItem(Category);
+		else
+			Losers.AddItem(Category);
 	}
+
+	// Display winners
+	ItemID = 'PostStatLeftRowItem';
+	ItemContainer = MissionEndScreen.LeftList.ItemContainer;
 	ItemContainer.RemoveChildren();
-
-	// Hates this particular enemy
-	CurrentMax = 0;
-	Winner = -1;
-	WinnerName = "--";
-	MostHated = '';
-
-	// Which enemy type was the damaged the most?
-	for (i = 0; i < HateCounts.Length; ++i)
+	Size = Min(4, Winners.Length);
+	j = Size;
+	for (i = 0; i < Size; ++i)
 	{
-		Value = HateCounts[i].Damage;
-		if (Value > MaxHate)
-		{
-			MostHated = HateCounts[i].Type;
-			MaxHate = Value;
-		}
+		Category = Winners[i];
+		Screen.Spawn(class'UIDropShipBriefing_ListItem', ItemContainer).InitListItem(ItemID, Category.Label, Category.WinnerName, false);
 	}
 
-	if (MostHated == '')
+	ItemID = 'PostStatRightRowItem';
+	ItemContainer = MissionEndScreen.RightList.ItemContainer;
+	ItemContainer.RemoveChildren();
+	Size = Min(8, Winners.Length);
+	for (i = j; i < Size; ++i)
 	{
-		Screen.Spawn(class'UIDropShipBriefing_ListItem', ItemContainer).InitListItem(ItemID, repl(m_strHatesTheMost, "#Unit", "AYYS"), WinnerName, bOverrideRightList);
+		Category = Winners[i];
+		Screen.Spawn(class'UIDropShipBriefing_ListItem', ItemContainer).InitListItem(ItemID, Category.Label, Category.WinnerName, true);
 	}
-	else
-	{
-		// Get damage counts for each Squad member for the most damaged enemy
-		for (i = 0; i < EnemyStats.Length; ++i)
-		{
-			if (EnemyStats[i].Type == MostHated)
-			{
-				foreach EnemyStats[i].Results(Result)
-				{
-					SquadScores[Result.UnitID] += Result.Damage;
-				}
-			}
-		}
-
-		// Finally find the winner
-		for (i = 0; i < SquadScores.Length; ++i)
-		{
-			Value = SquadScores[i];
-			if (Value > CurrentMax)
-			{
-				CurrentMax = Value;
-				Winner = i;
-			}
-		}
-
-		// 'FACELESS' doesn't retain capitalization, probably because a non-capitalized version
-		// already exists and Unrealscript names aren't case-sensitive. Just hack in the name here
-		HatedName = string(MostHated);
-		if (MostHated == 'FACELESS')
-			HatedName = "FACELESS";
-
-		WinnerName = Squad[Winner].GetName(eNameType_FullNick);
-		Screen.Spawn(class'UIDropShipBriefing_ListItem', ItemContainer).InitListItem(ItemID, repl(m_strHatesTheMost, "#Unit", HatedName), WinnerName, bOverrideRightList);
-	}
-
-	// Determine luckiest
-	CurrentMax = 0;
-	Winner = -1;
-	WinnerName = "--";
-
-	for (i = 0; i < UnitStats.Length; ++i)
-	{
-		Value = UnitStats[i].Luck;
-		if (Value > CurrentMax)
-		{
-			Winner = i;
-			CurrentMax = Value;
-		}
-	}
-
-	if (Winner >= 0)
-	{
-		WinnerName = Squad[Winner].GetName(eNameType_FullNick);
-	}
-	Screen.Spawn(class'UIDropShipBriefing_ListItem', ItemContainer).InitListItem(ItemID, m_strLuckiest, WinnerName, bOverrideRightList);
-
-
-	// Solo Slayer
-	CurrentMax = 0;
-	Winner = -1;
-	WinnerName = "--";
-
-	for (i = 0; i < SquadScores.Length; ++i)
-		SquadScores[i] = 0;
-
-	// Find enemies that were killed by only one soldier
-	for (i = 0; i < EnemyStats.Length; ++i)
-	{
-		if (EnemyStats[i].Results.Length == 1)
-		{
-			UnitID = EnemyStats[i].Results[0].UnitID;
-			SquadScores[UnitID] += EnemyStats[i].Results[0].Damage;
-		}
-	}
-
-	for (i = 0; i < SquadScores.Length; ++i)
-	{
-		Value = SquadScores[i];
-		if (Value > CurrentMax)
-		{
-			CurrentMax = Value;
-			Winner = i;
-		}
-	}
-
-	if (Winner >= 0)
-	{
-		WinnerName = Squad[Winner].GetName(eNameType_FullNick);
-	}
-	Screen.Spawn(class'UIDropShipBriefing_ListItem', ItemContainer).InitListItem(ItemID, m_strSoloSlayer, WinnerName, bOverrideRightList);
-
-	
-	// Power couple
-	CurrentMax = 0;
-	Winner = -1;
-	WinnerName = "--";
-
-	for (i = 0; i < EnemyStats.Length; ++i)
-	{
-		Results = EnemyStats[i].Results;
-		if (Results.Length > 1)
-		{
-			for (j = 0; j < Results.Length; ++j)
-			{
-				Unit1 = Results[j].UnitID;
-				Found = false;
-				for (k = j + 1; k < Results.Length; ++k)
-				{
-					Unit2 = Results[k].UnitID;
-
-					for (m = 0; m < PowerCouples.Length; ++m)
-					{
-						Couple = PowerCouples[m];
-						if ((Couple.Unit1 == Unit1 && Couple.Unit2 == Unit2) ||
-							(Couple.Unit2 == Unit1 && Couple.Unit1 == Unit2))
-						{
-							PowerCouples[m].Damage += Results[j].Damage + Results[k].Damage;
-							Found = true;
-							break;
-						}
-					}
-
-					// Add new power couple
-					if (!Found)
-					{
-						Couple.Unit1 = Unit1;
-						Couple.Unit2 = Unit2;
-						Couple.Damage = Results[j].Damage + Results[k].Damage;
-						PowerCouples.AddItem(Couple);
-					}
-				}
-			}
-		}
-	}
-
-	// Find the most powerful couple
-	for (i = 0; i < PowerCouples.Length; ++i)
-	{
-		Value = PowerCouples[i].Damage;
-		if (Value > CurrentMax)
-		{
-			CurrentMax = Value;
-			Winner = i;
-		}
-	}
-	
-	if (Winner >= 0)
-	{
-		WinnerName = Squad[PowerCouples[Winner].Unit1].GetFullName() $ " & " $ Squad[PowerCouples[Winner].Unit2].GetFullName();
-	}
-	Screen.Spawn(class'UIDropShipBriefing_ListItem', ItemContainer).InitListItem(ItemID, m_strPowerCouple, WinnerName, bOverrideRightList);
 }
 
 defaultproperties
