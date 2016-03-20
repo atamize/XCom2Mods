@@ -1,3 +1,8 @@
+//  FILE:    MAV_Category_AlrightKid
+//  AUTHOR:  atamize
+//  PURPOSE: Not Bad, Kid - Lowest ranked soldier did more damage than a higher ranked soldier
+//
+//--------------------------------------------------------------------------------------- 
 class MAV_Category_AlrightKid extends MAV_BaseCategory;
 
 function CalculateWinner(MAV_MissionStats MissionStats)

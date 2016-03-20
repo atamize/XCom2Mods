@@ -5,8 +5,7 @@
 //
 //--------------------------------------------------------------------------------------- 
 class MAV_UIMissionEndScreenListener extends UIScreenListener
-	dependson(XComGameState_MissionStats_Unit, MAV_BaseCategory)
-	config (MissionAwardVariety);
+	dependson(XComGameState_MissionStats_Unit, MAV_BaseCategory);
 
 var localized string m_strHatesTheMost;
 var localized string m_strLuckiest;
@@ -21,8 +20,6 @@ var localized string m_strTurtle;
 var localized string m_strAlrightKid;
 var localized string m_strTooOld;
 var localized string m_strMostHigh;
-
-var config bool bOverrideRightList;
 
 var array<MAV_BaseCategory> Categories;
 
@@ -133,6 +130,7 @@ event OnInit(UIScreen Screen)
 	local bool Found;
 	local MAV_MissionStats Stats;
 	local MAV_BaseCategory Category;
+	local array<MAV_BaseCategory> Winners, Losers;
 
 	MissionEndScreen = UIDropShipBriefing_MissionEnd(Screen);
 	History = `XCOMHISTORY;
@@ -145,8 +143,13 @@ event OnInit(UIScreen Screen)
 		Squad.AddItem(Unit);
 		MissionStats = class'MAV_Utilities'.static.EnsureHasUnitStats(Unit);
 		`log("Stats for " $ Unit.GetName(eNameType_FullNick));
+		`log("Rank: " $ Unit.GetSoldierRank());
 		`log("Damage: " $ MissionStats.DamageDealt);
 		`log("Luck: " $ MissionStats.Luck);
+		`log("Elevation: " $ MissionStats.Elevation);
+		`log("WoundedDamage: " $ MissionStats.WoundedDamage);
+		`log("Turtle: " $ MissionStats.Turtle);
+		`log("Shots Against: " $ MissionStats.ShotsAgainst);
 
 		foreach MissionStats.EnemyStats(Result)
 		{
@@ -187,12 +190,13 @@ event OnInit(UIScreen Screen)
 	// Create categories
 	Categories.Length = 0;
 
-	//AddCategory(new class'MAV_Category_HatesMost', m_strHatesTheMost, Size);
-	//AddCategory(new class'MAV_Category_Luckiest', m_strLuckiest, Size);
-	//AddCategory(new class'MAV_Category_SoloSlayer', m_strSoloSlayer, Size);
-	//AddCategory(new class'MAV_Category_PowerCouple', m_strPowerCouple, Size);
+	AddCategory(new class'MAV_Category_HatesMost', m_strHatesTheMost, Size);
+	AddCategory(new class'MAV_Category_Luckiest', m_strLuckiest, Size);
+	AddCategory(new class'MAV_Category_SoloSlayer', m_strSoloSlayer, Size);
+	AddCategory(new class'MAV_Category_PowerCouple', m_strPowerCouple, Size);
 	AddCategory(new class'MAV_Category_MostAssists', m_strMostAssists, Size);
 	AddCategory(new class'MAV_Category_KillStealer', m_strKillStealer, Size);
+	AddCategory(new class'MAV_Category_MostHigh', m_strMostHigh, Size);
 	AddCategory(new class'MAV_Category_MostCritDamage', m_strMostCritDamage, Size);
 	AddCategory(new class'MAV_Category_Unluckiest', m_strUnluckiest, Size);
 	AddCategory(new class'MAV_Category_TimeToBleed', m_strTimeToBleed, Size);
@@ -200,25 +204,46 @@ event OnInit(UIScreen Screen)
 	AddCategory(new class'MAV_Category_AlrightKid', m_strAlrightKid, Size);
 	AddCategory(new class'MAV_Category_TooOld', m_strTooOld, Size);
 
-	// Calculate and display winners
-	ItemID = 'PostStatLeftRowItem';
-	ItemContainer = MissionEndScreen.LeftList.ItemContainer;
-	ItemContainer.RemoveChildren();
-	for (i = 0; i < 4; ++i)
+	// Shuffle list
+	for (i = 0; i < Categories.Length; ++i)
+	{
+		Category = Categories[i];
+		j = `SYNC_RAND(Categories.Length);
+		Categories[i] = Categories[j];
+		Categories[j] = Category;
+	}
+
+	// Determine winners
+	for (i = 0; i < Categories.Length; ++i)
 	{
 		Category = Categories[i];
 		Category.CalculateWinner(Stats);
+		
+		if (Category.HasWinner())
+			Winners.AddItem(Category);
+		else
+			Losers.AddItem(Category);
+	}
+
+	// Display winners
+	ItemID = 'PostStatLeftRowItem';
+	ItemContainer = MissionEndScreen.LeftList.ItemContainer;
+	ItemContainer.RemoveChildren();
+	Size = Min(4, Winners.Length);
+	j = Size;
+	for (i = 0; i < Size; ++i)
+	{
+		Category = Winners[i];
 		Screen.Spawn(class'UIDropShipBriefing_ListItem', ItemContainer).InitListItem(ItemID, Category.Label, Category.WinnerName, false);
 	}
 
 	ItemID = 'PostStatRightRowItem';
 	ItemContainer = MissionEndScreen.RightList.ItemContainer;
 	ItemContainer.RemoveChildren();
-	`log("MAV Category length " $ Categories.Length);
-	for (i = 4; i < Categories.Length; ++i)
+	Size = Min(8, Winners.Length);
+	for (i = j; i < Size; ++i)
 	{
-		Category = Categories[i];
-		Category.CalculateWinner(Stats);
+		Category = Winners[i];
 		Screen.Spawn(class'UIDropShipBriefing_ListItem', ItemContainer).InitListItem(ItemID, Category.Label, Category.WinnerName, true);
 	}
 }

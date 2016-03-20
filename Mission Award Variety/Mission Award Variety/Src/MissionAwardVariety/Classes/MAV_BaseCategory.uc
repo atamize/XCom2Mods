@@ -1,3 +1,8 @@
+//  FILE:    MAV_BaseCategory
+//  AUTHOR:  atamize
+//  PURPOSE: Base class for all award categories
+//
+//--------------------------------------------------------------------------------------- 
 class MAV_BaseCategory extends Object dependson(XComGameState_MissionStats_Unit);
 
 struct EnemyDamageCount

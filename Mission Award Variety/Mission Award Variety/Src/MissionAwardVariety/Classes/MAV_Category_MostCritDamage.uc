@@ -1,3 +1,8 @@
+//  FILE:    MAV_Category_MostCritDamage
+//  AUTHOR:  atamize
+//  PURPOSE: Heavy Hitter - Most crit damage dealt
+//
+//--------------------------------------------------------------------------------------- 
 class MAV_Category_MostCritDamage extends MAV_BaseCategory;
 
 function CalculateWinner(MAV_MissionStats MissionStats)

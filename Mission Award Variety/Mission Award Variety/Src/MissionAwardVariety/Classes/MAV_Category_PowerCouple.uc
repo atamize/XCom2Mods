@@ -1,3 +1,8 @@
+//  FILE:    MAV_Category_PowerCouple
+//  AUTHOR:  atamize
+//  PURPOSE: Power Couple - Two soldiers that did the most damage while double-teaming enemies
+//
+//--------------------------------------------------------------------------------------- 
 class MAV_Category_PowerCouple extends MAV_BaseCategory;
 
 struct PowerCouple

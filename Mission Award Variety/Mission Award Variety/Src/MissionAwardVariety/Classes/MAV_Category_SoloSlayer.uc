@@ -1,3 +1,8 @@
+//  FILE:    MAV_Category_SoloSlayer
+//  AUTHOR:  atamize
+//  PURPOSE: Solo Slayer - Most damage to enemies without help from teammates
+//
+//--------------------------------------------------------------------------------------- 
 class MAV_Category_SoloSlayer extends MAV_BaseCategory;
 
 function CalculateWinner(MAV_MissionStats MissionStats)

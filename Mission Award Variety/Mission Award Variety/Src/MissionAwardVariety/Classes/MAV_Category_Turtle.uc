@@ -1,4 +1,11 @@
-class MAV_Category_Turtle extends MAV_BaseCategory;
+//  FILE:    MAV_Category_Turtle
+//  AUTHOR:  atamize
+//  PURPOSE: Loves Being a Turtle - Most overwatches + hunker downs
+//
+//--------------------------------------------------------------------------------------- 
+class MAV_Category_Turtle extends MAV_BaseCategory config(MissionAwardVariety);
+
+var config int MinimumTurtling;
 
 function CalculateWinner(MAV_MissionStats MissionStats)
 {
@@ -9,7 +16,7 @@ function CalculateWinner(MAV_MissionStats MissionStats)
 		Value = MissionStats.UnitStats[i].Turtle;
 		// There is minimum amount of turtling required to received this award
 		// e.g. at least 2 hunkers or 4 overwatches
-		if (Value > 3)
+		if (Value >= MinimumTurtling)
 		{
 			Scores[i] = Value;
 		}

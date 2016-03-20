@@ -1,3 +1,8 @@
+//  FILE:    MAV_Category_TimeToBleed
+//  AUTHOR:  atamize
+//  PURPOSE: Ain't Got Time To Bleed - Dealt most damage while wounded
+//
+//--------------------------------------------------------------------------------------- 
 class MAV_Category_TimeToBleed extends MAV_BaseCategory;
 
 function CalculateWinner(MAV_MissionStats MissionStats)

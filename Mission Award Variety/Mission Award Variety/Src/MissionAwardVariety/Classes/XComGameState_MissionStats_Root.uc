@@ -5,10 +5,13 @@
 //
 //  Thanks to Kosmo and the Lifetime Stats mod on which this is based
 //--------------------------------------------------------------------------------------- 
-class XComGameState_MissionStats_Root extends XComGameState_BaseObject;
+class XComGameState_MissionStats_Root extends XComGameState_BaseObject config(MissionAwardVariety);
 
 var string CURRENT_VERSION;
 var string ModVersion;
+
+var config int TurtleScoreOverwatch;
+var config int TurtleScoreHunkerDown;
 
 delegate AbilityDelegate(XComGameState_Unit Unit, XComGameState_Ability Ability, XComGameStateContext_Ability AbilityContext, XComGameState_MissionStats_Unit UnitStats);
 
@@ -29,7 +32,6 @@ function RegisterAbilityActivated()
 	EventMgr = `XEVENTMGR;
 	EventMgr.RegisterForEvent(ThisObj, 'AbilityActivated', OnAbilityActivated, ELD_OnVisualizationBlockStarted);
 	EventMgr.RegisterForEvent(ThisObj, 'UnitTakeEffectDamage', OnUnitTookDamage, ELD_OnVisualizationBlockStarted);
-	EventMgr.RegisterForEvent(ThisObj, 'UnitMoveFinished', OnUnitMoveFinished, ELD_OnStateSubmitted);
 }
 
 function EventListenerReturn OnAbilityActivated(Object EventData, Object EventSource, XComGameState GameState, Name EventID)
@@ -171,6 +173,7 @@ function XComGameState_MissionStats_Unit UpdateStats(XComGameState_Unit Unit, XC
 	`log("Name: " $ NewUnit.GetFullName());
 	`log("DamageDone: " $ NewUnitStats.DamageDealt);
 	`log("Luck: " $ NewUnitStats.Luck);
+	`log("Elevation: " $ NewUnitStats.Elevation);
 	`log("WoundedDamage: " $ NewUnitStats.WoundedDamage);
 	`log("Turtle: " $ NewUnitStats.Turtle);
 	`log("Shots Against: " $ NewUnitStats.ShotsAgainst);
@@ -182,28 +185,10 @@ function XComGameState_MissionStats_Unit UpdateStats(XComGameState_Unit Unit, XC
 	return NewUnitStats;
 }
 
-function EventListenerReturn OnUnitMoveFinished(Object EventData, Object EventSource, XComGameState GameState, Name EventID)
-{
-	local XComGameState_Unit Unit;
-	local TTile UnitTileLocation;
-	local Vector UnitLocation;
-
-	Unit = XComGameState_Unit(EventSource);
-	if (Unit.IsSoldier() || Unit.IsCivilian())
-	{
-		Unit.GetKeystoneVisibilityLocation(UnitTileLocation);
-		UnitLocation = `XWORLD.GetPositionFromTileCoordinates(UnitTileLocation);
-		`log("===============  Unit Moved  ====================");
-		`log("Name: " $ Unit.GetFullName());
-		`log("Elevation: " $ UnitLocation.Z);
-	}
-
-	return ELR_NoInterrupt;
-}
-
 function ShotDelegate(XComGameState_Unit Unit, XComGameState_Ability Ability, XComGameStateContext_Ability AbilityContext, XComGameState_MissionStats_Unit UnitStats)
 {
 	local int Chance;
+	local XComGameState_Unit TargetUnit;
 
 	// Calculate luck
 	Chance = Clamp(AbilityContext.ResultContext.CalculatedHitChance, 0, 100);
@@ -216,6 +201,13 @@ function ShotDelegate(XComGameState_Unit Unit, XComGameState_Ability Ability, XC
 		else
 		{
 			UnitStats.Unluck = UnitStats.Unluck + Chance;
+		}
+
+		// Determine elevation for Most High award
+		TargetUnit = XComGameState_Unit(`XCOMHISTORY.GetGameStateForObjectID(AbilityContext.InputContext.PrimaryTarget.ObjectID));
+		if (Unit.HasHeightAdvantageOver(TargetUnit, true))
+		{
+			UnitStats.Elevation += (Unit.TileLocation.Z - TargetUnit.TileLocation.Z);
 		}
 	}
 	else
@@ -239,12 +231,12 @@ function TurtleDelegate(XComGameState_Unit Unit, XComGameState_Ability Ability, 
 	TemplateName = Ability.GetMyTemplateName();
 
 	if (TemplateName == 'Overwatch')
-		UnitStats.Turtle++;
+		UnitStats.Turtle += TurtleScoreOverwatch;
 	else if (TemplateName == 'HunkerDown')
-		UnitStats.Turtle += 2;
+		UnitStats.Turtle += TurtleScoreHunkerDown;
 }
 
 defaultproperties
 {
-	CURRENT_VERSION = "1.0.0";
+	CURRENT_VERSION = "1.1.0";
 }

@@ -1,3 +1,8 @@
+//  FILE:    MAV_Category_HatesMost
+//  AUTHOR:  atamize
+//  PURPOSE: Hates 'X' The Most - Dealt most damage to the most damaged enemy type
+//
+//--------------------------------------------------------------------------------------- 
 class MAV_Category_HatesMost extends MAV_BaseCategory;
 
 struct HateCount

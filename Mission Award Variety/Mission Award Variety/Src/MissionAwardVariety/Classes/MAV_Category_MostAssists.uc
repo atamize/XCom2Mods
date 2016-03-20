@@ -1,3 +1,8 @@
+//  FILE:    MAV_Category_MostAssist
+//  AUTHOR:  atamize
+//  PURPOSE: Most Assists - Most damage that didn't result in a kill
+//
+//--------------------------------------------------------------------------------------- 
 class MAV_Category_MostAssists extends MAV_BaseCategory;
 
 function CalculateWinner(MAV_MissionStats MissionStats)

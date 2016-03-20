@@ -1,3 +1,9 @@
+//---------------------------------------------------------------------------------------
+//  FILE:    MAV_Category_KillStealer
+//  AUTHOR:  atamize
+//  PURPOSE: Kill Stealer - Finished off the most enemies previously damaged by others
+//
+//--------------------------------------------------------------------------------------- 
 class MAV_Category_KillStealer extends MAV_BaseCategory;
 
 function CalculateWinner(MAV_MissionStats MissionStats)
@@ -25,7 +31,7 @@ function CalculateWinner(MAV_MissionStats MissionStats)
 	// who did the least amount of work to kill enemies
 	Winner = CalculateMin(Scores);
 
-	if (Winner >= 0)
+	if (Winner >= 0 && Scores[Winner] > 0)
 	{
 		WinnerName = MissionStats.Squad[Winner].GetName(eNameType_FullNick);
 	}
