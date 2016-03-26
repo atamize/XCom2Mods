@@ -34,5 +34,6 @@ function CalculateWinner(MAV_MissionStats MissionStats)
 	if (Winner >= 0 && Scores[Winner] > 0)
 	{
 		WinnerName = MissionStats.Squad[Winner].GetName(eNameType_FullNick);
+		Winners.AddItem(Winner);
 	}
 }
