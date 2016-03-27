@@ -247,5 +247,5 @@ function TurtleDelegate(XComGameState_Unit Unit, XComGameState_Ability Ability, 
 
 defaultproperties
 {
-	CURRENT_VERSION = "1.1.0";
+	CURRENT_VERSION = "1.1.1";
 }

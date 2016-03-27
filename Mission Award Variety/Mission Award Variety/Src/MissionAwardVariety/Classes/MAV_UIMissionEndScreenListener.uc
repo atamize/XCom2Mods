@@ -30,7 +30,7 @@ var config array<int> DisplayOrder;
 var config int NumScreens;
 
 var UIDropShipBriefing_MissionEnd MissionEndScreen;
-var array<MAV_BaseCategory> Categories, Winners, Backlog;
+var array<MAV_BaseCategory> Categories, Winners;
 var int StatCycle, InfoCounter;
 
 function name GetEnemyType(XComGameState_Unit Unit)
@@ -142,6 +142,7 @@ event OnInit(UIScreen Screen)
 	local bool Found;
 	local MAV_MissionStats Stats;
 	local MAV_BaseCategory Category;
+	local array<MAV_BaseCategory> Backlog;
 	local array<int> WinnerCounts;
 	local XComGameState_Analytics Analytics;
 
@@ -203,6 +204,7 @@ event OnInit(UIScreen Screen)
 
 	// Create categories
 	Categories.Length = 0;
+	Winners.Length = 0;
 
 	AddCategory(new class'MAV_Category_HatesMost', m_strHatesTheMost, Size);
 	AddCategory(new class'MAV_Category_Luckiest', m_strLuckiest, Size);
