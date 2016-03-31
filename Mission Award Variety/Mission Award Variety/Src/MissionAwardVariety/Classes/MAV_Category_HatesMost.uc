@@ -77,12 +77,10 @@ function CalculateWinner(MAV_MissionStats MissionStats)
 	}
 
 	Winner = CalculateMax(Scores);
+	Winners.AddItem(Winner);
 
-	// 'FACELESS' doesn't retain capitalization, probably because a non-capitalized version
-	// already exists and Unrealscript names aren't case-sensitive. Just hack in the name here
-	HatedName = string(MostHated);
-	if (MostHated == 'FACELESS')
-		HatedName = "FACELESS";
+	// Some names don't retain capitalization, so just force it here
+	HatedName = Caps(MostHated);
 
 	WinnerName = MissionStats.Squad[Winner].GetName(eNameType_FullNick);
 	Label = repl(Label, "#Unit", HatedName);

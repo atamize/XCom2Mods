@@ -21,13 +21,14 @@ struct MAV_MissionStats
 
 var string WinnerName;
 var string Label;
+var array<int> Winners;
 
 var protected array<int> Scores;
 
 
 function bool HasWinner()
 {
-	return WinnerName != "--";
+	return Winners.Length > 0;
 }
 
 function MAV_BaseCategory Initialize(string LocalizedLabel, int Size)
@@ -98,6 +99,7 @@ protected function SetWinnerBasic(array<XComGameState_Unit> Units)
 	if (Winner >= 0)
 	{
 		WinnerName = Units[Winner].GetName(eNameType_FullNick);
+		Winners.AddItem(Winner);
 	}
 }
 

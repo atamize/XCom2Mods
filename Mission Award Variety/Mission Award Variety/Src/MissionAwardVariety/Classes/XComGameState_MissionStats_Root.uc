@@ -85,7 +85,8 @@ function EventListenerReturn OnUnitTookDamage(Object EventData, Object EventSour
 	local XComGameState_MissionStats_Unit UnitStats, NewUnitStats;
 	local XComGameState_Unit DamagedUnit, AttackingUnit, NewUnit;
 	local DamageResult DamageResult;
-	local int WoundHP;
+	local int WoundHP, DamageAmount;
+	local name TemplateName;
 	
 	Context = XComGameStateContext_Ability(GameState.GetContext());
 	if (context == none)
@@ -97,9 +98,10 @@ function EventListenerReturn OnUnitTookDamage(Object EventData, Object EventSour
 		return ELR_NoInterrupt;
 	
 	DamageResult = DamagedUnit.DamageResults[DamagedUnit.DamageResults.Length-1];
+	TemplateName = DamagedUnit.GetMyTemplateName();
 	`log("===============  UNIT TOOK DAMAGE  ====================");
 	`log("Attacker: " $ AttackingUnit.GetFullName());
-	`log("Damaged: " $ DamagedUnit.GetFullName());
+	`log("Damaged: " $ DamagedUnit.GetFullName() @ "-" @ TemplateName);
 	`log("DamageAmt: " $ DamageResult.DamageAmount);
 	
 	ChangeContainer = class'XComGameStateContext_ChangeContainer'.static.CreateEmptyChangeContainer("Adding Damage UnitStats for " $ AttackingUnit.GetFullName() $ " and " $ DamagedUnit.GetFullName());
@@ -111,9 +113,16 @@ function EventListenerReturn OnUnitTookDamage(Object EventData, Object EventSour
 		UnitStats = class'MAV_Utilities'.static.EnsureHasUnitStats(AttackingUnit);
 		NewUnit = XComGameState_Unit(NewGameState.CreateStateObject(class'XComGameState_Unit', AttackingUnit.ObjectID));
 		NewUnitStats = XComGameState_MissionStats_Unit(NewGameState.CreateStateObject(class'XComGameState_MissionStats_Unit', UnitStats.ObjectID));
-		
+		DamageAmount = DamageResult.DamageAmount;
+
+		// Civilian damage should count for a lot so they are properly shamed by Hates 'X' award
+		if (TemplateName == 'Civilian' || TemplateName == 'HostileCivilian' || TemplateName == 'HostileVIPCivilian')
+		{
+			DamageAmount *= 1000;
+		}
+
 		NewUnitStats.DamageDealt = UnitStats.DamageDealt + DamageResult.DamageAmount;
-		NewUnitStats.AddDamageToUnit(DamagedUnit.ObjectID, DamageResult.DamageAmount, DamagedUnit.IsDead());
+		NewUnitStats.AddDamageToUnit(DamagedUnit.ObjectID, DamageAmount, DamagedUnit.IsDead());
 
 		// Crit Damage
 		if (Context.ResultContext.HitResult == eHit_Crit)
@@ -196,11 +205,11 @@ function ShotDelegate(XComGameState_Unit Unit, XComGameState_Ability Ability, XC
 	{
 		if (AbilityContext.IsResultContextHit())
 		{
-			UnitStats.Luck = UnitStats.Luck + (100 - Chance);
+			UnitStats.Luck += (100 - Chance);
 		}
 		else
 		{
-			UnitStats.Unluck = UnitStats.Unluck + Chance;
+			UnitStats.Luck -= Chance;
 		}
 
 		// Determine elevation for Most High award
@@ -214,11 +223,11 @@ function ShotDelegate(XComGameState_Unit Unit, XComGameState_Ability Ability, XC
 	{
 		if (AbilityContext.IsResultContextHit())
 		{
-			UnitStats.Unluck = UnitStats.Unluck + (100 - Chance);
+			UnitStats.Luck -= (100 - Chance);
 		}
 		else
 		{
-			UnitStats.Luck = UnitStats.Luck + Chance;
+			UnitStats.Luck += Chance;
 		}
 
 		UnitStats.ShotsAgainst++;
@@ -238,5 +247,5 @@ function TurtleDelegate(XComGameState_Unit Unit, XComGameState_Ability Ability, 
 
 defaultproperties
 {
-	CURRENT_VERSION = "1.1.0";
+	CURRENT_VERSION = "1.1.1";
 }
