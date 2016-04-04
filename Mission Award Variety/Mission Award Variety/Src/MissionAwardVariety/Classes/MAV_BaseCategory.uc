@@ -3,7 +3,7 @@
 //  PURPOSE: Base class for all award categories
 //
 //--------------------------------------------------------------------------------------- 
-class MAV_BaseCategory extends Object dependson(XComGameState_MissionStats_Unit);
+class MAV_BaseCategory extends Object dependson(XComGameState_MissionStats_Unit, XComGameState_MissionStats_Root);
 
 struct EnemyDamageCount
 {
@@ -16,14 +16,14 @@ struct MAV_MissionStats
 {
 	var array<EnemyDamageCount> EnemyDamageCounts;
 	var array<XComGameState_Unit> Squad;
-	var array<XComGameState_MissionStats_Unit> UnitStats;
+	var array<MAV_UnitStats> UnitStats;
 };
 
 var string WinnerName;
 var string Label;
 var array<int> Winners;
 
-var protected array<int> Scores;
+var array<int> Scores;
 
 
 function bool HasWinner()
@@ -91,7 +91,7 @@ protected function int CalculateMin(array<int> List)
 	return CurrentLeader;
 }
 
-protected function SetWinnerBasic(array<XComGameState_Unit> Units)
+function SetWinnerBasic(array<XComGameState_Unit> Units)
 {
 	local int Winner;
 

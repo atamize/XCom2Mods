@@ -13,6 +13,7 @@ struct MAV_DamageResult
 	var bool Killed;
 };
 
+var int UnitID;
 var int Luck;
 var int DamageDealt;
 var int Elevation;
@@ -20,6 +21,7 @@ var int CritDamage;
 var int WoundedDamage; // For the "Ain't Got Time to Bleed" award
 var int Turtle; // Sums overwatching and hunkers for Turtle award
 var int ShotsAgainst;
+var int CloseRangeValue; // Tiles + Damage for close range award
 var array<MAV_DamageResult> EnemyStats;
 
 function XComGameState_MissionStats_Unit InitComponent()
@@ -31,18 +33,19 @@ function XComGameState_MissionStats_Unit InitComponent()
 	WoundedDamage = 0;
 	Turtle = 0;
 	ShotsAgainst = 0;
+	CloseRangeValue = 0;
 	EnemyStats.Length = 0;
 
 	return self;
 }
 
-function AddDamageToUnit(int UnitID, int DamageAmount, bool Killed)
+function AddDamageToUnit(int MyUnitID, int DamageAmount, bool Killed)
 {
 	local MAV_DamageResult Entry;
 
 	foreach EnemyStats(Entry)
 	{
-		if (Entry.UnitID == UnitID)
+		if (Entry.UnitID == MyUnitID)
 		{
 			Entry.Damage += DamageAmount;
 			Entry.Killed = Killed;
@@ -50,7 +53,7 @@ function AddDamageToUnit(int UnitID, int DamageAmount, bool Killed)
 		}
 	}
 
-	Entry.UnitID = UnitID;
+	Entry.UnitID = MyUnitID;
 	Entry.Damage = DamageAmount;
 	Entry.Killed = Killed;
 	EnemyStats.AddItem(Entry);

@@ -7,18 +7,37 @@
 //--------------------------------------------------------------------------------------- 
 class XComGameState_MissionStats_Root extends XComGameState_BaseObject config(MissionAwardVariety);
 
+struct MAV_UnitStats
+{
+	var int UnitID;
+	var int Luck;
+	var int DamageDealt;
+	var int Elevation;
+	var int CritDamage;
+	var int WoundedDamage; // For the "Ain't Got Time to Bleed" award
+	var int Turtle; // Sums overwatching and hunkers for Turtle award
+	var int ShotsAgainst;
+	var int CloseRangeValue; // Tiles + Damage for close range award
+	var int DashingTiles; // Tiles moved while dashing
+	var int OverwatchTaken; // Overwatches ran + bonus for not getting hit
+	var array<MAV_DamageResult> EnemyStats;
+};
+
 var string CURRENT_VERSION;
 var string ModVersion;
+var array<MAV_UnitStats> MAV_Stats;
 
 var config int TurtleScoreOverwatch;
 var config int TurtleScoreHunkerDown;
+var config int CloseRangeTiles;
 
-delegate AbilityDelegate(XComGameState_Unit Unit, XComGameState_Ability Ability, XComGameStateContext_Ability AbilityContext, XComGameState_MissionStats_Unit UnitStats);
+delegate MAV_UnitStats AbilityDelegate(XComGameState_Unit Unit, XComGameState_Ability Ability, XComGameStateContext_Ability AbilityContext, MAV_UnitStats UnitStats);
 
 function XComGameState_MissionStats_Root InitComponent()
 {
 	RegisterAbilityActivated();	
 	ModVersion = CURRENT_VERSION;
+	`log("Initializing MAV at version: " $ ModVersion);
 	return self;
 }
 
@@ -27,11 +46,13 @@ function RegisterAbilityActivated()
 	local Object ThisObj;
 	local X2EventManager EventMgr;
 
+	MAV_Stats.Length = 0;
 	ThisObj = self;
 	
 	EventMgr = `XEVENTMGR;
 	EventMgr.RegisterForEvent(ThisObj, 'AbilityActivated', OnAbilityActivated, ELD_OnVisualizationBlockStarted);
 	EventMgr.RegisterForEvent(ThisObj, 'UnitTakeEffectDamage', OnUnitTookDamage, ELD_OnVisualizationBlockStarted);
+//	EventMgr.RegisterForEvent(ThisObj, 'UnitMoveFinished', OnUnitMoveFinished, ELD_OnStateSubmitted);
 }
 
 function EventListenerReturn OnAbilityActivated(Object EventData, Object EventSource, XComGameState GameState, Name EventID)
@@ -54,8 +75,12 @@ function EventListenerReturn OnAbilityActivated(Object EventData, Object EventSo
 	if (AbilityContext == none)
 		return ELR_NoInterrupt;
 
+	// A random shot can be fired from nobody? Just ignore
+	if (Len(SourceUnit.GetFullName()) == 0)
+		return ELR_NoInterrupt;
+
 	TemplateName = AbilityState.GetMyTemplateName();
-	IsSoldier = SourceUnit.IsSoldier() || SourceUnit.IsCivilian();
+	IsSoldier = (SourceUnit.GetTeam() == eTeam_XCom) || SourceUnit.IsMindControlled();
 
 	if (class'MAV_Utilities'.static.IsShotType(TemplateName))
 	{
@@ -70,23 +95,56 @@ function EventListenerReturn OnAbilityActivated(Object EventData, Object EventSo
 	else if (IsSoldier)
 	{
 		//`log("MAV Not shooting, but doing " $ TemplateName);
-		if (TemplateName == 'Overwatch' || TemplateName == 'HunkerDown')
-			UpdateStats(SourceUnit, AbilityState, AbilityContext, TurtleDelegate);
+		switch (TemplateName)
+		{
+			case 'Overwatch':
+			case 'HunkerDown':
+				UpdateStats(SourceUnit, AbilityState, AbilityContext, TurtleDelegate);
+				break;
+		}
 	}
 	
 	return ELR_NoInterrupt;
 }
 
+//function EventListenerReturn OnUnitMoveFinished(Object EventData, Object EventSource, XComGameState GameState, Name EventID)
+//{
+	//return ELR_NoInterrupt;
+//}
+
+function int GetStatsIndexForUnit(int UnitID)
+{
+	local int i;
+	local MAV_UnitStats Stats;
+
+	for (i = 0; i < MAV_Stats.Length; ++i)
+	{
+		if (MAV_Stats[i].UnitID == UnitID)
+		{
+			return i;
+		}
+	}
+
+	Stats.UnitID = UnitID;
+	i = MAV_Stats.Length;
+	MAV_Stats.AddItem(Stats);
+
+	return i;
+}
+
 function EventListenerReturn OnUnitTookDamage(Object EventData, Object EventSource, XComGameState GameState, Name EventID)
 {
-	local XComGameStateContext_ChangeContainer ChangeContainer;
 	local XComGameState NewGameState;	
 	local XComGameStateContext_Ability Context;
-	local XComGameState_MissionStats_Unit UnitStats, NewUnitStats;
-	local XComGameState_Unit DamagedUnit, AttackingUnit, NewUnit;
+	local MAV_UnitStats UnitStats;
+	local XComGameState_MissionStats_Root NewRoot;
+	local XComGameStateContext_ChangeContainer ChangeContainer;
+	local XComGameState_Unit DamagedUnit, AttackingUnit;
 	local DamageResult DamageResult;
-	local int WoundHP, DamageAmount;
+	local int WoundHP, DamageAmount, i;
 	local name TemplateName;
+	local MAV_DamageResult Entry;
+	local bool Found, IsKilled;
 	
 	Context = XComGameStateContext_Ability(GameState.GetContext());
 	if (context == none)
@@ -105,14 +163,15 @@ function EventListenerReturn OnUnitTookDamage(Object EventData, Object EventSour
 	`log("DamageAmt: " $ DamageResult.DamageAmount);
 	
 	ChangeContainer = class'XComGameStateContext_ChangeContainer'.static.CreateEmptyChangeContainer("Adding Damage UnitStats for " $ AttackingUnit.GetFullName() $ " and " $ DamagedUnit.GetFullName());
-	NewGameState = `XCOMHISTORY.CreateNewGameState(true, ChangeContainer);
+	NewGameState = `XCOMHISTORY.CreateNewGameState(true, ChangeContainer);	
+	NewRoot = XComGameState_MissionStats_Root(NewGameState.CreateStateObject(class'XComGameState_MissionStats_Root', self.ObjectID));
 
-	if (AttackingUnit.IsSoldier())
+	if (AttackingUnit.GetTeam() == eTeam_XCom || AttackingUnit.IsMindControlled())
 	{
 		// Update stats if we were the attacker
-		UnitStats = class'MAV_Utilities'.static.EnsureHasUnitStats(AttackingUnit);
-		NewUnit = XComGameState_Unit(NewGameState.CreateStateObject(class'XComGameState_Unit', AttackingUnit.ObjectID));
-		NewUnitStats = XComGameState_MissionStats_Unit(NewGameState.CreateStateObject(class'XComGameState_MissionStats_Unit', UnitStats.ObjectID));
+		i = NewRoot.GetStatsIndexForUnit(AttackingUnit.ObjectID);
+		UnitStats = NewRoot.MAV_Stats[i];
+
 		DamageAmount = DamageResult.DamageAmount;
 
 		// Civilian damage should count for a lot so they are properly shamed by Hates 'X' award
@@ -121,28 +180,48 @@ function EventListenerReturn OnUnitTookDamage(Object EventData, Object EventSour
 			DamageAmount *= 1000;
 		}
 
-		NewUnitStats.DamageDealt = UnitStats.DamageDealt + DamageResult.DamageAmount;
-		NewUnitStats.AddDamageToUnit(DamagedUnit.ObjectID, DamageAmount, DamagedUnit.IsDead());
+		UnitStats.DamageDealt = UnitStats.DamageDealt + DamageResult.DamageAmount;
+
+		// Add damage entry to unit
+		Found = false;
+		IsKilled = DamagedUnit.IsDead();
+		foreach UnitStats.EnemyStats(Entry)
+		{
+			if (Entry.UnitID == DamagedUnit.ObjectID)
+			{
+				Entry.Damage += DamageAmount;
+				Entry.Killed = IsKilled;
+				Found = true;
+			}
+		}
+
+		if (!Found)
+		{
+			Entry.UnitID = DamagedUnit.ObjectID;
+			Entry.Damage = DamageAmount;
+			Entry.Killed = IsKilled;
+			UnitStats.EnemyStats.AddItem(Entry);
+		}
 
 		// Crit Damage
 		if (Context.ResultContext.HitResult == eHit_Crit)
 		{
-			NewUnitStats.CritDamage += DamageResult.DamageAmount;
+			UnitStats.CritDamage += DamageResult.DamageAmount;
 		}
 
 		// Damage while wounded for "Ain't Got Time to Bleed"
 		if (AttackingUnit.IsInjured())
 		{
 			WoundHP = AttackingUnit.GetMaxStat(eStat_HP) - AttackingUnit.GetCurrentStat(eStat_HP);
-			NewUnitStats.WoundedDamage = WoundHP + DamageResult.DamageAmount;
+			UnitStats.WoundedDamage = WoundHP + DamageResult.DamageAmount;
 		}
 	}
 	
-	if (NewUnit != none && NewUnitStats != none)
+	if (NewRoot != none)
 	{
 		// Submit game state
-		NewGameState.AddStateObject(NewUnit);
-		NewGameState.AddStateObject(NewUnitStats);
+		NewRoot.MAV_Stats[i] = UnitStats;
+		NewGameState.AddStateObject(NewRoot);
 		`TACTICALRULES.SubmitGameState(NewGameState);
 	}
 	else
@@ -151,57 +230,48 @@ function EventListenerReturn OnUnitTookDamage(Object EventData, Object EventSour
 	}
 }
 
-function XComGameState_MissionStats_Unit UpdateStats(XComGameState_Unit Unit, XComGameState_Ability Ability, XComGameStateContext_Ability AbilityContext, delegate<AbilityDelegate> MyDelegate)
+function MAV_UnitStats UpdateStats(XComGameState_Unit Unit, XComGameState_Ability Ability, XComGameStateContext_Ability AbilityContext, delegate<AbilityDelegate> MyDelegate)
 {
-	local XComGameStateHistory History;
 	local XComGameState NewGameState;
+	local MAV_UnitStats UnitStats;
+	local XComGameState_MissionStats_Root NewRoot;
 	local XComGameStateContext_ChangeContainer ChangeContainer;
-	local XComGameState_MissionStats_Unit UnitStats, NewUnitStats;
-	local XComGameState_Unit NewUnit;
-
-	UnitStats = class'MAV_Utilities'.static.EnsureHasUnitStats(Unit);
-	if (UnitStats == none)
-	{
-		return none;
-	}
-
-	History = `XCOMHISTORY;
+	local int i;
 
 	// Setup new game state
 	ChangeContainer = class'XComGameStateContext_ChangeContainer'.static.CreateEmptyChangeContainer("Adding Ability MAV UnitStats to " $ Unit.GetFullName());
-	NewGameState = History.CreateNewGameState(true, changeContainer);
-	NewUnit = XComGameState_Unit(NewGameState.CreateStateObject(class'XComGameState_Unit', Unit.ObjectID));
-		
-	// Create and add UnitStats
-	NewUnitStats = XComGameState_MissionStats_Unit(NewGameState.CreateStateObject(class'XComGameState_MissionStats_Unit', UnitStats.ObjectID));
+	NewGameState = `XCOMHISTORY.CreateNewGameState(true, ChangeContainer);
+	NewRoot = XComGameState_MissionStats_Root(NewGameState.CreateStateObject(class'XComGameState_MissionStats_Root', self.ObjectID));
 
-	MyDelegate(NewUnit, Ability, AbilityContext, NewUnitStats);
+	i = NewRoot.GetStatsIndexForUnit(Unit.ObjectID);
+	UnitStats = MyDelegate(Unit, Ability, AbilityContext, NewRoot.MAV_Stats[i]);
+	NewRoot.MAV_Stats[i] = UnitStats;
 
 	`log("===============  AbilityStats  ====================");
 	`log("Ability: " $ Ability.GetMyTemplateName());
-	`log("Name: " $ NewUnit.GetFullName());
-	`log("DamageDone: " $ NewUnitStats.DamageDealt);
-	`log("Luck: " $ NewUnitStats.Luck);
-	`log("Elevation: " $ NewUnitStats.Elevation);
-	`log("WoundedDamage: " $ NewUnitStats.WoundedDamage);
-	`log("Turtle: " $ NewUnitStats.Turtle);
-	`log("Shots Against: " $ NewUnitStats.ShotsAgainst);
+	`log("Name: " $ Unit.GetFullName());
+	class'MAV_Utilities'.static.LogStats(UnitStats);
 	
-	NewGameState.AddStateObject(NewUnit);
-	NewGameState.AddStateObject(NewUnitStats);
+	NewGameState.AddStateObject(NewRoot);
 	`TACTICALRULES.SubmitGameState(NewGameState);
 	
-	return NewUnitStats;
+	return UnitStats;
 }
 
-function ShotDelegate(XComGameState_Unit Unit, XComGameState_Ability Ability, XComGameStateContext_Ability AbilityContext, XComGameState_MissionStats_Unit UnitStats)
+function MAV_UnitStats ShotDelegate(XComGameState_Unit Unit, XComGameState_Ability Ability, XComGameStateContext_Ability AbilityContext, MAV_UnitStats UnitStats)
 {
 	local int Chance;
-	local XComGameState_Unit TargetUnit;
+	local XComGameState_Unit OwnerUnit, TargetUnit;
+	local int Tiles;
+	local bool IsOverwatch;
+	local XComGameStateHistory History;
+
+	History = `XCOMHISTORY;
+	OwnerUnit = XComGameState_Unit(History.GetGameStateForObjectID(Ability.OwnerStateObject.ObjectID));
 
 	// Calculate luck
 	Chance = Clamp(AbilityContext.ResultContext.CalculatedHitChance, 0, 100);
-	if (Unit.IsSoldier() || Unit.IsCivilian())
+	if (OwnerUnit.GetTeam() == eTeam_XCom || OwnerUnit.IsMindControlled())
 	{
 		if (AbilityContext.IsResultContextHit())
 		{
@@ -213,14 +283,25 @@ function ShotDelegate(XComGameState_Unit Unit, XComGameState_Ability Ability, XC
 		}
 
 		// Determine elevation for Most High award
-		TargetUnit = XComGameState_Unit(`XCOMHISTORY.GetGameStateForObjectID(AbilityContext.InputContext.PrimaryTarget.ObjectID));
-		if (Unit.HasHeightAdvantageOver(TargetUnit, true))
+		TargetUnit = XComGameState_Unit(History.GetGameStateForObjectID(AbilityContext.InputContext.PrimaryTarget.ObjectID));
+		if (OwnerUnit.HasHeightAdvantageOver(TargetUnit, true))
 		{
-			UnitStats.Elevation += (Unit.TileLocation.Z - TargetUnit.TileLocation.Z);
+			UnitStats.Elevation += (OwnerUnit.TileLocation.Z - TargetUnit.TileLocation.Z);
+		}
+
+		Tiles = OwnerUnit.TileDistanceBetween(TargetUnit);
+		if (Tiles <= CloseRangeTiles)
+		{
+			UnitStats.CloseRangeValue += (CloseRangeTiles - Tiles + 1) + TargetUnit.DamageResults[TargetUnit.DamageResults.Length-1].DamageAmount;
 		}
 	}
 	else
 	{
+		IsOverwatch = (Ability.GetMyTemplateName() == 'OverwatchShot');
+		
+		if (IsOverwatch)
+			UnitStats.OverwatchTaken++;
+
 		if (AbilityContext.IsResultContextHit())
 		{
 			UnitStats.Luck -= (100 - Chance);
@@ -228,13 +309,18 @@ function ShotDelegate(XComGameState_Unit Unit, XComGameState_Ability Ability, XC
 		else
 		{
 			UnitStats.Luck += Chance;
+
+			if (IsOverwatch)
+				UnitStats.OverwatchTaken++;
 		}
 
 		UnitStats.ShotsAgainst++;
 	}
+
+	return UnitStats;
 }
 
-function TurtleDelegate(XComGameState_Unit Unit, XComGameState_Ability Ability, XComGameStateContext_Ability AbilityContext, XComGameState_MissionStats_Unit UnitStats)
+function MAV_UnitStats TurtleDelegate(XComGameState_Unit Unit, XComGameState_Ability Ability, XComGameStateContext_Ability AbilityContext, MAV_UnitStats UnitStats)
 {
 	local name TemplateName;
 	TemplateName = Ability.GetMyTemplateName();
@@ -243,9 +329,11 @@ function TurtleDelegate(XComGameState_Unit Unit, XComGameState_Ability Ability, 
 		UnitStats.Turtle += TurtleScoreOverwatch;
 	else if (TemplateName == 'HunkerDown')
 		UnitStats.Turtle += TurtleScoreHunkerDown;
+
+	return UnitStats;
 }
 
 defaultproperties
 {
-	CURRENT_VERSION = "1.1.1";
+	CURRENT_VERSION = "1.1.2";
 }

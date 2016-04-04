@@ -18,7 +18,6 @@ event OnInit(UIScreen Screen)
 	`log("MAV registering Tactical HUD");
 	
 	class'MAV_Utilities'.static.CheckOrCreateRoot();
-	class'MAV_Utilities'.static.EnsureSquadHasUnitStats();
 }
 
 defaultProperties
