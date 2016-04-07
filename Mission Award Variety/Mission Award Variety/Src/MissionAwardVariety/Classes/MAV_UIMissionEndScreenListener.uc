@@ -149,6 +149,7 @@ event OnInit(UIScreen Screen)
 	local array<MAV_BaseCategory> Backlog;
 	local array<int> WinnerCounts, Losers;
 	local XComGameState_Analytics Analytics;
+	local name TemplateName;
 
 	MissionEndScreen = UIDropShipBriefing_MissionEnd(Screen);
 	History = `XCOMHISTORY;
@@ -161,17 +162,24 @@ event OnInit(UIScreen Screen)
 		{
 			MissionStats = Root.MAV_Stats[i];
 			Unit = XComGameState_Unit(History.GetGameStateForObjectId(MissionStats.UnitID));
+			TemplateName = Unit.GetMyTemplateName();
+
+			if (TemplateName == 'None')
+				continue;
+
 			Squad.AddItem(Unit);
 			WinnerCounts.AddItem(0);
-		
-			`log("Stats for " $ Unit.GetName(eNameType_FullNick));
+
+			`log("Stats for " $ Unit.GetName(eNameType_FullNick) $ ": " $ TemplateName);
 			`log("Rank: " $ Unit.GetSoldierRank());
+			`log("Enemy stats length: " $ MissionStats.EnemyStats.Length);
 			class'MAV_Utilities'.static.LogStats(MissionStats);
 
 			foreach MissionStats.EnemyStats(Result)
 			{
 				NewResult.UnitID = i;
 				NewResult.Damage = Result.Damage;
+				NewResult.Killed = Result.Killed;
 				Found = false;
 
 				for (j = 0; j < EnemyStats.Length; ++j)
@@ -294,13 +302,13 @@ event OnInit(UIScreen Screen)
 		{
 			j = Losers[i];
 			Category.Scores[j] += UnitStats[j].DamageDealt + UnitStats[j].Luck;
-			`log("Loser value for " $ Squad[j].GetFullName() $ ": " $ Category.Scores[j]);
+			//`log("Loser value for " $ Squad[j].GetFullName() $ ": " $ Category.Scores[j]);
 		}
 
 		Category.SetWinnerBasic(Squad);
 		if (Category.HasWinner())
 		{
-			Category.Label = repl(m_strCongeniality, "#Title", (Squad[Category.Winners[0]].kAppearance.iGender == eGender_Male) ? "Mister" : "Miss");
+			Category.Label = repl(m_strCongeniality, "#Title", (Squad[Category.Winners[0]].kAppearance.iGender == eGender_Male) ? "MISTER" : "MISS");
 			`log("Winner of" @ Category.Label $ ":" @ Category.WinnerName);
 			Winners.AddItem(Category);
 		}

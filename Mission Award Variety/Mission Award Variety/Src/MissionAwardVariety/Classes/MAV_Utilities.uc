@@ -77,6 +77,32 @@ static function bool IsShotType(name Type)
 	return false;
 }
 
+static function bool IsFriendly(XComGameState_Unit Unit)
+{
+	local name TemplateName;
+
+	if (Unit.GetTeam() == eTeam_XCom || Unit.IsMindControlled())
+		return true;
+
+	TemplateName = Unit.GetMyTemplateName();
+
+	switch(TemplateName)
+	{
+	case 'Soldier_VIP':
+	case 'Scientist_VIP':
+	case 'Engineer_VIP':
+	case 'FriendlyVIPCivilian':
+	case 'HostileVIPCivilian':
+	case 'CommanderVIP':
+	case 'Engineer':
+	case 'Scientist':
+	case 'MimicBeacon':
+		return true;
+	}
+
+	return false;
+}
+
 static function LogStats(MAV_UnitStats UnitStats)
 {
 	`log("DamageDone: " $ UnitStats.DamageDealt);

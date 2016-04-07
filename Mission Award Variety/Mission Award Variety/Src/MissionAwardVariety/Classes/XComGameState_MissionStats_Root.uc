@@ -76,11 +76,11 @@ function EventListenerReturn OnAbilityActivated(Object EventData, Object EventSo
 		return ELR_NoInterrupt;
 
 	// A random shot can be fired from nobody? Just ignore
-	if (Len(SourceUnit.GetFullName()) == 0)
+	if (SourceUnit.GetMyTemplateName() == 'None')
 		return ELR_NoInterrupt;
 
 	TemplateName = AbilityState.GetMyTemplateName();
-	IsSoldier = (SourceUnit.GetTeam() == eTeam_XCom) || SourceUnit.IsMindControlled();
+	IsSoldier = class'MAV_Utilities'.static.IsFriendly(SourceUnit);
 
 	if (class'MAV_Utilities'.static.IsShotType(TemplateName))
 	{
@@ -136,12 +136,11 @@ function EventListenerReturn OnUnitTookDamage(Object EventData, Object EventSour
 {
 	local XComGameState NewGameState;	
 	local XComGameStateContext_Ability Context;
-	local MAV_UnitStats UnitStats;
 	local XComGameState_MissionStats_Root NewRoot;
 	local XComGameStateContext_ChangeContainer ChangeContainer;
 	local XComGameState_Unit DamagedUnit, AttackingUnit;
 	local DamageResult DamageResult;
-	local int WoundHP, DamageAmount, i;
+	local int WoundHP, DamageAmount, i, j;
 	local name TemplateName;
 	local MAV_DamageResult Entry;
 	local bool Found, IsKilled;
@@ -166,11 +165,10 @@ function EventListenerReturn OnUnitTookDamage(Object EventData, Object EventSour
 	NewGameState = `XCOMHISTORY.CreateNewGameState(true, ChangeContainer);	
 	NewRoot = XComGameState_MissionStats_Root(NewGameState.CreateStateObject(class'XComGameState_MissionStats_Root', self.ObjectID));
 
-	if (AttackingUnit.GetTeam() == eTeam_XCom || AttackingUnit.IsMindControlled())
+	if (class'MAV_Utilities'.static.IsFriendly(AttackingUnit))
 	{
 		// Update stats if we were the attacker
 		i = NewRoot.GetStatsIndexForUnit(AttackingUnit.ObjectID);
-		UnitStats = NewRoot.MAV_Stats[i];
 
 		DamageAmount = DamageResult.DamageAmount;
 
@@ -180,18 +178,20 @@ function EventListenerReturn OnUnitTookDamage(Object EventData, Object EventSour
 			DamageAmount *= 1000;
 		}
 
-		UnitStats.DamageDealt = UnitStats.DamageDealt + DamageResult.DamageAmount;
+		NewRoot.MAV_Stats[i].DamageDealt += DamageResult.DamageAmount;
 
 		// Add damage entry to unit
 		Found = false;
 		IsKilled = DamagedUnit.IsDead();
-		foreach UnitStats.EnemyStats(Entry)
+
+		for (j = 0; j < NewRoot.MAV_Stats[i].EnemyStats.Length; ++j)
 		{
-			if (Entry.UnitID == DamagedUnit.ObjectID)
+			if (NewRoot.MAV_Stats[i].EnemyStats[j].UnitID == DamagedUnit.ObjectID)
 			{
-				Entry.Damage += DamageAmount;
-				Entry.Killed = IsKilled;
+				NewRoot.MAV_Stats[i].EnemyStats[j].Damage += DamageAmount;
+				NewRoot.MAV_Stats[i].EnemyStats[j].Killed = IsKilled;
 				Found = true;
+				break;
 			}
 		}
 
@@ -200,27 +200,26 @@ function EventListenerReturn OnUnitTookDamage(Object EventData, Object EventSour
 			Entry.UnitID = DamagedUnit.ObjectID;
 			Entry.Damage = DamageAmount;
 			Entry.Killed = IsKilled;
-			UnitStats.EnemyStats.AddItem(Entry);
+			NewRoot.MAV_Stats[i].EnemyStats.AddItem(Entry);
 		}
 
 		// Crit Damage
 		if (Context.ResultContext.HitResult == eHit_Crit)
 		{
-			UnitStats.CritDamage += DamageResult.DamageAmount;
+			NewRoot.MAV_Stats[i].CritDamage += DamageResult.DamageAmount;
 		}
 
 		// Damage while wounded for "Ain't Got Time to Bleed"
 		if (AttackingUnit.IsInjured())
 		{
 			WoundHP = AttackingUnit.GetMaxStat(eStat_HP) - AttackingUnit.GetCurrentStat(eStat_HP);
-			UnitStats.WoundedDamage = WoundHP + DamageResult.DamageAmount;
+			NewRoot.MAV_Stats[i].WoundedDamage = WoundHP + DamageResult.DamageAmount;
 		}
 	}
 	
 	if (NewRoot != none)
 	{
 		// Submit game state
-		NewRoot.MAV_Stats[i] = UnitStats;
 		NewGameState.AddStateObject(NewRoot);
 		`TACTICALRULES.SubmitGameState(NewGameState);
 	}
@@ -271,7 +270,7 @@ function MAV_UnitStats ShotDelegate(XComGameState_Unit Unit, XComGameState_Abili
 
 	// Calculate luck
 	Chance = Clamp(AbilityContext.ResultContext.CalculatedHitChance, 0, 100);
-	if (OwnerUnit.GetTeam() == eTeam_XCom || OwnerUnit.IsMindControlled())
+	if (class'MAV_Utilities'.static.IsFriendly(OwnerUnit))
 	{
 		if (AbilityContext.IsResultContextHit())
 		{

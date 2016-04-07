@@ -1,7 +1,9 @@
 //---------------------------------------------------------------------------------------
 //  FILE:    XComGameState_MissionStats_Unit
 //  AUTHOR:  atamize
-//  PURPOSE: Store the mission stats of a given unit as a component to XComGameState_Unit
+//  
+//	This file is now deprecated (superseded by storing structs in XComGameState_MissionStats_Root)
+//	but we need to keep it or else games with previously saved MAV data will crash
 //
 //--------------------------------------------------------------------------------------- 
 class XComGameState_MissionStats_Unit extends XComGameState_BaseObject;
