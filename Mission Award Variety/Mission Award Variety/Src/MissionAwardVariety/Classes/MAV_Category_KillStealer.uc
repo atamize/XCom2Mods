@@ -10,7 +10,6 @@ function CalculateWinner(MAV_MissionStats MissionStats)
 {
 	local EnemyDamageCount DamageCount;
 	local MAV_DamageResult Result;
-	local int Winner;
 
 	foreach MissionStats.EnemyDamageCounts(DamageCount)
 	{

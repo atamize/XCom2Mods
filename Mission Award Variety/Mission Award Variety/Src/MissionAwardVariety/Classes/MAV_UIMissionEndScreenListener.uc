@@ -301,7 +301,7 @@ event OnInit(UIScreen Screen)
 		for (i = 0; i < Losers.Length; ++i)
 		{
 			j = Losers[i];
-			Category.Scores[j] += UnitStats[j].DamageDealt + UnitStats[j].Luck;
+			Category.Scores[j] += UnitStats[j].DamageDealt;
 			//`log("Loser value for " $ Squad[j].GetFullName() $ ": " $ Category.Scores[j]);
 		}
 

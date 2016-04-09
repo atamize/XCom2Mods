@@ -334,5 +334,5 @@ function MAV_UnitStats TurtleDelegate(XComGameState_Unit Unit, XComGameState_Abi
 
 defaultproperties
 {
-	CURRENT_VERSION = "1.1.2";
+	CURRENT_VERSION = "1.2.0";
 }

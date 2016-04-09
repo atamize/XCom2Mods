@@ -67,6 +67,9 @@
     <Content Include="Src\MissionAwardVariety\Classes\MAV_Category_HatesMost.uc">
       <SubType>Content</SubType>
     </Content>
+    <Content Include="Src\MissionAwardVariety\Classes\MAV_Category_HometownHero.uc">
+      <SubType>Content</SubType>
+    </Content>
     <Content Include="Src\MissionAwardVariety\Classes\MAV_Category_KillStealer.uc">
       <SubType>Content</SubType>
     </Content>
