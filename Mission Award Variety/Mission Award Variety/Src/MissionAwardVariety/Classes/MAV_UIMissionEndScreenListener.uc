@@ -170,9 +170,9 @@ event OnInit(UIScreen Screen)
 			Squad.AddItem(Unit);
 			WinnerCounts.AddItem(0);
 
-			`log("Stats for " $ Unit.GetName(eNameType_FullNick) $ ": " $ TemplateName);
-			`log("Rank: " $ Unit.GetSoldierRank());
-			`log("Enemy stats length: " $ MissionStats.EnemyStats.Length);
+			//`log("Stats for " $ Unit.GetName(eNameType_FullNick) $ ": " $ TemplateName);
+			//`log("Rank: " $ Unit.GetSoldierRank());
+			//`log("Enemy stats length: " $ MissionStats.EnemyStats.Length);
 			class'MAV_Utilities'.static.LogStats(MissionStats);
 
 			foreach MissionStats.EnemyStats(Result)

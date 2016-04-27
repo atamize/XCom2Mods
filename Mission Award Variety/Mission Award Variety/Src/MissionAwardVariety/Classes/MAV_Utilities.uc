@@ -105,6 +105,7 @@ static function bool IsFriendly(XComGameState_Unit Unit)
 
 static function LogStats(MAV_UnitStats UnitStats)
 {
+	/*
 	`log("DamageDone: " $ UnitStats.DamageDealt);
 	`log("Luck: " $ UnitStats.Luck);
 	`log("Elevation: " $ UnitStats.Elevation);
@@ -114,5 +115,6 @@ static function LogStats(MAV_UnitStats UnitStats)
 	`log("Close Range: " $ UnitStats.CloseRangeValue);
 	`log("Dashing: " $ UnitStats.DashingTiles);
 	`log("OverwatchTaken: " $ UnitStats.OverwatchTaken);
+	*/
 }
 

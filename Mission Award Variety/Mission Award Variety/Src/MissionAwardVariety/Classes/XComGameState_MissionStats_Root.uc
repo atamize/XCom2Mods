@@ -156,10 +156,10 @@ function EventListenerReturn OnUnitTookDamage(Object EventData, Object EventSour
 	
 	DamageResult = DamagedUnit.DamageResults[DamagedUnit.DamageResults.Length-1];
 	TemplateName = DamagedUnit.GetMyTemplateName();
-	`log("===============  UNIT TOOK DAMAGE  ====================");
-	`log("Attacker: " $ AttackingUnit.GetFullName());
-	`log("Damaged: " $ DamagedUnit.GetFullName() @ "-" @ TemplateName);
-	`log("DamageAmt: " $ DamageResult.DamageAmount);
+	//`log("===============  UNIT TOOK DAMAGE  ====================");
+	//`log("Attacker: " $ AttackingUnit.GetFullName());
+	//`log("Damaged: " $ DamagedUnit.GetFullName() @ "-" @ TemplateName);
+	//`log("DamageAmt: " $ DamageResult.DamageAmount);
 	
 	ChangeContainer = class'XComGameStateContext_ChangeContainer'.static.CreateEmptyChangeContainer("Adding Damage UnitStats for " $ AttackingUnit.GetFullName() $ " and " $ DamagedUnit.GetFullName());
 	NewGameState = `XCOMHISTORY.CreateNewGameState(true, ChangeContainer);	
@@ -246,9 +246,9 @@ function MAV_UnitStats UpdateStats(XComGameState_Unit Unit, XComGameState_Abilit
 	UnitStats = MyDelegate(Unit, Ability, AbilityContext, NewRoot.MAV_Stats[i]);
 	NewRoot.MAV_Stats[i] = UnitStats;
 
-	`log("===============  AbilityStats  ====================");
-	`log("Ability: " $ Ability.GetMyTemplateName());
-	`log("Name: " $ Unit.GetFullName());
+	//`log("===============  AbilityStats  ====================");
+	//`log("Ability: " $ Ability.GetMyTemplateName());
+	//`log("Name: " $ Unit.GetFullName());
 	class'MAV_Utilities'.static.LogStats(UnitStats);
 	
 	NewGameState.AddStateObject(NewRoot);
