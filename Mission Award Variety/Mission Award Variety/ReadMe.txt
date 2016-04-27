@@ -1,9 +1,9 @@
 ﻿------------------------------------------------
 Mission Award Variety - an XCOM 2 Mod by atamize
-Version 1.1.1
+Version 1.2.0
 ------------------------------------------------
 
-Replaces the mission debriefing stats with more interesting awards for your soldiers.
+Adds more interesting awards for your soldiers on the mission debriefing screen.
 
 HATES 'X' THE MOST
 Dealt the most damage to the particular enemy type that was damaged the most
@@ -44,6 +44,15 @@ Overwatched or hunkered down the most
 MOST HIGH
 Took the most shots with a height advantage
 
+CLOSE RANGE?
+Dealt the most damage at...close range
+
+LEAF ON THE WIND
+Ran the most overwatches (bonus points if you didn't get hit)
+
+MISS (OR MISTER) CONGENIALITY
+Didn't win any awards but still contributed to the mission
+
 
 CONFIGURATION OPTIONS
 These options are found in XComMissionAwardVariety.ini:
@@ -68,7 +77,7 @@ Q: What does it mean to "turtle"?
 A: Turtling means you're playing defensively, ie. overwatching or hunkering down like a turtle hiding in its shell.
 
 Q: Any compatibility issues?
-A: Does not override any classes so it should work with any mod except for those that override UIDropShipBriefing_MissionEnd such as [url=https://steamcommunity.com/sharedfiles/filedetails/?id=638033072]Nice DropShip (De)Briefing[/url]. There is currently placeholder support for this mod which I'll explain once the mod updates to version 1.0.
+A: Does not override any classes so it should work with any mod except for those that override UIDropShipBriefing_MissionEnd such as [url=https://steamcommunity.com/sharedfiles/filedetails/?id=638033072]Nice DropShip (De)Briefing[/url]. There is support planned for compatibility with this mod so please stay tuned.
 
 
 Thanks to Kosmo for the [url=https://steamcommunity.com/sharedfiles/filedetails/?id=634754304]Lifetime Stats mod[/url] whose code was very helpful in setting this up.

@@ -17,7 +17,12 @@ function CalculateWinner(MAV_MissionStats MissionStats)
 	{
 		Value = MissionStats.Squad[i].GetSoldierRank();
 		if (Value < LowestRank)
-			LowestRank = Value;
+		{
+			if (MissionStats.Squad[i].GetMyTemplateName() != 'MimicBeacon')
+			{
+				LowestRank = Value;
+			}
+		}
 
 		if (Value > HighestRank)
 			HighestRank = Value;

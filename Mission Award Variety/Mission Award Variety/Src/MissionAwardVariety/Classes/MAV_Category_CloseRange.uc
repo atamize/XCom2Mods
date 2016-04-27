@@ -1,4 +1,4 @@
-class MAV_Category_UnderFire extends MAV_BaseCategory;
+class MAV_Category_CloseRange extends MAV_BaseCategory;
 
 function CalculateWinner(MAV_MissionStats MissionStats)
 {
@@ -6,8 +6,8 @@ function CalculateWinner(MAV_MissionStats MissionStats)
 
 	for (i = 0; i < Scores.Length; ++i)
 	{
-		Scores[i] = MissionStats.UnitStats[i].ShotsAgainst;
+		Scores[i] = MissionStats.UnitStats[i].CloseRangeValue;
 	}
-
+	
 	SetWinnerBasic(MissionStats.Squad);
 }

@@ -10,7 +10,6 @@ function CalculateWinner(MAV_MissionStats MissionStats)
 {
 	local EnemyDamageCount DamageCount;
 	local MAV_DamageResult Result;
-	local int Winner;
 
 	foreach MissionStats.EnemyDamageCounts(DamageCount)
 	{
@@ -27,13 +26,5 @@ function CalculateWinner(MAV_MissionStats MissionStats)
 		}
 	}
 
-	// We want to calculate the minimum because we are 'rewarding' the soldier
-	// who did the least amount of work to kill enemies
-	Winner = CalculateMin(Scores);
-
-	if (Winner >= 0 && Scores[Winner] > 0)
-	{
-		WinnerName = MissionStats.Squad[Winner].GetName(eNameType_FullNick);
-		Winners.AddItem(Winner);
-	}
+	SetWinnerBasic(MissionStats.Squad);
 }

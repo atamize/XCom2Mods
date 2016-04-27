@@ -5,7 +5,7 @@
 //
 //  Thanks to Kosmo and the Lifetime Stats mod on which this is based
 //--------------------------------------------------------------------------------------- 
-class MAV_Utilities extends Object config (MissionAwardVariety);
+class MAV_Utilities extends Object dependson(XComGameState_MissionStats_Root) config (MissionAwardVariety);
 
 var config array<name> BasicShotAbilities;
 
@@ -21,7 +21,7 @@ static function XComGameState_MissionStats_Root CheckOrCreateRoot()
 	{
 		ChangeContainer = class'XComGameStateContext_ChangeContainer'.static.CreateEmptyChangeContainer("Checking/Adding MAV RootStats");
 		NewGameState = `XCOMHISTORY.CreateNewGameState(true, ChangeContainer);
-		RootStats = XComGameState_MissionStats_Root(newGameState.CreateStateObject(class'XComGameState_MissionStats_Root'));
+		RootStats = XComGameState_MissionStats_Root(NewGameState.CreateStateObject(class'XComGameState_MissionStats_Root'));
 		RootStats.InitComponent();
 		
 		NewGameState.AddStateObject(RootStats);
@@ -65,69 +65,6 @@ static function UpdateVersion(XComGameState_MissionStats_Root Root)
 	}
 }
 
-static function EnsureSquadHasUnitStats()
-{
-	local XComGameState_HeadquartersXCom HQ;
-	
-	HQ = class'UIUtilities_Strategy'.static.GetXComHQ(true);
-	if (HQ == none)
-		return;
-		
-	EnsureHaveUnitStats(HQ.Squad, true);
-}
-
-static function EnsureHaveUnitStats(array<StateObjectReference> Units, optional bool ShouldReset = false)
-{
-	local XComGameState_Unit unit;
-	local int i;
-
-	for (i = 0; i < Units.Length; i++)
-	{
-		Unit = XComGameState_Unit(`XCOMHISTORY.GetGameStateForObjectId(Units[i].ObjectID));
-		EnsureHasUnitStats(Unit, ShouldReset);
-	}
-}
-
-static function XComGameState_MissionStats_Unit EnsureHasUnitStats(XComGameState_Unit Unit, optional bool ShouldReset = false)
-{
-	local XComGameStateHistory History;
-	local XComGameState NewGameState;
-	local XComGameStateContext_ChangeContainer ChangeContainer;
-	local XComGameState_MissionStats_Unit UnitStats;
-	local XComGameState_Unit NewUnit;
-	
-	History = `XCOMHISTORY;
-	
-	if (!Unit.IsSoldier())
-		return none;
-	
-	// Check if unit has UnitStats
-	UnitStats = XComGameState_MissionStats_Unit(Unit.FindComponentObject(class'XComGameState_MissionStats_Unit'));
-	if (UnitStats == none)
-	{
-		// Setup new game state
-		ChangeContainer = class'XComGameStateContext_ChangeContainer'.static.CreateEmptyChangeContainer("Adding UnitStats to " $ unit.GetFullName());
-		NewGameState = History.CreateNewGameState(true, ChangeContainer);
-		NewUnit = XComGameState_Unit(NewGameState.CreateStateObject(class'XComGameState_Unit', Unit.ObjectID));
-		
-		// Create and add UnitStats
-		UnitStats = XComGameState_MissionStats_Unit(NewGameState.CreateStateObject(class'XComGameState_MissionStats_Unit'));
-		UnitStats.InitComponent();
-		NewUnit.AddComponentObject(UnitStats);
-		
-		// Add new stats to history
-		NewGameState.AddStateObject(NewUnit);
-		NewGameState.AddStateObject(UnitStats);
-		History.AddGameStateToHistory(NewGameState);
-	}
-	else if (ShouldReset)
-	{
-		UnitStats.InitComponent();
-	}
-	
-	return UnitStats;
-}
-
 static function bool IsShotType(name Type)
 {
 	local name BasicShotAbility;
@@ -139,3 +76,45 @@ static function bool IsShotType(name Type)
 	
 	return false;
 }
+
+static function bool IsFriendly(XComGameState_Unit Unit)
+{
+	local name TemplateName;
+
+	if (Unit.GetTeam() == eTeam_XCom || Unit.IsMindControlled())
+		return true;
+
+	TemplateName = Unit.GetMyTemplateName();
+
+	switch(TemplateName)
+	{
+	case 'Soldier_VIP':
+	case 'Scientist_VIP':
+	case 'Engineer_VIP':
+	case 'FriendlyVIPCivilian':
+	case 'HostileVIPCivilian':
+	case 'CommanderVIP':
+	case 'Engineer':
+	case 'Scientist':
+	case 'MimicBeacon':
+		return true;
+	}
+
+	return false;
+}
+
+static function LogStats(MAV_UnitStats UnitStats)
+{
+	/*
+	`log("DamageDone: " $ UnitStats.DamageDealt);
+	`log("Luck: " $ UnitStats.Luck);
+	`log("Elevation: " $ UnitStats.Elevation);
+	`log("WoundedDamage: " $ UnitStats.WoundedDamage);
+	`log("Turtle: " $ UnitStats.Turtle);
+	`log("Shots Against: " $ UnitStats.ShotsAgainst);
+	`log("Close Range: " $ UnitStats.CloseRangeValue);
+	`log("Dashing: " $ UnitStats.DashingTiles);
+	`log("OverwatchTaken: " $ UnitStats.OverwatchTaken);
+	*/
+}
+

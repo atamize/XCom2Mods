@@ -1,4 +1,4 @@
-class MAV_Category_MostDamage extends MAV_BaseCategory;
+class MAV_Category_RanOverwatches extends MAV_BaseCategory;
 
 function CalculateWinner(MAV_MissionStats MissionStats)
 {
@@ -6,7 +6,7 @@ function CalculateWinner(MAV_MissionStats MissionStats)
 
 	for (i = 0; i < Scores.Length; ++i)
 	{
-		Scores[i] = MissionStats.UnitStats[i].DamageDealt;
+		Scores[i] = MissionStats.UnitStats[i].OverwatchTaken;
 	}
 
 	SetWinnerBasic(MissionStats.Squad);
