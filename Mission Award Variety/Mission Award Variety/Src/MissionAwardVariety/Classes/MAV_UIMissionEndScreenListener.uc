@@ -24,6 +24,8 @@ var localized string m_strMostHigh;
 var localized string m_strCloseRange;
 var localized string m_strCongeniality;
 var localized string m_strRanOverwatch;
+var localized string m_strUnfinishedBusiness;
+var localized string m_strMostUseless;
 
 var config bool ShowVanillaStats;
 var config bool IncludeVanillaAwards;
@@ -77,6 +79,9 @@ function name GetEnemyType(XComGameState_Unit Unit)
 		case 'HostileCivilian':
 		case 'HostileVIPCivilian':
 			return 'CIVILIANS';
+
+		case 'Soldier':
+			return 'XCOM';
 	}
 
 	switch (GroupName)
@@ -243,6 +248,7 @@ event OnInit(UIScreen Screen)
 		AddCategory(new class'MAV_Category_TooOld', m_strTooOld, Size);
 		AddCategory(new class'MAV_Category_CloseRange', m_strCloseRange, Size);
 		AddCategory(new class'MAV_Category_RanOverwatches', m_strRanOverwatch, Size);
+		AddCategory(new class'MAV_Category_UnfinishedBusiness', m_strUnfinishedBusiness, Size);
 	}
 
 	if (IncludeVanillaAwards)
@@ -311,6 +317,33 @@ event OnInit(UIScreen Screen)
 			Category.Label = repl(m_strCongeniality, "#Title", (Squad[Category.Winners[0]].kAppearance.iGender == eGender_Male) ? "MISTER" : "MISS");
 			`log("Winner of" @ Category.Label $ ":" @ Category.WinnerName);
 			Winners.AddItem(Category);
+			Losers.RemoveItem(Category.Winners[0]);
+		}
+
+		// There are still losers, so we must choose the worst one
+		if (Losers.Length > 0)
+		{
+			Category = new class'MAV_BaseCategory';
+			Category.Initialize(m_strMostUseless, Size);
+
+			for (i = 0; i < Squad.Length; ++i)
+			{
+				if (Losers.Find(i) == INDEX_NONE)
+				{
+					Category.Scores[i] = MaxInt;
+				}
+				else
+				{
+					Category.Scores[i] += UnitStats[i].DamageDealt;
+				}
+			}
+
+			Category.SetWinnerMin(Squad);
+			if (Category.HasWinner())
+			{
+				`log("Winner of" @ Category.Label $ ":" @ Category.WinnerName);
+				Winners.AddItem(Category);
+			}
 		}
 	}
 

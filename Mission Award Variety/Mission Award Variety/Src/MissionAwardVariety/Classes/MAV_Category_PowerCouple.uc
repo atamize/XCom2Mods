@@ -70,7 +70,7 @@ function CalculateWinner(MAV_MissionStats MissionStats)
 	if (Winner >= 0)
 	{
 		Couple = PowerCouples[Winner];
-		WinnerName = MissionStats.Squad[Couple.Unit1].GetFullName() $ " & " $ MissionStats.Squad[Couple.Unit2].GetFullName();
+		WinnerName = GetName(MissionStats.Squad[Couple.Unit1], false) $ " & " $ GetName(MissionStats.Squad[Couple.Unit2], false);
 		Winners.AddItem(Couple.Unit1);
 		Winners.AddItem(Couple.Unit2);
 	}
