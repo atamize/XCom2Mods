@@ -13,6 +13,7 @@ event OnInit(UIScreen Screen)
 	Menu.AnchorBottomLeft();
 	Menu.SoldierInfo = SoldierInfo;
 	Menu.Perks = HUD.m_kPerks;
+	Menu.Hide();
 }
 
 

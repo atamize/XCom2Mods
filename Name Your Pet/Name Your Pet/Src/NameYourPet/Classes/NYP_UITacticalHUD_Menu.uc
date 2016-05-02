@@ -1,11 +1,19 @@
 // This is an Unreal Script
-class NYP_UITacticalHUD_Menu extends UIPanel;
+class NYP_UITacticalHUD_Menu extends UIPanel config(NameYourPet);
 
 const PET_NAME_MAX_CHARS       = 37;
 
 var UITacticalHUD_SoldierInfo SoldierInfo;
 var UITacticalHUD_PerkContainer Perks;
 var XComGameState_Unit StateUnit;
+
+var localized string m_strNYPButton;
+var localized string m_strNYPInputTitle;
+
+var config int ButtonWithoutPerksX;
+var config int ButtonWithoutPerksY;
+var config int ButtonWithPerksX;
+var config int ButtonWithPerksY;
 
 simulated function OnInit()
 {
@@ -14,19 +22,20 @@ simulated function OnInit()
 	super.OnInit();
 
 	NYPButton = Spawn(class'UIButton', self);
-	NYPButton.InitButton('NYPButton', "Rename", OnClickedNYP, eUIButtonStyle_NONE);
+	NYPButton.InitButton('NYPButton', m_strNYPButton, OnClickedNYP, eUIButtonStyle_NONE);
 
 	WorldInfo.MyWatchVariableMgr.RegisterWatchVariable( XComTacticalController(PC), 'm_kActiveUnit', self, Refresh);
 	WorldInfo.MyWatchVariableMgr.RegisterWatchVariable( UITacticalHUD(screen), 'm_isMenuRaised', self, Refresh);
 	WorldInfo.MyWatchVariableMgr.RegisterWatchVariable( XComPresentationLayer(Movie.Pres), 'm_kInventoryTactical', self, Refresh);
+
+	`XCOMVISUALIZATIONMGR.RegisterObserver(self);
 }
 
 function OnClickedNYP(UIButton Button)
 {
 	local TInputDialogData kData;
 
-	`log("You clicked NYP");
-	kData.strTitle = "Name Your Pet";
+	kData.strTitle = m_strNYPInputTitle;
 	kData.iMaxChars = PET_NAME_MAX_CHARS;
 	kData.strInputBoxText = StateUnit.GetLastName();
 	kData.fnCallback = OnNameInputBoxClosed;
@@ -40,6 +49,22 @@ function OnNameInputBoxClosed(string text)
 	UpdateStats();
 }
 
+function string SetFlagNames()
+{
+	local string charName;
+
+	if (StateUnit == none)
+		return "";
+
+	charName = StateUnit.GetLastName();
+	if (len(charName) == 0)
+		charName = StateUnit.GetMyTemplate().strCharacterName;
+
+	`PRES.m_kUnitFlagManager.GetFlagForObjectID(StateUnit.ObjectID).SetNames(class'UIUtilities_Text'.static.CapsCheckForGermanScharfesS(charName), "");
+
+	return charName;
+}
+
 function UpdateStats()
 {
 	local string charName, charNickname, charRank, charClass;
@@ -48,9 +73,7 @@ function UpdateStats()
 	local array<UISummary_UnitEffect> BonusEffects, PenaltyEffects; 
 	local X2SoldierClassTemplateManager SoldierTemplateManager;
 
-	charName = StateUnit.GetLastName();
-	if (len(charName) == 0)
-		charName = StateUnit.GetMyTemplate().strCharacterName;
+	charName = SetFlagNames();
 
 	charNickname = StateUnit.GetNickName();
 
@@ -77,8 +100,6 @@ function UpdateStats()
 	showPenalty = (PenaltyEffects.length > 0);
 
 	SoldierInfo.AS_SetStats(charName, charNickname, charRank, charClass, isLeader, isLeveledUp, aimPercent, showBonus, showPenalty);
-
-	`PRES.m_kUnitFlagManager.GetFlagForObjectID(StateUnit.ObjectID).SetNames(class'UIUtilities_Text'.static.CapsCheckForGermanScharfesS(charName), "");
 }
 
 function Refresh()
@@ -104,14 +125,13 @@ function RefreshForReal()
 	else
 	{
 		StateUnit = XComGameState_Unit(`XCOMHISTORY.GetGameStateForObjectID(kActiveUnit.ObjectID));
-		//`log("NYP info position: " @ SoldierInfo.Y @ ", Size: " $ SoldierInfo.Width @ "x" @ SoldierInfo.Height);
 		
 		if (!StateUnit.IsSoldier() && !StateUnit.IsCivilian())
 		{
 			if (Perks.NumActivePerks > 0)
-				SetPosition(70, -160);
+				SetPosition(ButtonWithPerksX, ButtonWithPerksY);
 			else
-				SetPosition(70, -100);
+				SetPosition(ButtonWithoutPerksX, ButtonWithoutPerksY);
 
 			UpdateStats();
 			Show();
