@@ -18,6 +18,7 @@ var config int ButtonWithPerksY;
 simulated function OnInit()
 {
 	local UIButton NYPButton;
+	local Object ThisObj;
 
 	super.OnInit();
 
@@ -28,7 +29,8 @@ simulated function OnInit()
 	WorldInfo.MyWatchVariableMgr.RegisterWatchVariable( UITacticalHUD(screen), 'm_isMenuRaised', self, Refresh);
 	WorldInfo.MyWatchVariableMgr.RegisterWatchVariable( XComPresentationLayer(Movie.Pres), 'm_kInventoryTactical', self, Refresh);
 
-	`XCOMVISUALIZATIONMGR.RegisterObserver(self);
+	`XEVENTMGR.RegisterForEvent(ThisObj, 'AbilityActivated', OnAbilityActivated, ELD_OnVisualizationBlockCompleted);
+	`log("NYP OnInit");
 }
 
 function OnClickedNYP(UIButton Button)
@@ -63,6 +65,24 @@ function string SetFlagNames()
 	`PRES.m_kUnitFlagManager.GetFlagForObjectID(StateUnit.ObjectID).SetNames(class'UIUtilities_Text'.static.CapsCheckForGermanScharfesS(charName), "");
 
 	return charName;
+}
+
+function EventListenerReturn OnAbilityActivated(Object EventData, Object EventSource, XComGameState GameState, Name EventID)
+{
+	local XComGameState_Unit SourceUnit;
+
+	`log("NYP Ability Activated");
+	if (StateUnit != none)
+	{
+		SourceUnit = XComGameState_Unit(EventSource);
+		if (SourceUnit.ObjectID == StateUnit.ObjectID)
+		{
+			`log("NYP Updating");
+			Refresh();
+		}
+	}
+
+	return ELR_NoInterrupt;
 }
 
 function UpdateStats()

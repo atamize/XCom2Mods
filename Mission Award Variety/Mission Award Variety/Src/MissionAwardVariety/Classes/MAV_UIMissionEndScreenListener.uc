@@ -328,14 +328,14 @@ event OnInit(UIScreen Screen)
 
 			for (i = 0; i < Squad.Length; ++i)
 			{
-				if (Losers.Find(i) == INDEX_NONE)
 				{
-					Category.Scores[i] = MaxInt;
+					if (Losers.Find(i) != INDEX_NONE)
+					{
+						Category.Scores[i] = UnitStats[i].DamageDealt;
+						continue;
+					}
 				}
-				else
-				{
-					Category.Scores[i] += UnitStats[i].DamageDealt;
-				}
+				Category.Scores[i] = MaxInt;
 			}
 
 			Category.SetWinnerMin(Squad);
@@ -409,7 +409,7 @@ function AddVanillaAward(XComGameState_Analytics Analytics, name Metric, string 
 		UnitState = XComGameState_Unit(`XCOMHISTORY.GetGameStateForObjectID( AnalyticEntry.ObjectID ) );
 		Category = new class'MAV_BaseCategory';
 		Category.Label = Label;
-		Category.WinnerName = UnitState.GetName(eNameType_FullNick);
+		Category.WinnerName = Category.GetName(UnitState);
 
 		for (i = 0; i < Squad.Length; ++i)
 		{
