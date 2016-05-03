@@ -328,6 +328,7 @@ event OnInit(UIScreen Screen)
 
 			for (i = 0; i < Squad.Length; ++i)
 			{
+				if (Squad[i].IsSoldier() || (!Squad[i].IsCivilian() && Squad[i].GetMyTemplateName() != 'MimicBeacon'))
 				{
 					if (Losers.Find(i) != INDEX_NONE)
 					{
