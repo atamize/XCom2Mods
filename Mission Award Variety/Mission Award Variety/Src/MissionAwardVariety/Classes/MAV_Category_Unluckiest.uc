@@ -7,17 +7,15 @@ class MAV_Category_Unluckiest extends MAV_BaseCategory;
 
 function CalculateWinner(MAV_MissionStats MissionStats)
 {
-	local int i, Winner;
+	local int i;
 
 	for (i = 0; i < Scores.Length; ++i)
 	{
-		Scores[i] = MissionStats.UnitStats[i].Luck;
+		if (MissionStats.UnitStats[i].ShotsTaken > 0 || MissionStats.UnitStats[i].ShotsAgainst > 0)
+			Scores[i] = MissionStats.UnitStats[i].Luck;
+		else
+			Scores[i] = MaxInt;
 	}
 
-	Winner = CalculateMin(Scores);
-	if (Winner >= 0)
-	{
-		WinnerName = MissionStats.Squad[Winner].GetName(eNameType_FullNick);
-		Winners.AddItem(Winner);
-	}
+	SetWinnerMin(MissionStats.Squad);
 }

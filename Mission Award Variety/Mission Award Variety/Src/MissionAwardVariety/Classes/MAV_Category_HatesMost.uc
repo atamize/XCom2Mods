@@ -82,6 +82,6 @@ function CalculateWinner(MAV_MissionStats MissionStats)
 	// Some names don't retain capitalization, so just force it here
 	HatedName = Caps(MostHated);
 
-	WinnerName = MissionStats.Squad[Winner].GetName(eNameType_FullNick);
+	WinnerName = GetName(MissionStats.Squad[Winner]);
 	Label = repl(Label, "#Unit", HatedName);
 }

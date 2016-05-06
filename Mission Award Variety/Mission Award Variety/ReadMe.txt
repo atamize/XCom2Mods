@@ -53,6 +53,11 @@ Ran the most overwatches (bonus points if you didn't get hit)
 MISS (OR MISTER) CONGENIALITY
 Didn't win any awards but still contributed to the mission
 
+UNFINISHED BUSINESS
+Fought the hardest after a teammate died/evacuated/incapacitated
+
+LITERALLY THE WORST
+Didn't really do anything significant
 
 CONFIGURATION OPTIONS
 These options are found in XComMissionAwardVariety.ini:
@@ -63,7 +68,6 @@ IncludeVanillaAwards - If set to true, the vanilla awards will be included in th
 
 
 FAQ
-
 Q: I have an idea for an award, can you add it to your mod?
 A: Maybe, depending on how interesting it is and how easy it is to track.
 

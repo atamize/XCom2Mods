@@ -3,7 +3,90 @@
   <PropertyGroup>
     <Guid>2b71cdd7-73fc-40d1-ae4e-ea400a6ae633</Guid>
     <Name>Mission Award Variety</Name>
-    <Description>More mission awards</Description>
+    <Description>Adds more interesting awards on the mission debriefing screen.
+
+[b]HATES 'X' THE MOST[/b]
+Dealt the most damage to the particular enemy type that was damaged the most
+
+[b]LUCKIEST[/b]
+Hit the most unlikely shots and dodged the most likely incoming shots
+
+[b]SOLO SLAYER[/b]
+Murdered the most ayys without help from teammates
+
+[b]POWER COUPLE[/b]
+The two soldiers who did the most damage while double-teaming enemies
+
+[b]UNLUCKIEST[/b]
+Missed the most likely shots and got hit by the most unlikely incoming shots
+
+[b]HEAVY HITTER[/b]
+Dealt the most critical hit damage
+
+[b]MOST ASSISTS[/b]
+Dealt the most damage that did not result in a kill
+
+[b]KILL STEALER[/b]
+Finished off the most enemies previously damaged by others
+
+[b]AIN'T GOT TIME TO BLEED[/b]
+Dealt the most damage while wounded
+
+[b]NOT BAD, KID[/b]
+Lowest ranking soldier who did more damage than a higher ranking soldier
+
+[b]TOO OLD FOR THIS $#!@[/b]
+Highest ranking soldier who got shot at or damaged the most
+
+[b]LOVES BEING A TURTLE[/b]
+Overwatched or hunkered down the most
+
+[b]MOST HIGH[/b]
+Took the most shots with a height advantage
+
+[b]CLOSE RANGE?[/b]
+Dealt the most damage at...close range
+
+[b]LEAF ON THE WIND[/b]
+Ran the most overwatches (bonus points if you didn't get hit)
+
+[b]MISS (OR MISTER) CONGENIALITY[/b]
+Didn't win any awards but still contributed to the mission
+
+[b]UNFINISHED BUSINESS[/b]
+Fought the hardest after a teammate died/evacuated/incapacitated
+
+[b]LITERALLY THE WORST[/b]
+Didn't really do anything significant
+
+[h1]CONFIGURATION OPTIONS[/h1]
+These options are found in XComMissionAwardVariety.ini:
+
+[b]ShowVanillaStats[/b] - If set to true, the left column will show the vanilla team stats (Successful Shot Percentage, etc.) and the right column will show 4 random awards. If set to false (by default), 8 random awards will be shown if there are enough winners.
+
+[b]IncludeVanillaAwards[/b] - If set to true, the vanilla awards will be included in the award pool (Dealt Most Damage, Made Most Attacks, Most Under Fire, Moved Furthest).
+
+[h1]FAQ[/h1]
+[b]Q: I have an idea for an award, can you add it to your mod?[/b]
+A: Maybe, depending on how interesting it is and how easy it is to track.
+
+[b]Q: Can I change the names of the awards?[/b]
+A: Sure! Just open Localization/MissionAwardVariety.int (or your preferred language file) in a text editor and edit away.
+
+[b]Q: How is luck calculated?[/b]
+A: Whenever a soldier makes a successful shot, (100 - ChanceToHit) is added to their luck value. Whenever they dodge enemy fire, ChanceToHit is added to their luck value.
+
+[b]Q: How come I haven't seen some of these awards?[/b]
+The screen can only fit 8 awards at a time and the ones you see are randomized. Also, some categories may not have a winner and will not be shown.
+
+[b]Q: What does it mean to "turtle"?[/b]
+A: Turtling means you're playing defensively, ie. overwatching or hunkering down like a turtle hiding in its shell.
+
+[b]Q: Any compatibility issues?[/b]
+A: Does not override any classes so it should work with any mod except for those that override UIDropShipBriefing_MissionEnd such as [url=https://steamcommunity.com/sharedfiles/filedetails/?id=638033072]Nice DropShip (De)Briefing[/url]. There is support planned for compatibility with this mod so stay tuned.
+
+
+Thanks to Kosmo for the [url=https://steamcommunity.com/sharedfiles/filedetails/?id=634754304]Lifetime Stats mod[/url] whose code was very helpful in setting this up.</Description>
     <SteamPublishID>0</SteamPublishID>
     <AssemblyName>Mission Award Variety</AssemblyName>
     <RootNamespace>Mission Award Variety</RootNamespace>
@@ -67,9 +150,6 @@
     <Content Include="Src\MissionAwardVariety\Classes\MAV_Category_HatesMost.uc">
       <SubType>Content</SubType>
     </Content>
-    <Content Include="Src\MissionAwardVariety\Classes\MAV_Category_HometownHero.uc">
-      <SubType>Content</SubType>
-    </Content>
     <Content Include="Src\MissionAwardVariety\Classes\MAV_Category_KillStealer.uc">
       <SubType>Content</SubType>
     </Content>
@@ -107,6 +187,9 @@
       <SubType>Content</SubType>
     </Content>
     <Content Include="Src\MissionAwardVariety\Classes\MAV_Category_Dashing.uc">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Src\MissionAwardVariety\Classes\MAV_Category_UnfinishedBusiness.uc">
       <SubType>Content</SubType>
     </Content>
     <Content Include="Src\MissionAwardVariety\Classes\MAV_Category_Unluckiest.uc">

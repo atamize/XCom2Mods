@@ -1,0 +1,85 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Default" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Guid>2f0a7384-4ec8-404a-b1d8-cbfa1a144185</Guid>
+    <Name>Name Your Pet</Name>
+    <Description>Lets you rename any mind-controlled or hacked enemies during a mission. Works on aliens, mecs, even turrets.
+
+Why would you want to name your pet? Well, it's more fun than calling your dog 'Dog'. Sure, it normally doesn't last long, but a Psi Operative with Domination can make them part of the family, so make them feel welcome.
+
+If you want to see your pet's name during the mission debriefing screen when it wins an award, unfortunately you will still see its template name. However, my other mod [url=http://steamcommunity.com/sharedfiles/filedetails/?id=643760572]Mission Award Variety[/url] does support your custom names, so grab that if you want your pet to go down in history!
+
+Known issues:
+
+Once your mind-control or hack wears off, your pet will go back to his old 'name', which is kind of lame but I haven't figured out how to retain it without overriding classes. Also, if your pet is the last unit on your team with actions left and you try to tab to another unit, its name will temporarily revert to the old one but will come back next turn (if it is still in your control).
+
+Compatibility:
+
+Doesn't override any classes so it should work with most mods. Specifically, I've tested it with the popular mods that modify the Unit Flags:
+
+Numeric Health Display - works
+Show Health Values - works
+Additional Icons - sort of works; the name in the bottom-left will be accurate but the Unit Flags name will still be the template name</Description>
+    <SteamPublishID>0</SteamPublishID>
+    <AssemblyName>Name Your Pet</AssemblyName>
+    <RootNamespace>Name Your Pet</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Folder Include="Config\" />
+    <Folder Include="Content\" />
+    <Folder Include="Localization\" />
+    <Folder Include="Src\" />
+    <Folder Include="Src\NameYourPet\" />
+    <Folder Include="Src\NameYourPet\Classes\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Config\XComNameYourPet.ini">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Localization\NameYourPet.chn">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Localization\NameYourPet.cht">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Localization\NameYourPet.deu">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Localization\NameYourPet.esn">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Localization\NameYourPet.fra">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Localization\NameYourPet.int">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Localization\NameYourPet.ita">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Localization\NameYourPet.jpn">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Localization\NameYourPet.kor">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Localization\NameYourPet.pol">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Localization\NameYourPet.rus">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="ReadMe.txt" />
+    <Content Include="ModPreview.jpg" />
+    <Content Include="Config\XComEditor.ini" />
+    <Content Include="Config\XComEngine.ini" />
+    <Content Include="Config\XComGame.ini" />
+    <Content Include="Src\NameYourPet\Classes\NYP_UITacticalHUD_Listener.uc">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Src\NameYourPet\Classes\NYP_UITacticalHUD_Menu.uc">
+      <SubType>Content</SubType>
+    </Content>
+  </ItemGroup>
+  <Import Project="$(MSBuildLocalExtensionPath)\XCOM2.targets" />
+</Project>

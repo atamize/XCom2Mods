@@ -91,6 +91,26 @@ protected function int CalculateMin(array<int> List)
 	return CurrentLeader;
 }
 
+function string GetName(XComGameState_Unit Unit, optional bool Nick = true)
+{
+	local string charName;
+
+	if (Unit.IsSoldier())
+		return Unit.GetName(Nick ? eNameType_FullNick : eNameType_Full);
+	
+	if (Unit.IsCivilian())
+		return Unit.GetFullName();
+
+	// Name Your Pet mod lets you name mind-controlled enemies, but you
+	// have to manually get their last name, otherwise their template name is used
+	charName = Unit.GetLastName();
+	
+	if (len(charName) > 0)
+		return charName;
+
+	return Unit.GetMyTemplate().strCharacterName;
+}
+
 function SetWinnerBasic(array<XComGameState_Unit> Units)
 {
 	local int Winner;
@@ -98,7 +118,19 @@ function SetWinnerBasic(array<XComGameState_Unit> Units)
 	Winner = CalculateMax(Scores);
 	if (Winner >= 0)
 	{
-		WinnerName = Units[Winner].GetName(eNameType_FullNick);
+		WinnerName = GetName(Units[Winner]);
+		Winners.AddItem(Winner);
+	}
+}
+
+function SetWinnerMin(array<XComGameState_Unit> Units)
+{
+	local int Winner;
+
+	Winner = CalculateMin(Scores);
+	if (Winner >= 0)
+	{
+		WinnerName = GetName(Units[Winner]);
 		Winners.AddItem(Winner);
 	}
 }

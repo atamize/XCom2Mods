@@ -20,12 +20,16 @@ struct MAV_UnitStats
 	var int CloseRangeValue; // Tiles + Damage for close range award
 	var int DashingTiles; // Tiles moved while dashing
 	var int OverwatchTaken; // Overwatches ran + bonus for not getting hit
+	var int ShorthandedDamage; // Damage dealt while teammate was taken out
+	var int ShotsTaken;
+	var int SuccessfulShots;
 	var array<MAV_DamageResult> EnemyStats;
 };
 
 var string CURRENT_VERSION;
 var string ModVersion;
 var array<MAV_UnitStats> MAV_Stats;
+var bool Shorthanded;
 
 var config int TurtleScoreOverwatch;
 var config int TurtleScoreHunkerDown;
@@ -48,6 +52,7 @@ function RegisterAbilityActivated()
 
 	MAV_Stats.Length = 0;
 	ThisObj = self;
+	Shorthanded = false;
 	
 	EventMgr = `XEVENTMGR;
 	EventMgr.RegisterForEvent(ThisObj, 'AbilityActivated', OnAbilityActivated, ELD_OnVisualizationBlockStarted);
@@ -144,7 +149,9 @@ function EventListenerReturn OnUnitTookDamage(Object EventData, Object EventSour
 	local name TemplateName;
 	local MAV_DamageResult Entry;
 	local bool Found, IsKilled;
-	
+	local array<XComGameState_Unit> OriginalUnits, PlayableUnits;
+	local XComTacticalController kTacticalController;
+
 	Context = XComGameStateContext_Ability(GameState.GetContext());
 	if (context == none)
 		return ELR_NoInterrupt;
@@ -173,7 +180,11 @@ function EventListenerReturn OnUnitTookDamage(Object EventData, Object EventSour
 		DamageAmount = DamageResult.DamageAmount;
 
 		// Civilian damage should count for a lot so they are properly shamed by Hates 'X' award
-		if (TemplateName == 'Civilian' || TemplateName == 'HostileCivilian' || TemplateName == 'HostileVIPCivilian')
+		if (DamagedUnit.IsSoldier())
+		{
+			DamageAmount *= 2000;
+		}
+		else if (TemplateName == 'Civilian' || TemplateName == 'HostileCivilian' || TemplateName == 'HostileVIPCivilian')
 		{
 			DamageAmount *= 1000;
 		}
@@ -214,6 +225,26 @@ function EventListenerReturn OnUnitTookDamage(Object EventData, Object EventSour
 		{
 			WoundHP = AttackingUnit.GetMaxStat(eStat_HP) - AttackingUnit.GetCurrentStat(eStat_HP);
 			NewRoot.MAV_Stats[i].WoundedDamage = WoundHP + DamageResult.DamageAmount;
+		}
+
+		// Damage while shorthanded for "Unfinished Business"
+		if (!Shorthanded)
+		{
+			kTacticalController = XComTacticalController(class'WorldInfo'.static.GetWorldInfo().GetALocalPlayerController());
+			kTacticalController.m_XGPlayer.GetOriginalUnits(OriginalUnits, true);
+			kTacticalController.m_XGPlayer.GetPlayableUnits(PlayableUnits, true);
+
+			`log("MAV O.G. Units:" @ OriginalUnits.Length @ ", Playable:" @ PlayableUnits.Length);
+
+			if (PlayableUnits.Length < OriginalUnits.Length)
+			{
+				Shorthanded = true;
+			}
+		}
+
+		if (Shorthanded)
+		{
+			NewRoot.MAV_Stats[i].ShorthandedDamage += DamageResult.DamageAmount;
 		}
 	}
 	
@@ -272,9 +303,12 @@ function MAV_UnitStats ShotDelegate(XComGameState_Unit Unit, XComGameState_Abili
 	Chance = Clamp(AbilityContext.ResultContext.CalculatedHitChance, 0, 100);
 	if (class'MAV_Utilities'.static.IsFriendly(OwnerUnit))
 	{
+		UnitStats.ShotsTaken++;
+
 		if (AbilityContext.IsResultContextHit())
 		{
 			UnitStats.Luck += (100 - Chance);
+			UnitStats.SuccessfulShots++;
 		}
 		else
 		{
@@ -334,5 +368,5 @@ function MAV_UnitStats TurtleDelegate(XComGameState_Unit Unit, XComGameState_Abi
 
 defaultproperties
 {
-	CURRENT_VERSION = "1.2.0";
+	CURRENT_VERSION = "1.2.1";
 }
