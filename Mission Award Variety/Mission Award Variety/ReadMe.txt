@@ -57,7 +57,11 @@ UNFINISHED BUSINESS
 Fought the hardest after a teammate died/evacuated/incapacitated
 
 LITERALLY THE WORST
-Didn't really do anything significant
+Didn't win any awards and dealt the least amount of damage
+
+OVERQUALIFIED
+Got the most kills relative to their rank (higher ranks expected to have more kills)
+
 
 CONFIGURATION OPTIONS
 These options are found in XComMissionAwardVariety.ini:
