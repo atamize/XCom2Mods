@@ -23,6 +23,7 @@ Additional Icons - sort of works; the name in the bottom-left will be accurate b
     <SteamPublishID>0</SteamPublishID>
     <AssemblyName>Name Your Pet</AssemblyName>
     <RootNamespace>Name Your Pet</RootNamespace>
+    <ProjectGuid>{25084fd4-0215-4f75-840d-93dd0d0266f8}</ProjectGuid>
   </PropertyGroup>
   <ItemGroup>
     <Folder Include="Config\" />

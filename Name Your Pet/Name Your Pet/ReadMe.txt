@@ -6,7 +6,8 @@ If you want to see your pet's name during the mission debriefing screen when it 
 
 Known issues:
 
-Once your mind-control or hack wears off, your pet will go back to his old 'name', which is kind of lame but I haven't figured out how to retain it without overriding classes. Also, if your pet is the last unit on your team with actions left and you try to tab to another unit, its name will temporarily revert to the old one but will come back next turn (if it is still in your control).
+- Once your mind-control or hack wears off, your pet will go back to his old 'name', which is kind of lame but I haven't figured out how to retain it without overriding classes.
+- If your pet is the last unit on your team with actions left and you try to tab to another unit, its name will temporarily revert to the old one but will come back next turn (if it is still in your control).
 
 Compatibility:
 
