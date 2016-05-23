@@ -26,6 +26,7 @@ var localized string m_strCongeniality;
 var localized string m_strRanOverwatch;
 var localized string m_strUnfinishedBusiness;
 var localized string m_strMostUseless;
+var localized string m_strOverqualified;
 
 var config bool ShowVanillaStats;
 var config bool IncludeVanillaAwards;
@@ -249,6 +250,7 @@ event OnInit(UIScreen Screen)
 		AddCategory(new class'MAV_Category_CloseRange', m_strCloseRange, Size);
 		AddCategory(new class'MAV_Category_RanOverwatches', m_strRanOverwatch, Size);
 		AddCategory(new class'MAV_Category_UnfinishedBusiness', m_strUnfinishedBusiness, Size);
+		AddCategory(new class'MAV_Category_PunchingAboveWeight', m_strOverqualified, Size);
 	}
 
 	if (IncludeVanillaAwards)

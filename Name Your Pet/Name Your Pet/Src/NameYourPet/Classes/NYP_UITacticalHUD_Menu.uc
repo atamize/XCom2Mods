@@ -29,6 +29,7 @@ simulated function OnInit()
 	WorldInfo.MyWatchVariableMgr.RegisterWatchVariable( UITacticalHUD(screen), 'm_isMenuRaised', self, Refresh);
 	WorldInfo.MyWatchVariableMgr.RegisterWatchVariable( XComPresentationLayer(Movie.Pres), 'm_kInventoryTactical', self, Refresh);
 
+	ThisObj = self;
 	`XEVENTMGR.RegisterForEvent(ThisObj, 'AbilityActivated', OnAbilityActivated, ELD_OnVisualizationBlockCompleted);
 	`log("NYP OnInit");
 }
@@ -71,13 +72,11 @@ function EventListenerReturn OnAbilityActivated(Object EventData, Object EventSo
 {
 	local XComGameState_Unit SourceUnit;
 
-	`log("NYP Ability Activated");
 	if (StateUnit != none)
 	{
 		SourceUnit = XComGameState_Unit(EventSource);
 		if (SourceUnit.ObjectID == StateUnit.ObjectID)
 		{
-			`log("NYP Updating");
 			Refresh();
 		}
 	}
@@ -134,8 +133,10 @@ function RefreshForReal()
 
 	// If not shown or ready, leave.
 	if( !bIsInited )
+	{
 		return;
-	
+	}
+
 	// Only update if new unit
 	kActiveUnit = XComTacticalController(PC).GetActiveUnit();
 	if( kActiveUnit == none )

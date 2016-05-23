@@ -145,7 +145,7 @@ function EventListenerReturn OnUnitTookDamage(Object EventData, Object EventSour
 	local XComGameStateContext_ChangeContainer ChangeContainer;
 	local XComGameState_Unit DamagedUnit, AttackingUnit;
 	local DamageResult DamageResult;
-	local int WoundHP, DamageAmount, i, j;
+	local int WoundHP, DamageAmount, i, j, Tiles;
 	local name TemplateName;
 	local MAV_DamageResult Entry;
 	local bool Found, IsKilled;
@@ -220,6 +220,13 @@ function EventListenerReturn OnUnitTookDamage(Object EventData, Object EventSour
 			NewRoot.MAV_Stats[i].CritDamage += DamageResult.DamageAmount;
 		}
 
+		// Close range damage
+		Tiles = AttackingUnit.TileDistanceBetween(DamagedUnit);
+		if (Tiles <= CloseRangeTiles)
+		{
+			NewRoot.MAV_Stats[i].CloseRangeValue += (CloseRangeTiles - Tiles + 1) + DamageResult.DamageAmount;
+		}
+
 		// Damage while wounded for "Ain't Got Time to Bleed"
 		if (AttackingUnit.IsInjured())
 		{
@@ -292,7 +299,6 @@ function MAV_UnitStats ShotDelegate(XComGameState_Unit Unit, XComGameState_Abili
 {
 	local int Chance;
 	local XComGameState_Unit OwnerUnit, TargetUnit;
-	local int Tiles;
 	local bool IsOverwatch;
 	local XComGameStateHistory History;
 
@@ -320,12 +326,6 @@ function MAV_UnitStats ShotDelegate(XComGameState_Unit Unit, XComGameState_Abili
 		if (OwnerUnit.HasHeightAdvantageOver(TargetUnit, true))
 		{
 			UnitStats.Elevation += (OwnerUnit.TileLocation.Z - TargetUnit.TileLocation.Z);
-		}
-
-		Tiles = OwnerUnit.TileDistanceBetween(TargetUnit);
-		if (Tiles <= CloseRangeTiles)
-		{
-			UnitStats.CloseRangeValue += (CloseRangeTiles - Tiles + 1) + TargetUnit.DamageResults[TargetUnit.DamageResults.Length-1].DamageAmount;
 		}
 	}
 	else
@@ -368,5 +368,5 @@ function MAV_UnitStats TurtleDelegate(XComGameState_Unit Unit, XComGameState_Abi
 
 defaultproperties
 {
-	CURRENT_VERSION = "1.2.1";
+	CURRENT_VERSION = "1.2.2";
 }
