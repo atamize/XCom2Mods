@@ -1,91 +1,98 @@
 ﻿------------------------------------------------
 Mission Award Variety - an XCOM 2 Mod by atamize
-Version 1.2.0
+Version 1.2.3
 ------------------------------------------------
 
-Adds more interesting awards for your soldiers on the mission debriefing screen.
+Adds more interesting awards on the mission debriefing screen.
 
-HATES 'X' THE MOST
+[b]HATES 'X' THE MOST[/b]
 Dealt the most damage to the particular enemy type that was damaged the most
 
-LUCKIEST
+[b]LUCKIEST[/b]
 Hit the most unlikely shots and dodged the most likely incoming shots
 
-SOLO SLAYER
+[b]SOLO SLAYER[/b]
 Murdered the most ayys without help from teammates
 
-POWER COUPLE
+[b]POWER COUPLE[/b]
 The two soldiers who did the most damage while double-teaming enemies
 
-UNLUCKIEST
+[b]UNLUCKIEST[/b]
 Missed the most likely shots and got hit by the most unlikely incoming shots
 
-HEAVY HITTER
+[b]HEAVY HITTER[/b]
 Dealt the most critical hit damage
 
-MOST ASSISTS
+[b]MOST ASSISTS[/b]
 Dealt the most damage that did not result in a kill
 
-KILL STEALER
+[b]KILL STEALER[/b]
 Finished off the most enemies previously damaged by others
 
-AIN'T GOT TIME TO BLEED
+[b]AIN'T GOT TIME TO BLEED[/b]
 Dealt the most damage while wounded
 
-NOT BAD, KID
+[b]NOT BAD, KID[/b]
 Lowest ranking soldier who did more damage than a higher ranking soldier
 
-TOO OLD FOR THIS $#!@
+[b]TOO OLD FOR THIS $#!@[/b]
 Highest ranking soldier who got shot at or damaged the most
 
-LOVES BEING A TURTLE
+[b]LOVES BEING A TURTLE[/b]
 Overwatched or hunkered down the most
 
-MOST HIGH
+[b]MOST HIGH[/b]
 Took the most shots with a height advantage
 
-CLOSE RANGE?
+[b]CLOSE RANGE?[/b]
 Dealt the most damage at...close range
 
-LEAF ON THE WIND
+[b]LEAF ON THE WIND[/b]
 Ran the most overwatches (bonus points if you didn't get hit)
 
-MISS (OR MISTER) CONGENIALITY
+[b]MISS (OR MISTER) CONGENIALITY[/b]
 Didn't win any awards but still contributed to the mission
 
-UNFINISHED BUSINESS
+[b]UNFINISHED BUSINESS[/b]
 Fought the hardest after a teammate died/evacuated/incapacitated
 
-LITERALLY THE WORST
+[b]LITERALLY THE WORST[/b]
 Didn't win any awards and dealt the least amount of damage
 
-OVERQUALIFIED
+[b]OVERQUALIFIED[/b]
 Got the most kills relative to their rank (higher ranks expected to have more kills)
 
+[b]SNEAKIEST[/b]
+Moved the furthest while in concealment
 
-CONFIGURATION OPTIONS
+
+[h1]CONFIGURATION OPTIONS[/h1]
 These options are found in XComMissionAwardVariety.ini:
 
-ShowVanillaStats - If set to true, the left column will show the vanilla team stats (Successful Shot Percentage, etc.) and the right column will show 4 random awards. If set to false (by default), 8 random awards will be shown if there are enough winners.
+[b]ShowVanillaStats[/b] - If set to true, the left column will show the vanilla team stats (Successful Shot Percentage, etc.) and the right column will show 4 random awards. If set to false (by default), 8 random awards will be shown if there are enough winners.
 
-IncludeVanillaAwards - If set to true, the vanilla awards will be included in the award pool (Dealt Most Damage, Made Most Attacks, Most Under Fire, Moved Furthest).
+[b]IncludeVanillaAwards[/b] - If set to true, the vanilla awards will be included in the award pool (Dealt Most Damage, Made Most Attacks, Most Under Fire, Moved Furthest).
 
-
-FAQ
-Q: I have an idea for an award, can you add it to your mod?
+[h1]FAQ[/h1]
+[b]Q: I have an idea for an award, can you add it to your mod?[/b]
 A: Maybe, depending on how interesting it is and how easy it is to track.
 
-Q: How is luck calculated?
+[b]Q: Can I change the names of the awards?[/b]
+A: Sure! Just open Localization/MissionAwardVariety.int (or your preferred language file) in a text editor and edit away. 
+
+[b]Q: How is luck calculated?[/b]
 A: Whenever a soldier makes a successful shot, (100 - ChanceToHit) is added to their luck value. Whenever they dodge enemy fire, ChanceToHit is added to their luck value.
 
-Q: How come I haven't seen some of these awards?
+[b]Q: How come I haven't seen some of these awards?[/b]
 The screen can only fit 8 awards at a time and the ones you see are randomized. Also, some categories may not have a winner and will not be shown.
 
-Q: What does it mean to "turtle"?
-A: Turtling means you're playing defensively, ie. overwatching or hunkering down like a turtle hiding in its shell.
+[b]Q: Your translations are wrong; can I give you the correct translations?[/b]
+Yes, please! Just post your translations in the discussion thread.
 
-Q: Any compatibility issues?
-A: Does not override any classes so it should work with any mod except for those that override UIDropShipBriefing_MissionEnd such as [url=https://steamcommunity.com/sharedfiles/filedetails/?id=638033072]Nice DropShip (De)Briefing[/url]. There is support planned for compatibility with this mod so please stay tuned.
+[b]Q: Any compatibility issues?[/b]
+A: Does not override any classes so it should work with any mod except for those that override UIDropShipBriefing_MissionEnd such as [url=http://steamcommunity.com/sharedfiles/filedetails/?id=638033072]Nice DropShip (De)Briefing[/url]. There is support planned for compatibility with this mod so stay tuned.
 
+[b]Q: Wouldn't it be cool if you could name your mind-controlled enemies so their names could show up on this screen instead of their boring template names?[/b]
+A: Yeah, it would! In fact, I made a mod that will make your wish come true: [url=http://steamcommunity.com/sharedfiles/filedetails/?id=677029871]Name Your Pet[/url]
 
-Thanks to Kosmo for the [url=https://steamcommunity.com/sharedfiles/filedetails/?id=634754304]Lifetime Stats mod[/url] whose code was very helpful in setting this up.
+Thanks to Kosmo for the [url=http://steamcommunity.com/sharedfiles/filedetails/?id=634754304]Lifetime Stats[/url] mod whose code was very helpful in setting this up.
