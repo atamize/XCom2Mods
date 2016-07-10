@@ -8,6 +8,11 @@ class MAV_UIMissionEndScreenListener extends UIScreenListener
 	dependson(XComGameState_MissionStats_Unit, MAV_BaseCategory, XComGameState_MissionStats_Root)
 	config(MissionAwardVariety);
 
+struct Awardee
+{
+	var array<MAV_BaseCategory> Awards;
+};
+
 var localized string m_strHatesTheMost;
 var localized string m_strLuckiest;
 var localized string m_strSoloSlayer;
@@ -27,6 +32,7 @@ var localized string m_strRanOverwatch;
 var localized string m_strUnfinishedBusiness;
 var localized string m_strMostUseless;
 var localized string m_strOverqualified;
+var localized string m_strSneakiest;
 
 var config bool ShowVanillaStats;
 var config bool IncludeVanillaAwards;
@@ -79,6 +85,7 @@ function name GetEnemyType(XComGameState_Unit Unit)
 		case 'Civilian':
 		case 'HostileCivilian':
 		case 'HostileVIPCivilian':
+		case 'FriendlyVIPCivilian':
 			return 'CIVILIANS';
 
 		case 'Soldier':
@@ -130,10 +137,11 @@ function name GetEnemyType(XComGameState_Unit Unit)
 	return 'AYYS';
 }
 
-private function AddCategory(MAV_BaseCategory Category, string Label, int Size)
+private function MAV_BaseCategory AddCategory(MAV_BaseCategory Category, string Label, int Size, int Priority)
 {
-	Category.Initialize(Label, Size);
+	Category.Initialize(Label, Size, Priority);
 	Categories.AddItem(Category);
+	return Category;
 }
 
 event OnInit(UIScreen Screen)
@@ -146,16 +154,18 @@ event OnInit(UIScreen Screen)
 	local array<MAV_UnitStats> UnitStats;
 	local array<EnemyDamageCount> EnemyStats;
 	local MAV_UnitStats MissionStats;
-	local int i, j, Size;
+	local int i, j, Size, NumToShow;
 	local EnemyDamageCount NewEnemyInfo;
 	local MAV_DamageResult Result, NewResult;
-	local bool Found;
+	local bool Found, PowerCoupleAdded;
 	local MAV_MissionStats Stats;
-	local MAV_BaseCategory Category;
-	local array<MAV_BaseCategory> Backlog;
-	local array<int> WinnerCounts, Losers;
+	local MAV_BaseCategory Category, PowerCouple;
+	local array<int> Losers;
 	local XComGameState_Analytics Analytics;
 	local name TemplateName;
+	local array<Awardee> Awardees;
+	local array<MAV_BaseCategory> Unique, Guaranteed, Backlog;
+	local Awardee Winner;
 
 	MissionEndScreen = UIDropShipBriefing_MissionEnd(Screen);
 	History = `XCOMHISTORY;
@@ -174,8 +184,7 @@ event OnInit(UIScreen Screen)
 				continue;
 
 			Squad.AddItem(Unit);
-			WinnerCounts.AddItem(0);
-
+			Awardees.AddItem(Winner);
 			//`log("Stats for " $ Unit.GetName(eNameType_FullNick) $ ": " $ TemplateName);
 			//`log("Rank: " $ Unit.GetSoldierRank());
 			//`log("Enemy stats length: " $ MissionStats.EnemyStats.Length);
@@ -234,23 +243,24 @@ event OnInit(UIScreen Screen)
 
 	if (Root != none)
 	{
-		AddCategory(new class'MAV_Category_HatesMost', m_strHatesTheMost, Size);
-		AddCategory(new class'MAV_Category_Luckiest', m_strLuckiest, Size);
-		AddCategory(new class'MAV_Category_SoloSlayer', m_strSoloSlayer, Size);
-		AddCategory(new class'MAV_Category_PowerCouple', m_strPowerCouple, Size);
-		AddCategory(new class'MAV_Category_MostAssists', m_strMostAssists, Size);
-		AddCategory(new class'MAV_Category_KillStealer', m_strKillStealer, Size);
-		AddCategory(new class'MAV_Category_MostHigh', m_strMostHigh, Size);
-		AddCategory(new class'MAV_Category_MostCritDamage', m_strMostCritDamage, Size);
-		AddCategory(new class'MAV_Category_Unluckiest', m_strUnluckiest, Size);
-		AddCategory(new class'MAV_Category_TimeToBleed', m_strTimeToBleed, Size);
-		AddCategory(new class'MAV_Category_Turtle', m_strTurtle, Size);
-		AddCategory(new class'MAV_Category_AlrightKid', m_strAlrightKid, Size);
-		AddCategory(new class'MAV_Category_TooOld', m_strTooOld, Size);
-		AddCategory(new class'MAV_Category_CloseRange', m_strCloseRange, Size);
-		AddCategory(new class'MAV_Category_RanOverwatches', m_strRanOverwatch, Size);
-		AddCategory(new class'MAV_Category_UnfinishedBusiness', m_strUnfinishedBusiness, Size);
-		AddCategory(new class'MAV_Category_PunchingAboveWeight', m_strOverqualified, Size);
+		AddCategory(new class'MAV_Category_HatesMost', m_strHatesTheMost, Size, 1);
+		AddCategory(new class'MAV_Category_Luckiest', m_strLuckiest, Size, 1);
+		AddCategory(new class'MAV_Category_SoloSlayer', m_strSoloSlayer, Size, 2);
+		PowerCouple = AddCategory(new class'MAV_Category_PowerCouple', m_strPowerCouple, Size, 2);
+		AddCategory(new class'MAV_Category_MostAssists', m_strMostAssists, Size, 1);
+		AddCategory(new class'MAV_Category_KillStealer', m_strKillStealer, Size, 2);
+		AddCategory(new class'MAV_Category_MostHigh', m_strMostHigh, Size, 2);
+		AddCategory(new class'MAV_Category_MostCritDamage', m_strMostCritDamage, Size, 1);
+		AddCategory(new class'MAV_Category_Unluckiest', m_strUnluckiest, Size, 1);
+		AddCategory(new class'MAV_Category_TimeToBleed', m_strTimeToBleed, Size, 3);
+		AddCategory(new class'MAV_Category_Turtle', m_strTurtle, Size, 2);
+		AddCategory(new class'MAV_Category_AlrightKid', m_strAlrightKid, Size, 4);
+		AddCategory(new class'MAV_Category_TooOld', m_strTooOld, Size, 3);
+		AddCategory(new class'MAV_Category_CloseRange', m_strCloseRange, Size, 2);
+		AddCategory(new class'MAV_Category_RanOverwatches', m_strRanOverwatch, Size, 4);
+		AddCategory(new class'MAV_Category_UnfinishedBusiness', m_strUnfinishedBusiness, Size, 2);
+		AddCategory(new class'MAV_Category_PunchingAboveWeight', m_strOverqualified, Size, 4);
+		AddCategory(new class'MAV_Category_Sneakiest', m_strSneakiest, Size, 1);
 	}
 
 	if (IncludeVanillaAwards)
@@ -262,7 +272,7 @@ event OnInit(UIScreen Screen)
 		AddVanillaAward(Analytics, class'XComGameState_Analytics'.const.ANALYTICS_UNIT_MOVEMENT, MissionEndScreen.m_strMovedFurthest, Squad);
 	}
 
-	// Determine unique winners
+	// Determine winners
 	for (i = 0; i < Categories.Length; ++i)
 	{
 		Category = Categories[i];
@@ -271,40 +281,75 @@ event OnInit(UIScreen Screen)
 		if (Category.HasWinner())
 		{
 			`log("Winner of" @ Category.Label $ ":" @ Category.WinnerName);
-			Found = false;
 			foreach Category.Winners(j)
 			{
-				if (WinnerCounts[j] == 0)
-				{
-					Found = true;
-				}
-				WinnerCounts[j]++;
-			}
-
-			if (Found)
-			{
-				Winners.AddItem(Category);
-			}
-			else
-			{
-				Backlog.AddItem(Category);
+				Awardees[j].Awards.AddItem(Category);
 			}
 		}
 	}
 
-	// Find out who the losers are so we can possibly give them the Congeniality award
-	for (i = 0; i < WinnerCounts.Length; ++i)
+	// Determine losers
+	for (i = 0; i < Awardees.Length; ++i)
 	{
-		if (WinnerCounts[i] == 0)
-		{
+		if (Awardees[i].Awards.Length == 0)
 			Losers.AddItem(i);
+	}
+
+	// Determine unique winners
+	NumToShow = ShowVanillaStats ? 4 : 8;
+	PowerCoupleAdded = false;
+	for (i = 0; i < Awardees.Length; ++i)
+	{
+		if (Awardees[i].Awards.Length > 0)
+		{
+			j = RollAwardByPriority(Awardees[i].Awards);
+			Category = Awardees[i].Awards[j];
+			Awardees[i].Awards.RemoveItem(Category);
+
+			// Don't want Power Couple to be added twice
+			if (Category == PowerCouple)
+			{
+				if (PowerCoupleAdded)
+					continue;
+				else
+					PowerCoupleAdded = true;
+			}
+					
+			Unique.AddItem(Category);
 		}
 	}
 
-	if (Losers.Length > 0)
+	if (Unique.Length > NumToShow)
 	{
+		// Multiple award winners should be guaranteed to appear in the final display
+		for (i = 0; i < Unique.Length; ++i)
+		{
+			foreach Unique[i].Winners(j)
+			{
+				if (Awardees[j].Awards.Length > 0)
+					Guaranteed.AddItem(Unique[i]);
+				else
+					Backlog.AddItem(Unique[i]);
+			}
+		}
+
+		// Add rest of Unique winners
+		Shuffle(Backlog);
+		for (i = 0; i < Backlog.Length && Guaranteed.Length < NumToShow; ++i)
+		{
+			Guaranteed.AddItem(Backlog[i]);
+		}
+	}
+	else if (Unique.Length < NumToShow && Losers.Length > 0)
+	{
+		for (i = 0; i < Unique.Length; ++i)
+		{
+			Guaranteed.AddItem(Unique[i]);
+		}
+
+		// Deal with losers	
 		Category = new class'MAV_BaseCategory';
-		Category.Initialize(m_strCongeniality, Size);
+		Category.Initialize(m_strCongeniality, Size, 0);
 
 		for (i = 0; i < Losers.Length; ++i)
 		{
@@ -318,15 +363,15 @@ event OnInit(UIScreen Screen)
 		{
 			Category.Label = repl(m_strCongeniality, "#Title", (Squad[Category.Winners[0]].kAppearance.iGender == eGender_Male) ? "MISTER" : "MISS");
 			`log("Winner of" @ Category.Label $ ":" @ Category.WinnerName);
-			Winners.AddItem(Category);
+			Guaranteed.AddItem(Category);
 			Losers.RemoveItem(Category.Winners[0]);
 		}
 
 		// There are still losers, so we must choose the worst one
-		if (Losers.Length > 0)
+		if (Guaranteed.Length < NumToShow && Losers.Length > 0)
 		{
 			Category = new class'MAV_BaseCategory';
-			Category.Initialize(m_strMostUseless, Size);
+			Category.Initialize(m_strMostUseless, Size, 0);
 
 			for (i = 0; i < Squad.Length; ++i)
 			{
@@ -345,28 +390,61 @@ event OnInit(UIScreen Screen)
 			if (Category.HasWinner())
 			{
 				`log("Winner of" @ Category.Label $ ":" @ Category.WinnerName);
-				Winners.AddItem(Category);
+				Guaranteed.AddItem(Category);
 			}
 		}
 	}
-
-	// Fill out winners with backlog once unique winners have been determined
-	Size = ShowVanillaStats ? 4 : 8;
-	j = 0;
-	for (i = Winners.Length; i < Size && j < Backlog.Length; ++i)
+	else
 	{
-		Winners.AddItem(Backlog[j]);
-		j++;
+		for (i = 0; i < Unique.Length; ++i)
+		{
+			Guaranteed.AddItem(Unique[i]);
+		}
 	}
+
+	// Fill rest of slots
+	Awardees.Sort(SortAwardeesByLength);
+	while (Guaranteed.Length < NumToShow)
+	{
+		Found = false;
+		for (i = 0; i < Awardees.Length; ++i)
+		{
+			if (Awardees[i].Awards.Length > 0)
+			{
+				Found = true;
+				j = RollAwardByPriority(Awardees[i].Awards);
+				Category = Awardees[i].Awards[j];
+				//`log("Awardee " $ Category.WinnerName $ " with length " $ Awardees[i].Awards.Length);
+
+				Awardees[i].Awards.RemoveItem(Category);
+
+				// Don't want Power Couple to be added twice
+				if (Category == PowerCouple)
+				{
+					if (PowerCoupleAdded)
+						continue;
+					else
+						PowerCoupleAdded = true;
+				}
+				
+				Guaranteed.AddItem(Category);
+				if (Guaranteed.Length >= NumToShow)
+				{
+					Found = false;
+					break;
+				}
+			}
+		}
+
+		if (!Found) // We've exhausted the available awards
+			break;
+	}
+
+	for (i = 0; i < Guaranteed.Length; ++i)
+		Winners.AddItem(Guaranteed[i]);
 
 	// Shuffle list
-	for (i = 0; i < Winners.Length; ++i)
-	{
-		Category = Winners[i];
-		j = `SYNC_RAND(Winners.Length);
-		Winners[i] = Winners[j];
-		Winners[j] = Category;
-	}
+	Shuffle(Winners);
 
 	if (NDScreenIndex < 0)
 	{
@@ -383,6 +461,34 @@ event OnInit(UIScreen Screen)
 			DisplayWinners();
 		}
 	}
+}
+
+private function Shuffle(array<MAV_BaseCategory> arr)
+{
+	local MAV_BaseCategory Category;
+	local int i, j;
+
+	for (i = 0; i < arr.Length; ++i)
+	{
+		Category = arr[i];
+		j = `SYNC_RAND(arr.Length);
+		arr[i] = arr[j];
+		arr[j] = Category;
+	}
+}
+
+private function int SortAwardeesByLength(Awardee A, Awardee B)
+{
+	if (A.Awards.Length > B.Awards.Length) return 1;
+	else if (A.Awards.Length < B.Awards.Length) return -1;
+	return 0;
+}
+
+function int SortCategoryByPriority(MAV_BaseCategory A, MAV_BaseCategory B)
+{
+	if (A.Priority > B.Priority) return 1;
+	else if (A.Priority < B.Priority) return -1;
+	return 0;
 }
 
 simulated function UpdateStatistics()
@@ -413,6 +519,7 @@ function AddVanillaAward(XComGameState_Analytics Analytics, name Metric, string 
 		Category = new class'MAV_BaseCategory';
 		Category.Label = Label;
 		Category.WinnerName = Category.GetName(UnitState);
+		Category.Priority = 1;
 
 		for (i = 0; i < Squad.Length; ++i)
 		{
@@ -464,6 +571,26 @@ function DisplayWinners()
 		Category = Winners[i];
 		MissionEndScreen.Spawn(class'UIDropShipBriefing_ListItem', ItemContainer).InitListItem(ItemID, Category.Label, Category.WinnerName, true);
 	}
+}
+
+private function int RollAwardByPriority(array<MAV_BaseCategory> Awards)
+{
+	local int i, Sum, Pivot, Total;
+
+	for (i = 0; i < Awards.Length; ++i)
+	{
+		Sum += Awards[i].Priority;
+	}
+
+	Pivot = `SYNC_RAND(Sum);
+
+	for (i = 0; i < Awards.Length; ++i)
+	{
+		Total += Awards[i].Priority;
+		if (Pivot < Total)
+			return i;
+	}
+	return -1;
 }
 
 defaultproperties

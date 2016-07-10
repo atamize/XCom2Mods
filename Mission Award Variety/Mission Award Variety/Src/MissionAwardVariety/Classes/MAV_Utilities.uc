@@ -96,7 +96,6 @@ static function bool IsFriendly(XComGameState_Unit Unit)
 	case 'CommanderVIP':
 	case 'Engineer':
 	case 'Scientist':
-	case 'MimicBeacon':
 		return true;
 	}
 
