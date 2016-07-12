@@ -23,6 +23,7 @@ struct MAV_UnitStats
 	var int ShorthandedDamage; // Damage dealt while teammate was taken out
 	var int ShotsTaken;
 	var int SuccessfulShots;
+	var int ConcealedTiles; // Tiles moved while in concealment
 	var array<MAV_DamageResult> EnemyStats;
 };
 
@@ -57,7 +58,7 @@ function RegisterAbilityActivated()
 	EventMgr = `XEVENTMGR;
 	EventMgr.RegisterForEvent(ThisObj, 'AbilityActivated', OnAbilityActivated, ELD_OnVisualizationBlockStarted);
 	EventMgr.RegisterForEvent(ThisObj, 'UnitTakeEffectDamage', OnUnitTookDamage, ELD_OnVisualizationBlockStarted);
-//	EventMgr.RegisterForEvent(ThisObj, 'UnitMoveFinished', OnUnitMoveFinished, ELD_OnStateSubmitted);
+	EventMgr.RegisterForEvent(ThisObj, 'UnitMoveFinished', OnUnitMoveFinished, ELD_OnStateSubmitted);
 }
 
 function EventListenerReturn OnAbilityActivated(Object EventData, Object EventSource, XComGameState GameState, Name EventID)
@@ -112,10 +113,41 @@ function EventListenerReturn OnAbilityActivated(Object EventData, Object EventSo
 	return ELR_NoInterrupt;
 }
 
-//function EventListenerReturn OnUnitMoveFinished(Object EventData, Object EventSource, XComGameState GameState, Name EventID)
-//{
-	//return ELR_NoInterrupt;
-//}
+function EventListenerReturn OnUnitMoveFinished(Object EventData, Object EventSource, XComGameState GameState, Name EventID)
+{
+	local XComGameState_Analytics Analytics;
+	local XComGameState_Unit Unit;
+	local XComGameState NewGameState;	
+	local XComGameState_MissionStats_Root NewRoot;
+	local XComGameStateContext_ChangeContainer ChangeContainer;
+	local float Tiles;
+	local int i;
+	local name UnitMetric;
+
+	Unit = XComGameState_Unit(EventData);
+	if (Unit == none || !Unit.IsSoldier() || Unit.IsDead() || !Unit.IsConcealed())
+	{
+		return ELR_NoInterrupt;
+	}
+
+	Analytics = XComGameState_Analytics(`XCOMHISTORY.GetSingleGameStateObjectForClass(class'XComGameState_Analytics'));
+	UnitMetric = name("UNIT_" $ Unit.ObjectID $ "_" $ class'XComGameState_Analytics'.const.ANALYTICS_UNIT_MOVEMENT);
+	Tiles = Analytics.GetTacticalFloatValue(UnitMetric);
+	
+	ChangeContainer = class'XComGameStateContext_ChangeContainer'.static.CreateEmptyChangeContainer("Adding Sneak UnitStats for " $ Unit.GetFullName());
+	NewGameState = `XCOMHISTORY.CreateNewGameState(true, ChangeContainer);	
+	NewRoot = XComGameState_MissionStats_Root(NewGameState.CreateStateObject(class'XComGameState_MissionStats_Root', self.ObjectID));
+
+	i = NewRoot.GetStatsIndexForUnit(Unit.ObjectID);
+	NewRoot.MAV_Stats[i].ConcealedTiles = Tiles;
+	//`log("MAV: " $ Unit.GetFullName() $ " moved " $ Tiles $ " tiles in concealment");
+
+	// Submit game state
+	NewGameState.AddStateObject(NewRoot);
+	`TACTICALRULES.SubmitGameState(NewGameState);
+	
+	return ELR_NoInterrupt;
+}
 
 function int GetStatsIndexForUnit(int UnitID)
 {
@@ -184,7 +216,7 @@ function EventListenerReturn OnUnitTookDamage(Object EventData, Object EventSour
 		{
 			DamageAmount *= 2000;
 		}
-		else if (TemplateName == 'Civilian' || TemplateName == 'HostileCivilian' || TemplateName == 'HostileVIPCivilian')
+		else if (DamagedUnit.IsCivilian() || TemplateName == 'Civilian' || TemplateName == 'FriendlyVIPCivilian' || TemplateName == 'HostileCivilian' || TemplateName == 'HostileVIPCivilian')
 		{
 			DamageAmount *= 1000;
 		}
@@ -241,7 +273,7 @@ function EventListenerReturn OnUnitTookDamage(Object EventData, Object EventSour
 			kTacticalController.m_XGPlayer.GetOriginalUnits(OriginalUnits, true);
 			kTacticalController.m_XGPlayer.GetPlayableUnits(PlayableUnits, true);
 
-			`log("MAV O.G. Units:" @ OriginalUnits.Length @ ", Playable:" @ PlayableUnits.Length);
+			//`log("MAV O.G. Units:" @ OriginalUnits.Length @ ", Playable:" @ PlayableUnits.Length);
 
 			if (PlayableUnits.Length < OriginalUnits.Length)
 			{
@@ -368,5 +400,5 @@ function MAV_UnitStats TurtleDelegate(XComGameState_Unit Unit, XComGameState_Abi
 
 defaultproperties
 {
-	CURRENT_VERSION = "1.2.2";
+	CURRENT_VERSION = "1.2.3";
 }

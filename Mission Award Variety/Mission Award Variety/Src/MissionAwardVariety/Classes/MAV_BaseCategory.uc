@@ -19,6 +19,7 @@ struct MAV_MissionStats
 	var array<MAV_UnitStats> UnitStats;
 };
 
+var int Priority;
 var string WinnerName;
 var string Label;
 var array<int> Winners;
@@ -31,7 +32,7 @@ function bool HasWinner()
 	return Winners.Length > 0;
 }
 
-function MAV_BaseCategory Initialize(string LocalizedLabel, int Size)
+function MAV_BaseCategory Initialize(string LocalizedLabel, int Size, int _Priority)
 {
 	local int i;
 
@@ -41,6 +42,7 @@ function MAV_BaseCategory Initialize(string LocalizedLabel, int Size)
 	}
 
 	Label = LocalizedLabel;
+	Priority = _Priority;
 	return self;
 }
 
