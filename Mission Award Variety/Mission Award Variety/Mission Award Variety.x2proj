@@ -171,6 +171,9 @@ Thanks to Kosmo for the [url=https://steamcommunity.com/sharedfiles/filedetails/
     <Content Include="Src\MissionAwardVariety\Classes\MAV_Category_PowerCouple.uc">
       <SubType>Content</SubType>
     </Content>
+    <Content Include="Src\MissionAwardVariety\Classes\MAV_Category_PropertyDamage.uc">
+      <SubType>Content</SubType>
+    </Content>
     <Content Include="Src\MissionAwardVariety\Classes\MAV_Category_PunchingAboveWeight.uc">
       <SubType>Content</SubType>
     </Content>
