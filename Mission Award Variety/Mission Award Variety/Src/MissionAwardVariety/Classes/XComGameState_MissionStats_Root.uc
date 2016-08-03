@@ -306,11 +306,13 @@ function EventListenerReturn OnUnitTookDamage(Object EventData, Object EventSour
 function EventListenerReturn OnBrokeWindow(Object EventData, Object EventSource, XComGameState GameState, Name EventID)
 {
 	local XComGameState_Unit Unit;
+	//`log("MAV - a window broke");
 
 	Unit = XComGameState_Unit(EventSource);
 
 	if (class'MAV_Utilities'.static.IsFriendly(Unit))
 	{
+		//`log("MAV - " $ Unit.GetFullName() $ " broke a damn window");
 		UpdateStats(Unit, none, none, PropertyDamageDelegate);
 	}
 	
@@ -320,11 +322,13 @@ function EventListenerReturn OnBrokeWindow(Object EventData, Object EventSource,
 function EventListenerReturn OnKickedDoor(Object EventData, Object EventSource, XComGameState GameState, Name EventID)
 {
 	local XComGameState_Unit Unit;
+	//`log("MAV - a door was kicked");
 
 	Unit = XComGameState_Unit(EventSource);
 
 	if (class'MAV_Utilities'.static.IsFriendly(Unit))
 	{
+		//`log("MAV - " $ Unit.GetFullName() $ " kicked a damn door");
 		UpdateStats(Unit, none, none, PropertyDamageDelegate);
 	}
 	
@@ -341,6 +345,7 @@ function EventListenerReturn OnBlownUp(Object EventData, Object EventSource, XCo
 
 	if (class'MAV_Utilities'.static.IsFriendly(Unit))
 	{
+		//`log("MAV - environmental damage caused by " $ Unit.GetFullName());
 		UpdateStats(Unit, none, none, PropertyDamageDelegate);
 	}
 
