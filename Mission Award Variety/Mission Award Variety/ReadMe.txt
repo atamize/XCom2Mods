@@ -1,6 +1,6 @@
 ﻿------------------------------------------------
 Mission Award Variety - an XCOM 2 Mod by atamize
-Version 1.2.3
+Version 1.2.4
 ------------------------------------------------
 
 Adds more interesting awards on the mission debriefing screen.
@@ -64,6 +64,9 @@ Got the most kills relative to their rank (higher ranks expected to have more ki
 
 [b]SNEAKIEST[/b]
 Moved the furthest while in concealment
+
+[b]HOME WRECKER[/b]
+Caused the most environmental damage (includes breaking windows, doors, and errant shots)
 
 
 [h1]CONFIGURATION OPTIONS[/h1]

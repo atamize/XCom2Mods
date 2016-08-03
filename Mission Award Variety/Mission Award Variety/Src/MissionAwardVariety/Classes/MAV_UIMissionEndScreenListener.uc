@@ -33,6 +33,7 @@ var localized string m_strUnfinishedBusiness;
 var localized string m_strMostUseless;
 var localized string m_strOverqualified;
 var localized string m_strSneakiest;
+var localized string m_strPropertyDamage;
 
 var config bool ShowVanillaStats;
 var config bool IncludeVanillaAwards;
@@ -261,6 +262,7 @@ event OnInit(UIScreen Screen)
 		AddCategory(new class'MAV_Category_UnfinishedBusiness', m_strUnfinishedBusiness, Size, 2);
 		AddCategory(new class'MAV_Category_PunchingAboveWeight', m_strOverqualified, Size, 4);
 		AddCategory(new class'MAV_Category_Sneakiest', m_strSneakiest, Size, 1);
+		AddCategory(new class'MAV_Category_PropertyDamage', m_strPropertyDamage, Size, 1);
 	}
 
 	if (IncludeVanillaAwards)
@@ -324,13 +326,11 @@ event OnInit(UIScreen Screen)
 		// Multiple award winners should be guaranteed to appear in the final display
 		for (i = 0; i < Unique.Length; ++i)
 		{
-			foreach Unique[i].Winners(j)
-			{
-				if (Awardees[j].Awards.Length > 0)
-					Guaranteed.AddItem(Unique[i]);
-				else
-					Backlog.AddItem(Unique[i]);
-			}
+			j = Unique[i].Winners[0];
+			if (Awardees[j].Awards.Length > 0)
+				Guaranteed.AddItem(Unique[i]);
+			else
+				Backlog.AddItem(Unique[i]);
 		}
 
 		// Add rest of Unique winners

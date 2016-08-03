@@ -24,6 +24,7 @@ struct MAV_UnitStats
 	var int ShotsTaken;
 	var int SuccessfulShots;
 	var int ConcealedTiles; // Tiles moved while in concealment
+	var int PropertyDamage;
 	var array<MAV_DamageResult> EnemyStats;
 };
 
@@ -59,6 +60,9 @@ function RegisterAbilityActivated()
 	EventMgr.RegisterForEvent(ThisObj, 'AbilityActivated', OnAbilityActivated, ELD_OnVisualizationBlockStarted);
 	EventMgr.RegisterForEvent(ThisObj, 'UnitTakeEffectDamage', OnUnitTookDamage, ELD_OnVisualizationBlockStarted);
 	EventMgr.RegisterForEvent(ThisObj, 'UnitMoveFinished', OnUnitMoveFinished, ELD_OnStateSubmitted);
+	EventMgr.RegisterForEvent(ThisObj, 'BreakWindow', OnBrokeWindow, ELD_OnStateSubmitted);
+	EventMgr.RegisterForEvent(ThisObj, 'BreakDoor', OnKickedDoor, ELD_OnStateSubmitted);
+	EventMgr.RegisterForEvent(ThisObj, 'OnEnvironmentalDamage', OnBlownUp, ELD_OnStateSubmitted);
 }
 
 function EventListenerReturn OnAbilityActivated(Object EventData, Object EventSource, XComGameState GameState, Name EventID)
@@ -299,6 +303,55 @@ function EventListenerReturn OnUnitTookDamage(Object EventData, Object EventSour
 	}
 }
 
+function EventListenerReturn OnBrokeWindow(Object EventData, Object EventSource, XComGameState GameState, Name EventID)
+{
+	local XComGameState_Unit Unit;
+	//`log("MAV - a window broke");
+
+	Unit = XComGameState_Unit(EventSource);
+
+	if (class'MAV_Utilities'.static.IsFriendly(Unit))
+	{
+		//`log("MAV - " $ Unit.GetFullName() $ " broke a damn window");
+		UpdateStats(Unit, none, none, PropertyDamageDelegate);
+	}
+	
+	return ELR_NoInterrupt;
+}
+
+function EventListenerReturn OnKickedDoor(Object EventData, Object EventSource, XComGameState GameState, Name EventID)
+{
+	local XComGameState_Unit Unit;
+	//`log("MAV - a door was kicked");
+
+	Unit = XComGameState_Unit(EventSource);
+
+	if (class'MAV_Utilities'.static.IsFriendly(Unit))
+	{
+		//`log("MAV - " $ Unit.GetFullName() $ " kicked a damn door");
+		UpdateStats(Unit, none, none, PropertyDamageDelegate);
+	}
+	
+	return ELR_NoInterrupt;
+}
+
+function EventListenerReturn OnBlownUp(Object EventData, Object EventSource, XComGameState GameState, Name EventID)
+{
+	local XComGameState_EnvironmentDamage DamageEvent;
+	local XComGameState_Unit Unit;
+	
+	DamageEvent = XComGameState_EnvironmentDamage(EventSource);
+	Unit = XComGameState_Unit(`XCOMHISTORY.GetGameStateForObjectID(DamageEvent.DamageCause.ObjectID));
+
+	if (class'MAV_Utilities'.static.IsFriendly(Unit))
+	{
+		//`log("MAV - environmental damage caused by " $ Unit.GetFullName());
+		UpdateStats(Unit, none, none, PropertyDamageDelegate);
+	}
+
+	return ELR_NoInterrupt;
+}
+
 function MAV_UnitStats UpdateStats(XComGameState_Unit Unit, XComGameState_Ability Ability, XComGameStateContext_Ability AbilityContext, delegate<AbilityDelegate> MyDelegate)
 {
 	local XComGameState NewGameState;
@@ -398,7 +451,13 @@ function MAV_UnitStats TurtleDelegate(XComGameState_Unit Unit, XComGameState_Abi
 	return UnitStats;
 }
 
+function MAV_UnitStats PropertyDamageDelegate(XComGameState_Unit Unit, XComGameState_Ability Ability, XComGameStateContext_Ability AbilityContext, MAV_UnitStats UnitStats)
+{
+	UnitStats.PropertyDamage++;
+	return UnitStats;
+}
+
 defaultproperties
 {
-	CURRENT_VERSION = "1.2.3";
+	CURRENT_VERSION = "1.2.4";
 }

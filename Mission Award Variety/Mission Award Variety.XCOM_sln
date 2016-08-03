@@ -3,15 +3,15 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # XCOM ModBuddy Solution File, Format Version 11.00
 VisualStudioVersion = 12.0.21005.1
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{5DAE07AF-E217-45C1-8DE7-FF99D6011E8A}") = "Mission Award Variety", "Mission Award Variety\Mission Award Variety.x2proj", "{C73895E2-1BB0-480D-986A-49E67C7238C6}"
+Project("{5DAE07AF-E217-45C1-8DE7-FF99D6011E8A}") = "Mission Award Variety", "Mission Award Variety\Mission Award Variety.x2proj", "{15452D10-E561-4945-A805-7EE908602810}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Default|XCOM 2 = Default|XCOM 2
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{C73895E2-1BB0-480D-986A-49E67C7238C6}.Default|XCOM 2.ActiveCfg = Default|XCOM 2
-		{C73895E2-1BB0-480D-986A-49E67C7238C6}.Default|XCOM 2.Build.0 = Default|XCOM 2
+		{15452D10-E561-4945-A805-7EE908602810}.Default|XCOM 2.ActiveCfg = Default|XCOM 2
+		{15452D10-E561-4945-A805-7EE908602810}.Default|XCOM 2.Build.0 = Default|XCOM 2
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
