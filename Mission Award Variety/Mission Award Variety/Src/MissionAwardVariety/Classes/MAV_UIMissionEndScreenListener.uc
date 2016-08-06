@@ -389,8 +389,11 @@ event OnInit(UIScreen Screen)
 			Category.SetWinnerMin(Squad);
 			if (Category.HasWinner())
 			{
-				`log("Winner of" @ Category.Label $ ":" @ Category.WinnerName);
-				Guaranteed.AddItem(Category);
+				if (len(Category.WinnerName) > 0)
+				{
+					`log("Winner of" @ Category.Label $ ":" @ Category.WinnerName);
+					Guaranteed.AddItem(Category);
+				}
 			}
 		}
 	}

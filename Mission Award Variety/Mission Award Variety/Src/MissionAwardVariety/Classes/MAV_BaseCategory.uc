@@ -90,6 +90,9 @@ protected function int CalculateMin(array<int> List)
 		}
 	}
 
+	if (CurrentMin == MaxInt)
+		return -1;
+
 	return CurrentLeader;
 }
 
