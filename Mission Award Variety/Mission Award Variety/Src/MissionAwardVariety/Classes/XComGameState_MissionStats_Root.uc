@@ -459,5 +459,5 @@ function MAV_UnitStats PropertyDamageDelegate(XComGameState_Unit Unit, XComGameS
 
 defaultproperties
 {
-	CURRENT_VERSION = "1.2.4";
+	CURRENT_VERSION = "1.2.5";
 }
