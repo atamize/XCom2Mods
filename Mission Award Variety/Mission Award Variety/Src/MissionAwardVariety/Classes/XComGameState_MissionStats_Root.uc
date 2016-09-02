@@ -99,6 +99,12 @@ function EventListenerReturn OnAbilityActivated(Object EventData, Object EventSo
 		if (!IsSoldier)
 		{
 			SourceUnit = XComGameState_Unit(`XCOMHISTORY.GetGameStateForObjectID(AbilityContext.InputContext.PrimaryTarget.ObjectID));
+
+			// If enemy is shooting at another enemy, assume it's panicked and don't add to stats
+			if (!class'MAV_Utilities'.static.IsFriendly(SourceUnit))
+			{
+				return ELR_NoInterrupt;
+			}
 		}
 		UpdateStats(SourceUnit, AbilityState, AbilityContext, ShotDelegate);
 	}
@@ -459,5 +465,5 @@ function MAV_UnitStats PropertyDamageDelegate(XComGameState_Unit Unit, XComGameS
 
 defaultproperties
 {
-	CURRENT_VERSION = "1.2.5";
+	CURRENT_VERSION = "1.2.6";
 }

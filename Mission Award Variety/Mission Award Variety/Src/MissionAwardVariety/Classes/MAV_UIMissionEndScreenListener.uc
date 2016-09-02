@@ -49,6 +49,7 @@ var int StatCycle, InfoCounter;
 function name GetEnemyType(XComGameState_Unit Unit)
 {
 	local name GroupName, TemplateName;
+	local string FullName;
 
 	GroupName = Unit.GetMyTemplate().CharacterGroupName;
 	TemplateName = Unit.GetMyTemplateName();
@@ -194,6 +195,12 @@ function name GetEnemyType(XComGameState_Unit Unit)
 
 		case 'PsiZombie':
 			return 'ZOMBIES';
+	}
+
+	FullName = Unit.GetMyTemplate().strCharacterName;
+	if (len(FullName) > 0)
+	{
+		return name(caps(FullName $ "S"));
 	}
 
 	return 'AYYS';
