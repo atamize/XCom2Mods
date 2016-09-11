@@ -49,6 +49,7 @@ var int StatCycle, InfoCounter;
 function name GetEnemyType(XComGameState_Unit Unit)
 {
 	local name GroupName, TemplateName;
+	local string FullName;
 
 	GroupName = Unit.GetMyTemplate().CharacterGroupName;
 	TemplateName = Unit.GetMyTemplateName();
@@ -91,6 +92,67 @@ function name GetEnemyType(XComGameState_Unit Unit)
 
 		case 'Soldier':
 			return 'XCOM';
+
+		case 'MutonM2_LW':
+			return 'CENTURIONS';
+
+		case 'MutonM3_LW':
+			return 'MUTON ELITES';
+
+		case 'NajaM1':
+		case 'NajaM2':
+		case 'NajaM3':
+			return 'NAJAS';
+
+		case 'SidewinderM1':
+		case 'SidewinderM2':
+		case 'SidewinderM3':
+			return 'SIDEWINDERS';
+
+		case 'ViperM2_LW':
+		case 'ViperM3_LW':
+			return 'VIPERS';
+
+		case 'ArchonM2_LW':
+			return 'GREAT ARCHONS';
+
+		case 'SectoidM2_LW':
+			return 'SECTOID COMMANDERS';
+
+		case 'AdvGunnerM1':
+		case 'AdvGunnerM2':
+		case 'AdvGunnerM3':
+			return 'ADVENT GUNNERS';
+
+		case 'AdvSentryM1':
+		case 'AdvSentryM2':
+		case 'AdvSentryM3':
+			return 'ADVENT SENTRIES';
+
+		case 'AdvGrenadierM1':
+		case 'AdvGrenadierM2':
+		case 'AdvGrenadierM3':
+			return 'ADVENT GRENADIERS';
+
+		case 'AdvRocketeerM1':
+		case 'AdvRocketeerM2':
+		case 'AdvRocketeerM3':
+			return 'ADVENT ROCKETEERS';
+
+		case 'AdvMec_M3_LW':
+		case 'AdvMECArcherM1':
+		case 'AdvMECArcherM2':
+			return 'MECS';
+
+		case 'LWDroneM1':
+		case 'LWDroneM2':
+			return 'DRONES';
+
+		case 'ChryssalidSoldier':
+			return 'CHRYSSALID SOLDIERS';
+
+		case 'HiveQueen':
+			return 'HIVE QUEENS';
 	}
 
 	switch (GroupName)
@@ -133,6 +195,12 @@ function name GetEnemyType(XComGameState_Unit Unit)
 
 		case 'PsiZombie':
 			return 'ZOMBIES';
+	}
+
+	FullName = Unit.GetMyTemplate().strCharacterName;
+	if (len(FullName) > 0)
+	{
+		return name(caps(FullName $ "S"));
 	}
 
 	return 'AYYS';
@@ -389,8 +457,11 @@ event OnInit(UIScreen Screen)
 			Category.SetWinnerMin(Squad);
 			if (Category.HasWinner())
 			{
-				`log("Winner of" @ Category.Label $ ":" @ Category.WinnerName);
-				Guaranteed.AddItem(Category);
+				if (len(Category.WinnerName) > 0)
+				{
+					`log("Winner of" @ Category.Label $ ":" @ Category.WinnerName);
+					Guaranteed.AddItem(Category);
+				}
 			}
 		}
 	}
