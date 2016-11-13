@@ -1,6 +1,6 @@
 ﻿------------------------------------------------
 Mission Award Variety - an XCOM 2 Mod by atamize
-Version 1.2.4
+Version 1.2.7
 ------------------------------------------------
 
 Adds more interesting awards on the mission debriefing screen.
@@ -67,6 +67,9 @@ Moved the furthest while in concealment
 
 [b]HOME WRECKER[/b]
 Caused the most environmental damage (includes breaking windows, doors, and errant shots)
+
+[b]MOST KILLS IN A TURN[/b]
+Must have at least 2 kills in a turn to qualify
 
 
 [h1]CONFIGURATION OPTIONS[/h1]
