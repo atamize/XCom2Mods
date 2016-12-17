@@ -25,6 +25,8 @@ struct MAV_UnitStats
 	var int SuccessfulShots;
 	var int ConcealedTiles; // Tiles moved while in concealment
 	var int PropertyDamage;
+	var int KillsThisTurn;
+	var int MaxKillsInTurn;
 	var array<MAV_DamageResult> EnemyStats;
 };
 
@@ -63,6 +65,7 @@ function RegisterAbilityActivated()
 	EventMgr.RegisterForEvent(ThisObj, 'BreakWindow', OnBrokeWindow, ELD_OnStateSubmitted);
 	EventMgr.RegisterForEvent(ThisObj, 'BreakDoor', OnKickedDoor, ELD_OnStateSubmitted);
 	EventMgr.RegisterForEvent(ThisObj, 'OnEnvironmentalDamage', OnBlownUp, ELD_OnStateSubmitted);
+	EventMgr.RegisterForEvent(ThisObj, 'PlayerTurnBegun', OnPlayerTurnBegun, ELD_OnStateSubmitted);
 }
 
 function EventListenerReturn OnAbilityActivated(Object EventData, Object EventSource, XComGameState GameState, Name EventID)
@@ -248,6 +251,16 @@ function EventListenerReturn OnUnitTookDamage(Object EventData, Object EventSour
 			}
 		}
 
+		if (IsKilled)
+		{
+			NewRoot.MAV_Stats[i].KillsThisTurn++;
+			if (NewRoot.MAV_Stats[i].KillsThisTurn > NewRoot.MAV_Stats[i].MaxKillsInTurn)
+			{
+				NewRoot.MAV_Stats[i].MaxKillsInTurn = NewRoot.MAV_Stats[i].KillsThisTurn;
+			}
+			//`log("MAV max kills in turn for " $ AttackingUnit.GetFullName() $ ": " $ NewRoot.MAV_Stats[i].MaxKillsInTurn);
+		}
+
 		if (!Found)
 		{
 			Entry.UnitID = DamagedUnit.ObjectID;
@@ -354,6 +367,32 @@ function EventListenerReturn OnBlownUp(Object EventData, Object EventSource, XCo
 		//`log("MAV - environmental damage caused by " $ Unit.GetFullName());
 		UpdateStats(Unit, none, none, PropertyDamageDelegate);
 	}
+
+	return ELR_NoInterrupt;
+}
+
+function EventListenerReturn OnPlayerTurnBegun(Object EventData, Object EventSource, XComGameState GameState, Name EventID)
+{
+	local XComGameState NewGameState;	
+	local XComGameState_MissionStats_Root NewRoot;
+	local XComGameStateContext_ChangeContainer ChangeContainer;
+	local int i;
+
+	ChangeContainer = class'XComGameStateContext_ChangeContainer'.static.CreateEmptyChangeContainer("Resetting kills this turn");
+	NewGameState = `XCOMHISTORY.CreateNewGameState(true, ChangeContainer);	
+	NewRoot = XComGameState_MissionStats_Root(NewGameState.CreateStateObject(class'XComGameState_MissionStats_Root', self.ObjectID));
+
+	// Reset each soldier's kills made this turn
+	for (i = 0; i < MAV_Stats.Length; ++i)
+	{
+		NewRoot.MAV_Stats[i].KillsThisTurn = 0;
+	}
+
+	//`log("MAV turn began");
+
+	// Submit game state
+	NewGameState.AddStateObject(NewRoot);
+	`TACTICALRULES.SubmitGameState(NewGameState);
 
 	return ELR_NoInterrupt;
 }
@@ -465,5 +504,5 @@ function MAV_UnitStats PropertyDamageDelegate(XComGameState_Unit Unit, XComGameS
 
 defaultproperties
 {
-	CURRENT_VERSION = "1.2.6";
+	CURRENT_VERSION = "1.2.7";
 }
