@@ -35,6 +35,7 @@ var localized string m_strOverqualified;
 var localized string m_strSneakiest;
 var localized string m_strPropertyDamage;
 var localized string m_strMostKillsInTurn;
+var localized string m_strTimeToBleedMec;
 
 var config bool ShowVanillaStats;
 var config bool IncludeVanillaAwards;
@@ -230,6 +231,7 @@ event OnInit(UIScreen Screen)
 	local bool Found, PowerCoupleAdded;
 	local MAV_MissionStats Stats;
 	local MAV_BaseCategory Category, PowerCouple;
+	local MAV_Category_TimeToBleed BleedCategory;
 	local array<int> Losers;
 	local XComGameState_Analytics Analytics;
 	local name TemplateName;
@@ -322,7 +324,11 @@ event OnInit(UIScreen Screen)
 		AddCategory(new class'MAV_Category_MostHigh', m_strMostHigh, Size, 2);
 		AddCategory(new class'MAV_Category_MostCritDamage', m_strMostCritDamage, Size, 1);
 		AddCategory(new class'MAV_Category_Unluckiest', m_strUnluckiest, Size, 1);
-		AddCategory(new class'MAV_Category_TimeToBleed', m_strTimeToBleed, Size, 3);
+
+		BleedCategory = new class'MAV_Category_TimeToBleed';
+		BleedCategory.AlternateLabel = m_strTimeToBleedMec;
+		AddCategory(BleedCategory, m_strTimeToBleed, Size, 3);
+
 		AddCategory(new class'MAV_Category_Turtle', m_strTurtle, Size, 2);
 		AddCategory(new class'MAV_Category_AlrightKid', m_strAlrightKid, Size, 4);
 		AddCategory(new class'MAV_Category_TooOld', m_strTooOld, Size, 3);
