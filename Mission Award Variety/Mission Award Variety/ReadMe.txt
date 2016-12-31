@@ -1,6 +1,6 @@
 ﻿------------------------------------------------
 Mission Award Variety - an XCOM 2 Mod by atamize
-Version 1.2.7
+Version 1.2.8
 ------------------------------------------------
 
 Adds more interesting awards on the mission debriefing screen.

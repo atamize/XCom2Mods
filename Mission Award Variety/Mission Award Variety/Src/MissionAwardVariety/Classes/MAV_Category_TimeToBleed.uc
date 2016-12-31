@@ -5,6 +5,8 @@
 //--------------------------------------------------------------------------------------- 
 class MAV_Category_TimeToBleed extends MAV_BaseCategory;
 
+var string AlternateLabel; // For robotic units
+
 function CalculateWinner(MAV_MissionStats MissionStats)
 {
 	local int i;
@@ -15,4 +17,12 @@ function CalculateWinner(MAV_MissionStats MissionStats)
 	}
 
 	SetWinnerBasic(MissionStats.Squad);
+
+	if (Winners.Length > 0)
+	{
+		if (MissionStats.Squad[Winners[0]].IsRobotic())
+		{
+			Label = AlternateLabel;
+		}
+	}
 }
