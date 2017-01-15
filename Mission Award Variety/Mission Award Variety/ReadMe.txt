@@ -1,6 +1,6 @@
 ﻿------------------------------------------------
 Mission Award Variety - an XCOM 2 Mod by atamize
-Version 1.2.8
+Version 1.2.9
 ------------------------------------------------
 
 Adds more interesting awards on the mission debriefing screen.
@@ -51,7 +51,7 @@ Dealt the most damage at...close range
 Ran the most overwatches (bonus points if you didn't get hit)
 
 [b]MISS (OR MISTER) CONGENIALITY[/b]
-Didn't win any awards but still contributed to the mission
+Didn't win any awards but still contributed to the mission. If won by an alien, this will appear as [b]EFFECTIVE DEFECTOR[/b], or [b]BIT PLAYER[/b] if won by a mec.
 
 [b]UNFINISHED BUSINESS[/b]
 Fought the hardest after a teammate died/evacuated/incapacitated

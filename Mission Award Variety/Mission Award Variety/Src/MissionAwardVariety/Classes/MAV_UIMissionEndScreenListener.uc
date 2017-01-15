@@ -36,6 +36,8 @@ var localized string m_strSneakiest;
 var localized string m_strPropertyDamage;
 var localized string m_strMostKillsInTurn;
 var localized string m_strTimeToBleedMec;
+var localized string m_strCongenialityAlien;
+var localized string m_strCongenialityMec;
 
 var config bool ShowVanillaStats;
 var config bool IncludeVanillaAwards;
@@ -437,7 +439,21 @@ event OnInit(UIScreen Screen)
 		Category.SetWinnerBasic(Squad);
 		if (Category.HasWinner())
 		{
-			Category.Label = repl(m_strCongeniality, "#Title", (Squad[Category.Winners[0]].kAppearance.iGender == eGender_Male) ? "MISTER" : "MISS");
+			Unit = Squad[Category.Winners[0]];
+			if (Unit.IsAlien())
+			{
+				Category.Label = m_strCongenialityAlien;
+			}
+			else if (Unit.IsRobotic())
+			{
+				Category.Label = m_strCongenialityMec;
+			}
+			else
+			{
+				Category.Label = m_strCongeniality;
+			}
+
+			Category.Label = repl(Category.Label, "#Title", (Unit.kAppearance.iGender == eGender_Male) ? "MISTER" : "MISS");
 			`log("Winner of" @ Category.Label $ ":" @ Category.WinnerName);
 			Guaranteed.AddItem(Category);
 			Losers.RemoveItem(Category.Winners[0]);
