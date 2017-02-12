@@ -165,6 +165,9 @@ Thanks to Kosmo for the [url=https://steamcommunity.com/sharedfiles/filedetails/
     <Content Include="Src\MissionAwardVariety\Classes\MAV_Category_CloseRange.uc">
       <SubType>Content</SubType>
     </Content>
+    <Content Include="Src\MissionAwardVariety\Classes\MAV_Category_MostExposed.uc">
+      <SubType>Content</SubType>
+    </Content>
     <Content Include="Src\MissionAwardVariety\Classes\MAV_Category_MostHigh.uc">
       <SubType>Content</SubType>
     </Content>
@@ -205,6 +208,9 @@ Thanks to Kosmo for the [url=https://steamcommunity.com/sharedfiles/filedetails/
       <SubType>Content</SubType>
     </Content>
     <Content Include="Src\MissionAwardVariety\Classes\MAV_Category_Unluckiest.uc">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Src\MissionAwardVariety\Classes\MAV_Category_WhoNeedsAmmo.uc">
       <SubType>Content</SubType>
     </Content>
     <Content Include="Src\MissionAwardVariety\Classes\MAV_UIMissionEndScreenListener.uc">

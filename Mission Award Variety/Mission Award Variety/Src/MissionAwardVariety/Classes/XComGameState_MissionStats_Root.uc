@@ -27,6 +27,9 @@ struct MAV_UnitStats
 	var int PropertyDamage;
 	var int KillsThisTurn;
 	var int MaxKillsInTurn;
+	var int Exposure; // How exposed they are to the enemy at the end of a turn
+	var int TurnsWithoutAmmo;
+	var bool FiredPrimaryWeaponThisTurn;
 	var array<MAV_DamageResult> EnemyStats;
 };
 
@@ -43,6 +46,7 @@ delegate MAV_UnitStats AbilityDelegate(XComGameState_Unit Unit, XComGameState_Ab
 
 function XComGameState_MissionStats_Root InitComponent()
 {
+	MAV_Stats.Length = 0;
 	RegisterAbilityActivated();	
 	ModVersion = CURRENT_VERSION;
 	`log("Initializing MAV at version: " $ ModVersion);
@@ -53,8 +57,25 @@ function RegisterAbilityActivated()
 {
 	local Object ThisObj;
 	local X2EventManager EventMgr;
+	local XComGameState_Player PlayerState;
 
-	MAV_Stats.Length = 0;
+	// Only clear stats if we are starting a new mission (no turns taken)
+	if (MAV_Stats.Length > 0)
+	{
+		foreach `XCOMHISTORY.IterateByClassType(class'XComGameState_Player', PlayerState)
+		{
+			if (PlayerState.GetTeam() == eTeam_XCom)
+			{
+				//`log("MAV PlayerTurnCount: " $ PlayerState.PlayerTurnCount);
+				if (PlayerState.PlayerTurnCount < 2)
+				{
+					MAV_Stats.Length = 0;
+				}
+				break;
+			}
+		}
+	}
+
 	ThisObj = self;
 	Shorthanded = false;
 	
@@ -66,6 +87,12 @@ function RegisterAbilityActivated()
 	EventMgr.RegisterForEvent(ThisObj, 'BreakDoor', OnKickedDoor, ELD_OnStateSubmitted);
 	EventMgr.RegisterForEvent(ThisObj, 'OnEnvironmentalDamage', OnBlownUp, ELD_OnStateSubmitted);
 	EventMgr.RegisterForEvent(ThisObj, 'PlayerTurnBegun', OnPlayerTurnBegun, ELD_OnStateSubmitted);
+	EventMgr.RegisterForEvent(ThisObj, 'PlayerTurnEnded', OnPlayerTurnEnd, ELD_OnStateSubmitted);
+}
+
+function SubmitGameState(XComGameState NewState)
+{
+	`XCOMGAME.GameRuleset.SubmitGameState(NewState);
 }
 
 function EventListenerReturn OnAbilityActivated(Object EventData, Object EventSource, XComGameState GameState, Name EventID)
@@ -157,7 +184,7 @@ function EventListenerReturn OnUnitMoveFinished(Object EventData, Object EventSo
 
 	// Submit game state
 	NewGameState.AddStateObject(NewRoot);
-	`TACTICALRULES.SubmitGameState(NewGameState);
+	SubmitGameState(NewGameState);
 	
 	return ELR_NoInterrupt;
 }
@@ -314,7 +341,7 @@ function EventListenerReturn OnUnitTookDamage(Object EventData, Object EventSour
 	{
 		// Submit game state
 		NewGameState.AddStateObject(NewRoot);
-		`TACTICALRULES.SubmitGameState(NewGameState);
+		SubmitGameState(NewGameState);
 	}
 	else
 	{
@@ -386,13 +413,72 @@ function EventListenerReturn OnPlayerTurnBegun(Object EventData, Object EventSou
 	for (i = 0; i < MAV_Stats.Length; ++i)
 	{
 		NewRoot.MAV_Stats[i].KillsThisTurn = 0;
+		NewRoot.MAV_Stats[i].FiredPrimaryWeaponThisTurn = false;
 	}
 
 	//`log("MAV turn began");
 
 	// Submit game state
 	NewGameState.AddStateObject(NewRoot);
-	`TACTICALRULES.SubmitGameState(NewGameState);
+	SubmitGameState(NewGameState);
+
+	return ELR_NoInterrupt;
+}
+
+function EventListenerReturn OnPlayerTurnEnd(Object EventData, Object EventSource, XComGameState GameState, Name EventID)
+{
+	local XComGameState NewGameState;	
+	local XComGameState_MissionStats_Root NewRoot;
+	local XComGameStateContext_ChangeContainer ChangeContainer;
+	local int i, NumVisibleEnemies, CoverValue;
+	local XComGameStateHistory History;
+	local XComGameState_Unit Unit;
+	local XComGameState_Item Weapon;
+
+	History = `XCOMHISTORY;
+
+	ChangeContainer = class'XComGameStateContext_ChangeContainer'.static.CreateEmptyChangeContainer("Recording cover and ammo");
+	NewGameState = History.CreateNewGameState(true, ChangeContainer);	
+	NewRoot = XComGameState_MissionStats_Root(NewGameState.CreateStateObject(class'XComGameState_MissionStats_Root', self.ObjectID));
+
+	foreach History.IterateByClassType(class'XComGameState_Unit', Unit)
+	{
+		if (Unit.GetTeam() == eTeam_XCom && !Unit.IsDead())
+		{
+			if (Unit.CanTakeCover() && !Unit.IsConcealed() && !Unit.IsInStasis())
+			{
+				// Check cover and visible enemies for Most Exposed award
+				switch (Unit.GetCoverTypeFromLocation())
+				{
+					case CT_None:		CoverValue = 3; break;
+					case CT_MidLevel:	CoverValue = 2; break;
+					case CT_Standing:	CoverValue = 1; break;
+				}
+				NumVisibleEnemies = class'X2TacticalVisibilityHelpers'.static.GetNumVisibleEnemyTargetsToSource(Unit.ObjectID);
+
+				if (NumVisibleEnemies > 0)
+				{
+					i = GetStatsIndexForUnit(Unit.ObjectID);
+					NewRoot.MAV_Stats[i].Exposure += CoverValue * NumVisibleEnemies;
+					//`log("MAV: " $ Unit.GetFullName() $ " exposed to " $ NumVisibleEnemies $ " enemies, cover: " $ CoverValue);
+				}
+			}
+
+			// Check amount of ammo for Who Needs Ammo award
+			Weapon = Unit.GetItemInSlot(eInvSlot_PrimaryWeapon);
+			if (Weapon != none && Weapon.Ammo == 0 && !NewRoot.MAV_Stats[i].FiredPrimaryWeaponThisTurn)
+			{
+				NewRoot.MAV_Stats[i].TurnsWithoutAmmo += Weapon.GetClipSize();
+				//`log("MAV: " $ Unit.GetFullName() $ " ended turn with no ammo");
+			}
+		}
+	}
+
+	//`log("MAV turn ended");
+
+	// Submit game state
+	NewGameState.AddStateObject(NewRoot);
+	SubmitGameState(NewGameState);
 
 	return ELR_NoInterrupt;
 }
@@ -420,7 +506,7 @@ function MAV_UnitStats UpdateStats(XComGameState_Unit Unit, XComGameState_Abilit
 	class'MAV_Utilities'.static.LogStats(UnitStats);
 	
 	NewGameState.AddStateObject(NewRoot);
-	`TACTICALRULES.SubmitGameState(NewGameState);
+	SubmitGameState(NewGameState);
 	
 	return UnitStats;
 }
@@ -431,6 +517,7 @@ function MAV_UnitStats ShotDelegate(XComGameState_Unit Unit, XComGameState_Abili
 	local XComGameState_Unit OwnerUnit, TargetUnit;
 	local bool IsOverwatch;
 	local XComGameStateHistory History;
+	local XComGameState_Item Weapon;
 
 	History = `XCOMHISTORY;
 	OwnerUnit = XComGameState_Unit(History.GetGameStateForObjectID(Ability.OwnerStateObject.ObjectID));
@@ -440,6 +527,15 @@ function MAV_UnitStats ShotDelegate(XComGameState_Unit Unit, XComGameState_Abili
 	if (class'MAV_Utilities'.static.IsFriendly(OwnerUnit))
 	{
 		UnitStats.ShotsTaken++;
+
+		Weapon = Ability.GetSourceWeapon();
+		if (Weapon != none)
+		{
+			if (Weapon.InventorySlot == eInvSlot_PrimaryWeapon)
+			{
+				UnitStats.FiredPrimaryWeaponThisTurn = true;
+			}
+		}
 
 		if (AbilityContext.IsResultContextHit())
 		{
@@ -504,5 +600,5 @@ function MAV_UnitStats PropertyDamageDelegate(XComGameState_Unit Unit, XComGameS
 
 defaultproperties
 {
-	CURRENT_VERSION = "1.2.9";
+	CURRENT_VERSION = "1.3.0";
 }

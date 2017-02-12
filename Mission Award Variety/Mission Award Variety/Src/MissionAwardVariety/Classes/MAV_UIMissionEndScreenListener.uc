@@ -38,6 +38,8 @@ var localized string m_strMostKillsInTurn;
 var localized string m_strTimeToBleedMec;
 var localized string m_strCongenialityAlien;
 var localized string m_strCongenialityMec;
+var localized string m_strMostExposed;
+var localized string m_strWhoNeedsAmmo;
 
 var config bool ShowVanillaStats;
 var config bool IncludeVanillaAwards;
@@ -341,6 +343,8 @@ event OnInit(UIScreen Screen)
 		AddCategory(new class'MAV_Category_Sneakiest', m_strSneakiest, Size, 1);
 		AddCategory(new class'MAV_Category_PropertyDamage', m_strPropertyDamage, Size, 1);
 		AddCategory(new class'MAV_Category_MostKillsInTurn', m_strMostKillsInTurn, Size, 4);
+		AddCategory(new class'MAV_Category_MostExposed', m_strMostExposed, Size, 1);
+		AddCategory(new class'MAV_Category_WhoNeedsAmmo', m_strWhoNeedsAmmo, Size, 2);
 	}
 
 	if (IncludeVanillaAwards)
