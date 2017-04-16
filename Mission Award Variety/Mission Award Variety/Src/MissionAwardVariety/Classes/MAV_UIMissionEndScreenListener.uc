@@ -40,6 +40,11 @@ var localized string m_strCongenialityAlien;
 var localized string m_strCongenialityMec;
 var localized string m_strMostExposed;
 var localized string m_strWhoNeedsAmmo;
+var localized string m_strMostLootPickedUp;
+var localized string m_strMostBurnDamageDealt;
+var localized string m_strMostPoisonDamageDealt;
+var localized string m_strMostAcidDamageDealt;
+var localized string m_strMostEvacDamageDealt;
 
 var config bool ShowVanillaStats;
 var config bool IncludeVanillaAwards;
@@ -345,6 +350,11 @@ event OnInit(UIScreen Screen)
 		AddCategory(new class'MAV_Category_MostKillsInTurn', m_strMostKillsInTurn, Size, 4);
 		AddCategory(new class'MAV_Category_MostExposed', m_strMostExposed, Size, 1);
 		AddCategory(new class'MAV_Category_WhoNeedsAmmo', m_strWhoNeedsAmmo, Size, 2);
+		AddCategory(new class'MAV_Category_MostLootPickedUp', m_strMostLootPickedUp, Size, 2);
+		AddCategory(new class'MAV_Category_PoisonDamage', m_strMostPoisonDamageDealt, Size, 1);
+		AddCategory(new class'MAV_Category_BurnDamage', m_strMostBurnDamageDealt, Size, 1);
+		AddCategory(new class'MAV_Category_AcidDamage', m_strMostAcidDamageDealt, Size, 1);
+		AddCategory(new class'MAV_Category_MostEvacDamage', m_strMostEvacDamageDealt, Size, 3);
 	}
 
 	if (IncludeVanillaAwards)

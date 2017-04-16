@@ -81,6 +81,9 @@ static function bool IsFriendly(XComGameState_Unit Unit)
 {
 	local name TemplateName;
 
+	if (Unit == none)
+		return false;
+
 	if (Unit.GetTeam() == eTeam_XCom || Unit.IsMindControlled())
 		return true;
 

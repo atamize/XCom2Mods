@@ -10,4 +10,9 @@ function CalculateWinner(MAV_MissionStats MissionStats)
 	}
 	
 	SetWinnerBasic(MissionStats.Squad);
+
+	if (Winners.Length > 0 && len(WinnerName) == 0)
+	{
+		WinnerName = "Gremlin";
+	}
 }

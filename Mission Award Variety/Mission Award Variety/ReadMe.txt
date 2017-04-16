@@ -1,6 +1,6 @@
 ﻿------------------------------------------------
 Mission Award Variety - an XCOM 2 Mod by atamize
-Version 1.3.0
+Version 1.3.1
 ------------------------------------------------
 
 Adds more interesting awards on the mission debriefing screen.
@@ -76,6 +76,20 @@ Ended the most turns with sight on the most enemies while in lightest cover
 
 [b]RUNNING ON EMPTY[/b]
 Ended the most turns without reloading with no ammo in primary weapon
+
+[b]GREEDIEST[/b]
+Picked up the most loot (minimum 2 pieces)
+
+[b]PYROMANIAC[/b]
+Dealt the most burning damage
+
+[b]TOXIC PERSONALITY[/b]
+Dealt the most poison damage
+
+[b]ACID DROPPER[/b]
+Dealt the most acid damage
+
+Dealt the most damage while standing in the evac zone
 
 
 [h1]CONFIGURATION OPTIONS[/h1]

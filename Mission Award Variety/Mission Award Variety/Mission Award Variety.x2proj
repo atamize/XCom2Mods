@@ -144,7 +144,13 @@ Thanks to Kosmo for the [url=https://steamcommunity.com/sharedfiles/filedetails/
     <Content Include="Src\MissionAwardVariety\Classes\MAV_BaseCategory.uc">
       <SubType>Content</SubType>
     </Content>
+    <Content Include="Src\MissionAwardVariety\Classes\MAV_Category_AcidDamage.uc">
+      <SubType>Content</SubType>
+    </Content>
     <Content Include="Src\MissionAwardVariety\Classes\MAV_Category_AlrightKid.uc">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Src\MissionAwardVariety\Classes\MAV_Category_BurnDamage.uc">
       <SubType>Content</SubType>
     </Content>
     <Content Include="Src\MissionAwardVariety\Classes\MAV_Category_HatesMost.uc">
@@ -165,6 +171,9 @@ Thanks to Kosmo for the [url=https://steamcommunity.com/sharedfiles/filedetails/
     <Content Include="Src\MissionAwardVariety\Classes\MAV_Category_CloseRange.uc">
       <SubType>Content</SubType>
     </Content>
+    <Content Include="Src\MissionAwardVariety\Classes\MAV_Category_MostEvacDamage.uc">
+      <SubType>Content</SubType>
+    </Content>
     <Content Include="Src\MissionAwardVariety\Classes\MAV_Category_MostExposed.uc">
       <SubType>Content</SubType>
     </Content>
@@ -172,6 +181,12 @@ Thanks to Kosmo for the [url=https://steamcommunity.com/sharedfiles/filedetails/
       <SubType>Content</SubType>
     </Content>
     <Content Include="Src\MissionAwardVariety\Classes\MAV_Category_MostKillsInTurn.uc">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Src\MissionAwardVariety\Classes\MAV_Category_MostLootPickedUp.uc">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Src\MissionAwardVariety\Classes\MAV_Category_PoisonDamage.uc">
       <SubType>Content</SubType>
     </Content>
     <Content Include="Src\MissionAwardVariety\Classes\MAV_Category_PowerCouple.uc">

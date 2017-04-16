@@ -30,6 +30,10 @@ struct MAV_UnitStats
 	var int Exposure; // How exposed they are to the enemy at the end of a turn
 	var int TurnsWithoutAmmo;
 	var bool FiredPrimaryWeaponThisTurn;
+	var int EvacDamageDealt;
+	var int BurnDamageDealt;
+	var int PoisonDamageDealt;
+	var int AcidDamageDealt;
 	var array<MAV_DamageResult> EnemyStats;
 };
 
@@ -209,6 +213,37 @@ function int GetStatsIndexForUnit(int UnitID)
 	return i;
 }
 
+function bool IsAbilityAvailable(StateObjectReference StateRef, name AbilityName)
+{
+	local XComGameStateHistory History;
+	local XComGameState_Ability SelectedAbilityState;
+	local X2AbilityTemplate SelectedAbilityTemplate;
+	local X2TacticalGameRuleset TacticalRules;
+	local GameRulesCache_Unit OutCachedAbilitiesInfo;
+	local AvailableAction Action;
+	local int Index;
+
+	History = `XCOMHISTORY;
+	TacticalRules = `TACTICALRULES;
+
+	TacticalRules.GetGameRulesCache_Unit(StateRef, OutCachedAbilitiesInfo);
+	
+	for( Index = 0; Index < OutCachedAbilitiesInfo.AvailableActions.Length; ++Index )
+	{		
+		Action = OutCachedAbilitiesInfo.AvailableActions[Index];
+		SelectedAbilityState = XComGameState_Ability( History.GetGameStateForObjectID(Action.AbilityObjectRef.ObjectID) );
+		SelectedAbilityTemplate = SelectedAbilityState.GetMyTemplate();	
+
+		//`log("    MAVAbility action: " $ SelectedAbilityTemplate.DataName $ ", code: " $ Action.AvailableCode); 
+		if( SelectedAbilityTemplate.DataName == AbilityName && Action.AvailableCode == 'AA_Success' )
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
 function EventListenerReturn OnUnitTookDamage(Object EventData, Object EventSource, XComGameState GameState, Name EventID)
 {
 	local XComGameState NewGameState;	
@@ -223,28 +258,44 @@ function EventListenerReturn OnUnitTookDamage(Object EventData, Object EventSour
 	local bool Found, IsKilled;
 	local array<XComGameState_Unit> OriginalUnits, PlayableUnits;
 	local XComTacticalController kTacticalController;
+	local X2EffectTemplateRef LookupEffect;
+	local X2Effect SourceEffect;
 
-	Context = XComGameStateContext_Ability(GameState.GetContext());
-	if (context == none)
-		return ELR_NoInterrupt;
-		
-	AttackingUnit = XComGameState_Unit(`XCOMHISTORY.GetGameStateForObjectID(Context.InputContext.SourceObject.ObjectID));
 	DamagedUnit = XComGameState_Unit(EventSource);
-	if (AttackingUnit == none || DamagedUnit == none || DamagedUnit.DamageResults.Length == 0)
+
+	if (DamagedUnit == none || DamagedUnit.DamageResults.Length == 0)
 		return ELR_NoInterrupt;
 	
-	DamageResult = DamagedUnit.DamageResults[DamagedUnit.DamageResults.Length-1];
 	TemplateName = DamagedUnit.GetMyTemplateName();
+	ChangeContainer = class'XComGameStateContext_ChangeContainer'.static.CreateEmptyChangeContainer("Adding Damage UnitStats for " $ DamagedUnit.GetFullName());
+	NewGameState = `XCOMHISTORY.CreateNewGameState(true, ChangeContainer);	
+	NewRoot = XComGameState_MissionStats_Root(NewGameState.CreateStateObject(class'XComGameState_MissionStats_Root', self.ObjectID));
+
+	DamageResult = DamagedUnit.DamageResults[DamagedUnit.DamageResults.Length-1];
+	Context = XComGameStateContext_Ability(GameState.GetContext());
+
+	if (Context == none)
+	{
+		// Elemental damage
+		LookupEffect = DamageResult.SourceEffect.EffectRef;
+		SourceEffect = class'X2Effect'.static.GetX2Effect(LookupEffect);
+
+		if (X2Effect_ApplyWeaponDamage(SourceEffect) != none)
+		{
+			AttackingUnit = XComGameState_Unit(`XCOMHISTORY.GetGameStateForObjectID(DamageResult.SourceEffect.SourceStateObjectRef.ObjectID));
+		}
+	}
+	else
+	{	
+		AttackingUnit = XComGameState_Unit(`XCOMHISTORY.GetGameStateForObjectID(Context.InputContext.SourceObject.ObjectID));
+	}
+
 	//`log("===============  UNIT TOOK DAMAGE  ====================");
 	//`log("Attacker: " $ AttackingUnit.GetFullName());
 	//`log("Damaged: " $ DamagedUnit.GetFullName() @ "-" @ TemplateName);
 	//`log("DamageAmt: " $ DamageResult.DamageAmount);
-	
-	ChangeContainer = class'XComGameStateContext_ChangeContainer'.static.CreateEmptyChangeContainer("Adding Damage UnitStats for " $ AttackingUnit.GetFullName() $ " and " $ DamagedUnit.GetFullName());
-	NewGameState = `XCOMHISTORY.CreateNewGameState(true, ChangeContainer);	
-	NewRoot = XComGameState_MissionStats_Root(NewGameState.CreateStateObject(class'XComGameState_MissionStats_Root', self.ObjectID));
 
-	if (class'MAV_Utilities'.static.IsFriendly(AttackingUnit))
+	if (AttackingUnit != none && class'MAV_Utilities'.static.IsFriendly(AttackingUnit))
 	{
 		// Update stats if we were the attacker
 		i = NewRoot.GetStatsIndexForUnit(AttackingUnit.ObjectID);
@@ -296,17 +347,21 @@ function EventListenerReturn OnUnitTookDamage(Object EventData, Object EventSour
 			NewRoot.MAV_Stats[i].EnemyStats.AddItem(Entry);
 		}
 
-		// Crit Damage
-		if (Context.ResultContext.HitResult == eHit_Crit)
+		// Relevant when an ability was used, ie. not persistent elemental damage
+		if (Context != none)
 		{
-			NewRoot.MAV_Stats[i].CritDamage += DamageResult.DamageAmount;
-		}
+			// Crit Damage
+			if (Context.ResultContext.HitResult == eHit_Crit)
+			{
+				NewRoot.MAV_Stats[i].CritDamage += DamageResult.DamageAmount;
+			}
 
-		// Close range damage
-		Tiles = AttackingUnit.TileDistanceBetween(DamagedUnit);
-		if (Tiles <= CloseRangeTiles)
-		{
-			NewRoot.MAV_Stats[i].CloseRangeValue += (CloseRangeTiles - Tiles + 1) + DamageResult.DamageAmount;
+			// Close range damage
+			Tiles = AttackingUnit.TileDistanceBetween(DamagedUnit);
+			if (Tiles <= CloseRangeTiles)
+			{
+				NewRoot.MAV_Stats[i].CloseRangeValue += (CloseRangeTiles - Tiles + 1) + DamageResult.DamageAmount;
+			}
 		}
 
 		// Damage while wounded for "Ain't Got Time to Bleed"
@@ -335,6 +390,36 @@ function EventListenerReturn OnUnitTookDamage(Object EventData, Object EventSour
 		{
 			NewRoot.MAV_Stats[i].ShorthandedDamage += DamageResult.DamageAmount;
 		}
+
+		// Damage while in evac zone for "Parting Gift"
+		if (IsAbilityAvailable(AttackingUnit.GetReference(), 'Evac'))
+		{
+			NewRoot.MAV_Stats[i].EvacDamageDealt += DamageResult.DamageAmount;
+			//`log("MAV: " $ AttackingUnit.GetFullName() $ " dealt evac damage: " $ DamageResult.DamageAmount);
+		}
+
+		// Elemental damage
+		if (SourceEffect != none)
+		{
+			//`log("    " $ AttackingUnit.GetFullName() $ " applied source effect: " $ X2Effect_ApplyWeaponDamage(SourceEffect).EffectDamageValue.DamageType);
+			switch (X2Effect_ApplyWeaponDamage(SourceEffect).EffectDamageValue.DamageType)
+			{
+				case 'Fire':
+					NewRoot.MAV_Stats[i].BurnDamageDealt += DamageResult.DamageAmount;
+					//`log("MAVburn: " $ AttackingUnit.GetFullName() $ " dealt burn damage: " $ DamageResult.DamageAmount);
+					break;
+
+				case 'Poison':
+					NewRoot.MAV_Stats[i].PoisonDamageDealt += DamageResult.DamageAmount;
+					//`log("MAVpoison: " $ AttackingUnit.GetFullName() $ " dealt poison damage: " $ DamageResult.DamageAmount);
+					break;
+
+				case 'Acid':
+					NewRoot.MAV_Stats[i].AcidDamageDealt += DamageResult.DamageAmount;
+					//`log("MAVacid: " $ AttackingUnit.GetFullName() $ " dealt acid damage: " $ DamageResult.DamageAmount);
+					break;
+			}
+		}
 	}
 	
 	if (NewRoot != none)
@@ -347,6 +432,8 @@ function EventListenerReturn OnUnitTookDamage(Object EventData, Object EventSour
 	{
 		`XCOMHISTORY.CleanupPendingGameState(NewGameState);
 	}
+
+	return ELR_NoInterrupt;
 }
 
 function EventListenerReturn OnBrokeWindow(Object EventData, Object EventSource, XComGameState GameState, Name EventID)
@@ -466,7 +553,7 @@ function EventListenerReturn OnPlayerTurnEnd(Object EventData, Object EventSourc
 
 			// Check amount of ammo for Who Needs Ammo award
 			Weapon = Unit.GetItemInSlot(eInvSlot_PrimaryWeapon);
-			if (Weapon != none && Weapon.Ammo == 0 && !NewRoot.MAV_Stats[i].FiredPrimaryWeaponThisTurn)
+			if (Weapon != none && Weapon.Ammo == 0 && !Weapon.HasInfiniteAmmo() && !NewRoot.MAV_Stats[i].FiredPrimaryWeaponThisTurn)
 			{
 				NewRoot.MAV_Stats[i].TurnsWithoutAmmo += Weapon.GetClipSize();
 				//`log("MAV: " $ Unit.GetFullName() $ " ended turn with no ammo");
@@ -600,5 +687,5 @@ function MAV_UnitStats PropertyDamageDelegate(XComGameState_Unit Unit, XComGameS
 
 defaultproperties
 {
-	CURRENT_VERSION = "1.3.0";
+	CURRENT_VERSION = "1.3.1";
 }
