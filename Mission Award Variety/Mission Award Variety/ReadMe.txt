@@ -89,6 +89,7 @@ Dealt the most poison damage
 [b]ACID DROPPER[/b]
 Dealt the most acid damage
 
+[b]PARTING GIFT[/b]
 Dealt the most damage while standing in the evac zone
 
 
