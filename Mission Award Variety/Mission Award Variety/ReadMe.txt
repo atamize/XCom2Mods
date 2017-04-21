@@ -1,6 +1,6 @@
 ﻿------------------------------------------------
 Mission Award Variety - an XCOM 2 Mod by atamize
-Version 1.2.9
+Version 1.3.1
 ------------------------------------------------
 
 Adds more interesting awards on the mission debriefing screen.
@@ -71,6 +71,27 @@ Caused the most environmental damage (includes breaking windows, doors, and erra
 [b]MOST KILLS IN A TURN[/b]
 Must have at least 2 kills in a turn to qualify
 
+[b]MOST EXPOSED[/b]
+Ended the most turns with sight on the most enemies while in lightest cover
+
+[b]RUNNING ON EMPTY[/b]
+Ended the most turns without reloading with no ammo in primary weapon
+
+[b]GREEDIEST[/b]
+Picked up the most loot (minimum 2 pieces)
+
+[b]PYROMANIAC[/b]
+Dealt the most burning damage
+
+[b]TOXIC PERSONALITY[/b]
+Dealt the most poison damage
+
+[b]ACID DROPPER[/b]
+Dealt the most acid damage
+
+[b]PARTING GIFT[/b]
+Dealt the most damage while standing in the evac zone
+
 
 [h1]CONFIGURATION OPTIONS[/h1]
 These options are found in XComMissionAwardVariety.ini:
@@ -100,5 +121,8 @@ A: Does not override any classes so it should work with any mod except for those
 
 [b]Q: Wouldn't it be cool if you could name your mind-controlled enemies so their names could show up on this screen instead of their boring template names?[/b]
 A: Yeah, it would! In fact, I made a mod that will make your wish come true: [url=http://steamcommunity.com/sharedfiles/filedetails/?id=677029871]Name Your Pet[/url]
+
+[b]Q: Do I have to start a new campaign before installing this mod?[/b]
+A: No, you can insert it into an existing campaign.
 
 Thanks to Kosmo for the [url=http://steamcommunity.com/sharedfiles/filedetails/?id=634754304]Lifetime Stats[/url] mod whose code was very helpful in setting this up.
