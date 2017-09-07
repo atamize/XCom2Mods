@@ -25,10 +25,16 @@
     <Content Include="Config\XComEngine.ini" />
     <Content Include="Config\XComGame.ini" />
     <Content Include="Localization\XComGame.int" />
+    <Content Include="Src\WOTCNiceMissionDebriefing\Classes\NMD_UIDebriefPhotobooth.uc">
+      <SubType>Content</SubType>
+    </Content>
     <Content Include="Src\WOTCNiceMissionDebriefing\Classes\NMD_UIMissionDebriefingScreen.uc">
       <SubType>Content</SubType>
     </Content>
     <Content Include="Src\WOTCNiceMissionDebriefing\Classes\NMD_UIMissionSummaryListener.uc">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Src\WOTCNiceMissionDebriefing\Classes\NMD_UIPhotoboothReviewListener.uc">
       <SubType>Content</SubType>
     </Content>
     <Content Include="Src\WOTCNiceMissionDebriefing\Classes\X2DownloadableContentInfo_WOTCNiceMissionDebriefing.uc" />

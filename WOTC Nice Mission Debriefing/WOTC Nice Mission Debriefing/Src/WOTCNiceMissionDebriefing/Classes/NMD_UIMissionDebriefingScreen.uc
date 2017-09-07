@@ -5,11 +5,18 @@ var UIPanel Container;
 var UIBGBox PanelBG;
 var UIBGBox FullBG;
 var UIX2PanelHeader TitleHeader;
-//var UIButton BackToSummaryButton;
-var UINavigationHelp NavHelp;
 var UIImage SCImage;
+
+var UIBGBox PhotoPanel;
 var UIImage SoldierImage;
+var UIButton CreatePhotoButton;
+var UIButton SelectPhotoButton;
+
 var UIStatList StatList;
+
+var UINavigationHelp NavHelp;
+
+var StateObjectReference UnitRef;
 
 simulated function InitScreen(XComPlayerController InitController, UIMovie InitMovie, optional name InitName)
 {
@@ -30,30 +37,44 @@ simulated function InitScreen(XComPlayerController InitController, UIMovie InitM
 	PanelBG.LibID = class'UIUtilities_Controls'.const.MC_X2Background;
 	PanelBG.InitBG('theBG', 0, 0, Container.Width, Container.Height);
 
-	SCImage = Spawn(class'UIImage', Container).InitImage();
-	SCImage.SetSize(80, 80);
-	SCImage.SetPosition(10, 10);
-
-	SoldierImage = Spawn(class'UIImage', Container).InitImage();
-	SoldierImage.SetPosition(10, 100);
-
+	// Header
 	TitleHeader = Spawn(class'UIX2PanelHeader', Container);
 	TitleHeader.InitPanelHeader('', "", "");
 	TitleHeader.SetPosition(10, 10);
 	TitleHeader.SetHeaderWidth(Container.Width - TitleHeader.X - 10);
 
+	SCImage = Spawn(class'UIImage', Container).InitImage();
+	SCImage.SetSize(80, 80);
+	SCImage.SetPosition(10, 10);
+
+	// Photo Panel
+	PhotoPanel = Spawn(class'UIBGBox', Container);
+	PhotoPanel.LibID = class'UIUtilities_Controls'.const.MC_X2Background;
+	PhotoPanel.InitBG('photoBG', 20, 100, 300, 500);	
+
+	SoldierImage = Spawn(class'UIImage', Container).InitImage();
+	SoldierImage.SetPosition(PhotoPanel.X + 20, PhotoPanel.Y + 20);
+
+	CreatePhotoButton = Spawn(class'UIButton', Container);
+	CreatePhotoButton.ResizeToText = false;
+	CreatePhotoButton.InitButton('CreatePhotoButton', "Create Photo", OpenCreatePhoto, eUIButtonStyle_HOTLINK_BUTTON);
+	CreatePhotoButton.SetWidth(200);
+	CreatePhotoButton.SetGamepadIcon(class'UIUtilities_Input'.const.ICON_Y_TRIANGLE);
+	CreatePhotoButton.SetPosition(PhotoPanel.X + 10, PhotoPanel.Y + PhotoPanel.Height - 50);
+
+	SelectPhotoButton = Spawn(class'UIButton', Container);
+	SelectPhotoButton.ResizeToText = false;
+	SelectPhotoButton.InitButton('selectPhotoButton', "Select Photo", OpenPhotoboothReview, eUIButtonStyle_HOTLINK_BUTTON);
+	SelectPhotoButton.SetWidth(200);
+	SelectPhotoButton.SetGamepadIcon(class'UIUtilities_Input'.const.ICON_Y_TRIANGLE);
+	SelectPhotoButton.SetPosition(CreatePhotoButton.X + CreatePhotoButton.Width + 30, CreatePhotoButton.Y);
+
+	// Stats
 	StatList = Spawn(class'UIStatList', Container);
 	StatList.InitStatList('StatList', , Container.Width / 2, 100, Width / 2, Height / 2);
 	PopulateStats();
 
-	//BackToSummaryButton = Spawn(class'UIButton', Container);
-	//BackToSummaryButton.ResizeToText = false;
-	//BackToSummaryButton.InitButton('backButton', "Back To Mission Summary", BackToSummary, eUIButtonStyle_HOTLINK_BUTTON);
-	//BackToSummaryButton.SetPosition(20, Container.Height - BackToSummaryButton.Height - 10);
-	//BackToSummaryButton.SetWidth(300);
-	//BackToSummaryButton.SetGamepadIcon(class'UIUtilities_Input'.const.ICON_B_CIRCLE);
-
-	MissionSummary = UIMissionSummary(`PRES.ScreenStack.GetFirstInstanceOf(class'UIMissionSummary'));
+	MissionSummary = UIMissionSummary(`ScreenStack.GetFirstInstanceOf(class'UIMissionSummary'));
 	if (MissionSummary != none)
 	{
 		MissionSummary.BATTLE().GetHumanPlayer().GetOriginalUnits(arrSoldiers, true);
@@ -73,6 +94,8 @@ function ShowStatsForUnit(XComGameState_Unit Unit)
 	local XComGameState_CampaignSettings SettingsState;
 	local Texture2D SoldierTexture;
 
+	UnitRef = Unit.GetReference();
+
 	SoldierClass = Unit.GetSoldierClassTemplate();
 	if (SoldierClass != none)
 	{
@@ -86,7 +109,7 @@ function ShowStatsForUnit(XComGameState_Unit Unit)
 	TitleHeader.MC.FunctionVoid("realize");
 
 	SettingsState = XComGameState_CampaignSettings(`XCOMHISTORY.GetSingleGameStateObjectForClass(class'XComGameState_CampaignSettings'));
-	SoldierTexture = `XENGINE.m_kPhotoManager.GetHeadshotTexture(SettingsState.GameIndex, Unit.ObjectID, 128, 128);
+	SoldierTexture = `XENGINE.m_kPhotoManager.GetHeadshotTexture(SettingsState.GameIndex, Unit.ObjectID, 256, 256);
 	SoldierImage.LoadImage(class'UIUtilities_Image'.static.ValidateImagePath(PathName(SoldierTexture)));
 }
 
@@ -110,9 +133,54 @@ function PopulateStats()
 	StatList.RefreshData(UnitStats);
 }
 
-simulated function BackToSummary()
+function BackToSummary()
 {
-	`PRES.ScreenStack.PopFirstInstanceOfClass(class'NMD_UIMissionDebriefingScreen', false);
+	`ScreenStack.PopFirstInstanceOfClass(class'NMD_UIMissionDebriefingScreen', false);
+}
+
+function OpenCreatePhoto(UIButton button)
+{
+	local NMD_UIDebriefPhotobooth Photobooth;
+
+	if (`ScreenStack.IsNotInStack(class'NMD_UIDebriefPhotobooth'))
+	{
+		Photobooth = NMD_UIDebriefPhotobooth(`ScreenStack.Push(Spawn(class'NMD_UIDebriefPhotobooth', `PRES)));
+		Photobooth.InitPropaganda(UnitRef);
+	}
+}
+
+function OpenPhotoboothReview(UIButton button)
+{
+	if (`ScreenStack.IsNotInStack(class'UIPhotoboothReview'))
+	{
+		`ScreenStack.Push(Spawn(class'UIPhotoboothReview', `PRES));
+	}
+}
+
+function SetPhoto(int Index)
+{
+	local XComGameState_CampaignSettings SettingsState;
+	local Texture2D SoldierTexture;
+
+	SettingsState = XComGameState_CampaignSettings(`XCOMHISTORY.GetSingleGameStateObjectForClass(class'XComGameState_CampaignSettings'));
+	SoldierTexture = `XENGINE.m_kPhotoManager.GetPosterTexture(SettingsState.GameIndex, Index);
+	SetPhotoTexture(SoldierTexture);
+}
+
+function SetLatestPhoto()
+{
+	local XComGameState_CampaignSettings SettingsState;
+	local Texture2D SoldierTexture;
+
+	SettingsState = XComGameState_CampaignSettings(`XCOMHISTORY.GetSingleGameStateObjectForClass(class'XComGameState_CampaignSettings'));
+	SoldierTexture = `XENGINE.m_kPhotoManager.GetLatestPoster(SettingsState.GameIndex);
+	SetPhotoTexture(SoldierTexture);
+}
+
+function SetPhotoTexture(Texture2D SoldierTexture)
+{
+	SoldierImage.LoadImage(class'UIUtilities_Image'.static.ValidateImagePath(PathName(SoldierTexture)));
+	SoldierImage.SetSize(280, 420);
 }
 
 defaultproperties
