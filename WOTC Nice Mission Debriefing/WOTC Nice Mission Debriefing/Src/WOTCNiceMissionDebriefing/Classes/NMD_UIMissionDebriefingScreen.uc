@@ -11,17 +11,20 @@ var UIBGBox PhotoPanel;
 var UIImage SoldierImage;
 var UIButton CreatePhotoButton;
 var UIButton SelectPhotoButton;
+var UIButton PreviousButton;
+var UIButton NextButton;
 
 var UIStatList StatList;
 
 var UINavigationHelp NavHelp;
 
 var StateObjectReference UnitRef;
+var array<XComGameState_Unit> SoldierList;
+var int CurrentSoldierIndex;
 
 simulated function InitScreen(XComPlayerController InitController, UIMovie InitMovie, optional name InitName)
 {
 	local UIMissionSummary MissionSummary;
-	local array<XComGameState_Unit> arrSoldiers;
 
 	super.InitScreen(InitController, InitMovie, InitName);
 
@@ -50,7 +53,7 @@ simulated function InitScreen(XComPlayerController InitController, UIMovie InitM
 	// Photo Panel
 	PhotoPanel = Spawn(class'UIBGBox', Container);
 	PhotoPanel.LibID = class'UIUtilities_Controls'.const.MC_X2Background;
-	PhotoPanel.InitBG('photoBG', 20, 100, 300, 500);	
+	PhotoPanel.InitBG('photoBG', 10, 100, 300, 500);	
 
 	SoldierImage = Spawn(class'UIImage', Container).InitImage();
 	SoldierImage.SetPosition(PhotoPanel.X + 20, PhotoPanel.Y + 20);
@@ -58,16 +61,31 @@ simulated function InitScreen(XComPlayerController InitController, UIMovie InitM
 	CreatePhotoButton = Spawn(class'UIButton', Container);
 	CreatePhotoButton.ResizeToText = false;
 	CreatePhotoButton.InitButton('CreatePhotoButton', "Create Photo", OpenCreatePhoto, eUIButtonStyle_HOTLINK_BUTTON);
-	CreatePhotoButton.SetWidth(200);
+	CreatePhotoButton.SetWidth(175);
 	CreatePhotoButton.SetGamepadIcon(class'UIUtilities_Input'.const.ICON_Y_TRIANGLE);
-	CreatePhotoButton.SetPosition(PhotoPanel.X + 10, PhotoPanel.Y + PhotoPanel.Height - 50);
+	CreatePhotoButton.SetPosition(PhotoPanel.X, PhotoPanel.Y + PhotoPanel.Height - 50);
 
 	SelectPhotoButton = Spawn(class'UIButton', Container);
 	SelectPhotoButton.ResizeToText = false;
 	SelectPhotoButton.InitButton('selectPhotoButton', "Select Photo", OpenPhotoboothReview, eUIButtonStyle_HOTLINK_BUTTON);
-	SelectPhotoButton.SetWidth(200);
+	SelectPhotoButton.SetWidth(175);
 	SelectPhotoButton.SetGamepadIcon(class'UIUtilities_Input'.const.ICON_Y_TRIANGLE);
 	SelectPhotoButton.SetPosition(CreatePhotoButton.X + CreatePhotoButton.Width + 30, CreatePhotoButton.Y);
+
+	// Navigation
+	PreviousButton = Spawn(class'UIButton', Container);
+	PreviousButton.ResizeToText = false;
+	PreviousButton.InitButton('PreviousButton', "Previous", OnPreviousClick, eUIButtonStyle_HOTLINK_BUTTON);
+	PreviousButton.SetWidth(150);
+	PreviousButton.SetGamepadIcon(class'UIUtilities_Input'.const.ICON_LB_L1);
+	PreviousButton.SetPosition(Container.Width - 400, Container.Height - 50);
+
+	NextButton = Spawn(class'UIButton', Container);
+	NextButton.ResizeToText = false;
+	NextButton.InitButton('NextButton', "Next", OnNextClick, eUIButtonStyle_HOTLINK_BUTTON);
+	NextButton.SetWidth(150);
+	NextButton.SetGamepadIcon(class'UIUtilities_Input'.const.ICON_RB_R1);
+	NextButton.SetPosition(PreviousButton.X + PreviousButton.Width + 30, PreviousButton.Y);
 
 	// Stats
 	StatList = Spawn(class'UIStatList', Container);
@@ -77,9 +95,10 @@ simulated function InitScreen(XComPlayerController InitController, UIMovie InitM
 	MissionSummary = UIMissionSummary(`ScreenStack.GetFirstInstanceOf(class'UIMissionSummary'));
 	if (MissionSummary != none)
 	{
-		MissionSummary.BATTLE().GetHumanPlayer().GetOriginalUnits(arrSoldiers, true);
+		MissionSummary.BATTLE().GetHumanPlayer().GetOriginalUnits(SoldierList, true);
 
-		ShowStatsForUnit(arrSoldiers[0]);
+		CurrentSoldierIndex = 0;
+		ShowStatsForUnit(SoldierList[CurrentSoldierIndex]);
 
 		NavHelp = Spawn(class'UINavigationHelp', self).InitNavHelp();
 		NavHelp.AddContinueButton(MissionSummary.CloseScreenTakePhoto);
@@ -131,6 +150,18 @@ function PopulateStats()
 	UnitStats.AddItem( AStat );
 
 	StatList.RefreshData(UnitStats);
+}
+
+function OnPreviousClick(UIButton Button)
+{
+	CurrentSoldierIndex = (CurrentSoldierIndex - 1) % SoldierList.Length;
+	ShowStatsForUnit(SoldierList[CurrentSoldierIndex]);
+}
+
+function OnNextClick(UIButton Button)
+{
+	CurrentSoldierIndex = (CurrentSoldierIndex + 1) % SoldierList.Length;
+	ShowStatsForUnit(SoldierList[CurrentSoldierIndex]);
 }
 
 function BackToSummary()
