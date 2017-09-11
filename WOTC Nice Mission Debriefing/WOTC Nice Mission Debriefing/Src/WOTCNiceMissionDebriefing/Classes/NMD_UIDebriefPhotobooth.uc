@@ -68,6 +68,7 @@ function CreatePosterCallback(StateObjectReference UnitRef)
 
 simulated function CloseScreen()
 {
+	class'WorldInfo'.static.GetWorldInfo().GetALocalPlayerController().ClientSetCameraFade(false);
 	Movie.Stack.Pop(self);
 	Movie.Pres.PlayUISound(eSUISound_MenuClose);
 }

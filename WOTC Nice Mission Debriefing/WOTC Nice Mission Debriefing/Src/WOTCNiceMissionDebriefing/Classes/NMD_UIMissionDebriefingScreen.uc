@@ -90,7 +90,6 @@ simulated function InitScreen(XComPlayerController InitController, UIMovie InitM
 	// Stats
 	StatList = Spawn(class'UIStatList', Container);
 	StatList.InitStatList('StatList', , Container.Width / 2, 100, Width / 2, Height / 2);
-	PopulateStats();
 
 	MissionSummary = UIMissionSummary(`ScreenStack.GetFirstInstanceOf(class'UIMissionSummary'));
 	if (MissionSummary != none)
@@ -112,6 +111,9 @@ function ShowStatsForUnit(XComGameState_Unit Unit)
 	local X2SoldierClassTemplate SoldierClass;
 	local XComGameState_CampaignSettings SettingsState;
 	local Texture2D SoldierTexture;
+	local X2PhotoBooth_PhotoManager PhotoManager;
+	local XComGameState_NMD_Unit NMDUnit;
+	local NMD_PersistentData PersistentData;
 
 	UnitRef = Unit.GetReference();
 
@@ -128,28 +130,63 @@ function ShowStatsForUnit(XComGameState_Unit Unit)
 	TitleHeader.MC.FunctionVoid("realize");
 
 	SettingsState = XComGameState_CampaignSettings(`XCOMHISTORY.GetSingleGameStateObjectForClass(class'XComGameState_CampaignSettings'));
-	SoldierTexture = `XENGINE.m_kPhotoManager.GetHeadshotTexture(SettingsState.GameIndex, Unit.ObjectID, 256, 256);
+	PhotoManager = `XENGINE.m_kPhotoManager;
+
+	NMDUnit = XComGameState_NMD_Unit(Unit.FindComponentObject(class'XComGameState_NMD_Unit'));
+
+	if (NMDUnit != none)
+	{
+		PersistentData = NMDUnit.GetPersistentData();
+		`log("NMDUnit found with poster index " $ PersistentData.PosterIndex);
+		if (PersistentData.PosterIndex >= 0 && PersistentData.PosterIndex < PhotoManager.GetNumOfPosterForCampaign(SettingsState.GameIndex, false))
+		{
+			SoldierTexture = PhotoManager.GetPosterTexture(SettingsState.GameIndex, PersistentData.PosterIndex);
+		}
+	} else `log("NMD Failed to find component");
+
+	if (SoldierTexture == none)
+	{
+		if (PhotoManager.HeadshotExistsAndIsCurrent(SettingsState.GameIndex, Unit.ObjectID, Unit))
+		{
+			SoldierTexture = PhotoManager.GetHeadshotTexture(SettingsState.GameIndex, Unit.ObjectID, 256, 256);
+		}
+		else
+		{
+			SoldierTexture = Texture2D'gfxComponents.UIXcomEmblem';
+		}
+	}
+
 	SoldierImage.LoadImage(class'UIUtilities_Image'.static.ValidateImagePath(PathName(SoldierTexture)));
+
+	PopulateStats(Unit);
 }
 
-function PopulateStats()
+function PopulateStats(XComGameState_Unit Unit)
 {
 	local array<UISummary_ItemStat> UnitStats;
 	local UISummary_ItemStat AStat;
+	local XComGameState_NMD_Unit NMDUnit;
+	local NMD_Stats Stats;
 
-	AStat.Label = "FARTS";
-	AStat.Value = string(69);
-	UnitStats.AddItem( AStat );
+	NMDUnit = class'NMD_Utilities'.static.EnsureHasUnitStats(Unit);
+	if (NMDUnit != none)
+	{
+		Stats = NMDUnit.GetMainStats();
 
-	AStat.Label = "BUTTS";
-	AStat.Value = string(420) @ "/" @ string(99);
-	UnitStats.AddItem( AStat );
+		AStat.Label = "KILLS";
+		AStat.Value = string(Stats.numKills);
+		UnitStats.AddItem( AStat );
 
-	AStat.Label = "PIZZAS DELIVERED";
-	AStat.Value = "Who the fuck knows";
-	UnitStats.AddItem( AStat );
+		AStat.Label = "SHOTS";
+		AStat.Value = string(Stats.numHits) @ "/" @ string(Stats.numShots);
+		UnitStats.AddItem( AStat );
 
-	StatList.RefreshData(UnitStats);
+		AStat.Label = "DAMAGE DEALT";
+		AStat.Value = string(Stats.damageDealt);
+		UnitStats.AddItem( AStat );
+
+		StatList.RefreshData(UnitStats);
+	}
 }
 
 function OnPreviousClick(UIButton Button)
@@ -196,22 +233,48 @@ function SetPhoto(int Index)
 	SettingsState = XComGameState_CampaignSettings(`XCOMHISTORY.GetSingleGameStateObjectForClass(class'XComGameState_CampaignSettings'));
 	SoldierTexture = `XENGINE.m_kPhotoManager.GetPosterTexture(SettingsState.GameIndex, Index);
 	SetPhotoTexture(SoldierTexture);
+
+	SavePosterIndex(Index);
 }
 
 function SetLatestPhoto()
 {
 	local XComGameState_CampaignSettings SettingsState;
 	local Texture2D SoldierTexture;
+	local X2PhotoBooth_PhotoManager PhotoManager;
+	local int PosterIndex;
 
 	SettingsState = XComGameState_CampaignSettings(`XCOMHISTORY.GetSingleGameStateObjectForClass(class'XComGameState_CampaignSettings'));
-	SoldierTexture = `XENGINE.m_kPhotoManager.GetLatestPoster(SettingsState.GameIndex);
+	PhotoManager = `XENGINE.m_kPhotoManager;
+	PosterIndex = PhotoManager.GetNumOfPosterForCampaign(SettingsState.GameIndex, false) - 1;
+	SoldierTexture = PhotoManager.GetLatestPoster(SettingsState.GameIndex);
 	SetPhotoTexture(SoldierTexture);
+
+	SavePosterIndex(PosterIndex);
 }
 
 function SetPhotoTexture(Texture2D SoldierTexture)
 {
 	SoldierImage.LoadImage(class'UIUtilities_Image'.static.ValidateImagePath(PathName(SoldierTexture)));
 	SoldierImage.SetSize(280, 420);
+}
+
+function SavePosterIndex(int PosterIndex)
+{
+	local XComGameState_Unit Unit;
+	local XComGameState_NMD_Unit NMDUnit;
+	local XComGameState NewGameState;
+
+	Unit = SoldierList[CurrentSoldierIndex];//XComGameState_Unit(`XCOMHISTORY.GetGameStateForObjectID(SoldierList[CurrentSoldierIndex].ObjectID));
+	NMDUnit = XComGameState_NMD_Unit(Unit.FindComponentObject(class'XComGameState_NMD_Unit'));
+	if (NMDUnit != none)
+	{
+		NewGameState = class'XComGameStateContext_ChangeContainer'.static.CreateChangeState("Update Poster Index");
+		NMDUnit = XComGameState_NMD_Unit(NewGameState.ModifyStateObject(class'XComGameState_NMD_Unit', NMDUnit.ObjectID));
+		NMDUnit.SetPosterIndex(PosterIndex, NewGameState);
+		`log("NMD Setting PosterIndex to " $ PosterIndex);
+		`GAMERULES.SubmitGameState(NewGameState);
+	} else `log("NMDUnit SavePosterIndex not found");
 }
 
 defaultproperties
