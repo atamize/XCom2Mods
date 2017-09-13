@@ -62,13 +62,14 @@ function CreatePosterCallback(StateObjectReference UnitRef)
 	}
 
 	bWaitingOnPhoto = false;
+	`PRESBASE.GetPhotoboothMovie().RemoveScreen(`PHOTOBOOTH.m_backgroundPoster);
 	Movie.Pres.UICloseProgressDialog();
 	CloseScreen();
 }
 
 simulated function CloseScreen()
 {
-	class'WorldInfo'.static.GetWorldInfo().GetALocalPlayerController().ClientSetCameraFade(false);
+	class'Engine'.static.GetEngine().GameViewport.bRenderEmptyScene = false;
 	Movie.Stack.Pop(self);
 	Movie.Pres.PlayUISound(eSUISound_MenuClose);
 }

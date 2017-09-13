@@ -191,13 +191,19 @@ function PopulateStats(XComGameState_Unit Unit)
 
 function OnPreviousClick(UIButton Button)
 {
-	CurrentSoldierIndex = (CurrentSoldierIndex - 1) % SoldierList.Length;
+	CurrentSoldierIndex--;
+	if (CurrentSoldierIndex < 0)
+	{
+		CurrentSoldierIndex = SoldierList.Length - 1;
+	}
+	Movie.Pres.PlayUISound(eSUISound_MenuSelect);
 	ShowStatsForUnit(SoldierList[CurrentSoldierIndex]);
 }
 
 function OnNextClick(UIButton Button)
 {
 	CurrentSoldierIndex = (CurrentSoldierIndex + 1) % SoldierList.Length;
+	Movie.Pres.PlayUISound(eSUISound_MenuSelect);
 	ShowStatsForUnit(SoldierList[CurrentSoldierIndex]);
 }
 
@@ -265,7 +271,7 @@ function SavePosterIndex(int PosterIndex)
 	local XComGameState_NMD_Unit NMDUnit;
 	local XComGameState NewGameState;
 
-	Unit = SoldierList[CurrentSoldierIndex];//XComGameState_Unit(`XCOMHISTORY.GetGameStateForObjectID(SoldierList[CurrentSoldierIndex].ObjectID));
+	Unit = SoldierList[CurrentSoldierIndex];
 	NMDUnit = XComGameState_NMD_Unit(Unit.FindComponentObject(class'XComGameState_NMD_Unit'));
 	if (NMDUnit != none)
 	{
