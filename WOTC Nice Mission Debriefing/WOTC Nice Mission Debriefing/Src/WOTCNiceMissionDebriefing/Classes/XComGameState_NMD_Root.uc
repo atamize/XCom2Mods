@@ -28,6 +28,7 @@ function EventListenerReturn OnMoved(Object EventData, Object EventSource, XComG
 	local XComGameState_Unit Unit;
 	local XComGameState_NMD_Unit UnitStats;
 	local XComGameStateContext_Ability AbilityContext;
+	local NMD_Stat_TilesMoved Stat;
 
 	Unit = XComGameState_Unit(EventSource);
 	AbilityContext = XComGameStateContext_Ability(GameState.GetContext());
@@ -40,9 +41,9 @@ function EventListenerReturn OnMoved(Object EventData, Object EventSource, XComG
 	
 	UnitStats = class'NMD_Utilities'.static.ensureHasUnitStats(Unit);
 	UnitStats = XComGameState_NMD_Unit(GameState.ModifyStateObject(class'XComGameState_NMD_Unit', UnitStats.ObjectID));
-	UnitStats.addTilesMoved( AbilityContext.InputContext.MovementPaths[0].MovementTiles.Length-1, GameState );
+	Stat = UnitStats.addTilesMoved( AbilityContext.InputContext.MovementPaths[0].MovementTiles.Length-1, GameState );
 	
-	`log("NMD - unit moved");
+	`log("NMD - unit " $ Unit.GetFullName() $ " moved " $ Stat.GetValue() $ " tiles");
 	// Trigger EventData
 	`XEventMGR.TriggerEvent('NMDUpdated', UnitStats, Unit, GameState);
 	
@@ -144,8 +145,8 @@ function EventListenerReturn onAbilityActivated(Object EventData, Object EventSo
 		
 		if( isShot || isMovement )
 			updateStats(source, Ability, AbilityContext, GameState);
-		else
-			if( class'NMD_Utilities'.const.DEBUG ) `log("NMD - NotShotType: " $ Ability.GetMyTemplateName());
+		//else
+			//if( class'NMD_Utilities'.const.DEBUG ) `log("NMD - NotShotType: " $ Ability.GetMyTemplateName());
 	}
 
 	return ELR_NoInterrupt;

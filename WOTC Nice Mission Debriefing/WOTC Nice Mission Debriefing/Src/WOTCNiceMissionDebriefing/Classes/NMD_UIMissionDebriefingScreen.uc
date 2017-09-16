@@ -14,13 +14,19 @@ var UIButton SelectPhotoButton;
 var UIButton PreviousButton;
 var UIButton NextButton;
 
+var UIPanel StatsPanel;
 var UIStatList StatList;
+
+var UIPanel AwardsPanel;
+var UIList AwardsList;
 
 var UINavigationHelp NavHelp;
 
 var StateObjectReference UnitRef;
 var array<XComGameState_Unit> SoldierList;
 var int CurrentSoldierIndex;
+
+var array<NMD_BaseAward> Awards;
 
 simulated function InitScreen(XComPlayerController InitController, UIMovie InitMovie, optional name InitName)
 {
@@ -53,7 +59,7 @@ simulated function InitScreen(XComPlayerController InitController, UIMovie InitM
 	// Photo Panel
 	PhotoPanel = Spawn(class'UIBGBox', Container);
 	PhotoPanel.LibID = class'UIUtilities_Controls'.const.MC_X2Background;
-	PhotoPanel.InitBG('photoBG', 10, 100, 300, 500);	
+	PhotoPanel.InitBG('photoBG', 0, 100, 300, 500);	
 
 	SoldierImage = Spawn(class'UIImage', Container).InitImage();
 	SoldierImage.SetPosition(PhotoPanel.X + 20, PhotoPanel.Y + 20);
@@ -61,16 +67,16 @@ simulated function InitScreen(XComPlayerController InitController, UIMovie InitM
 	CreatePhotoButton = Spawn(class'UIButton', Container);
 	CreatePhotoButton.ResizeToText = false;
 	CreatePhotoButton.InitButton('CreatePhotoButton', "Create Photo", OpenCreatePhoto, eUIButtonStyle_HOTLINK_BUTTON);
-	CreatePhotoButton.SetWidth(175);
+	CreatePhotoButton.SetWidth(130);
 	CreatePhotoButton.SetGamepadIcon(class'UIUtilities_Input'.const.ICON_Y_TRIANGLE);
-	CreatePhotoButton.SetPosition(PhotoPanel.X, PhotoPanel.Y + PhotoPanel.Height - 50);
+	CreatePhotoButton.SetPosition(PhotoPanel.X + 10, PhotoPanel.Y + PhotoPanel.Height - 50);
 
 	SelectPhotoButton = Spawn(class'UIButton', Container);
 	SelectPhotoButton.ResizeToText = false;
 	SelectPhotoButton.InitButton('selectPhotoButton', "Select Photo", OpenPhotoboothReview, eUIButtonStyle_HOTLINK_BUTTON);
-	SelectPhotoButton.SetWidth(175);
+	SelectPhotoButton.SetWidth(130);
 	SelectPhotoButton.SetGamepadIcon(class'UIUtilities_Input'.const.ICON_Y_TRIANGLE);
-	SelectPhotoButton.SetPosition(CreatePhotoButton.X + CreatePhotoButton.Width + 30, CreatePhotoButton.Y);
+	SelectPhotoButton.SetPosition(CreatePhotoButton.X + CreatePhotoButton.Width + 20, CreatePhotoButton.Y);
 
 	// Navigation
 	PreviousButton = Spawn(class'UIButton', Container);
@@ -88,13 +94,17 @@ simulated function InitScreen(XComPlayerController InitController, UIMovie InitM
 	NextButton.SetPosition(PreviousButton.X + PreviousButton.Width + 30, PreviousButton.Y);
 
 	// Stats
-	StatList = Spawn(class'UIStatList', Container);
-	StatList.InitStatList('StatList', , Container.Width / 2, 100, Width / 2, Height / 2);
+	InitStatsPanel();
+
+	// Awards Panel
+	InitAwardsPanel();
 
 	MissionSummary = UIMissionSummary(`ScreenStack.GetFirstInstanceOf(class'UIMissionSummary'));
 	if (MissionSummary != none)
 	{
 		MissionSummary.BATTLE().GetHumanPlayer().GetOriginalUnits(SoldierList, true);
+		
+		DetermineAwards();
 
 		CurrentSoldierIndex = 0;
 		ShowStatsForUnit(SoldierList[CurrentSoldierIndex]);
@@ -106,6 +116,66 @@ simulated function InitScreen(XComPlayerController InitController, UIMovie InitM
 	NavHelp.AddBackButton(BackToSummary);
 }
 
+function InitStatsPanel()
+{
+	local UIX2PanelHeader StatsHeader;
+	local UIBGBox StatsBG;
+
+	StatsPanel = Spawn(class'UIPanel', Container).InitPanel('StatsPanel');
+	StatsPanel.SetPosition(Container.Width / 2, TitleHeader.Y + TitleHeader.Height);
+	StatsPanel.SetSize(Width / 2, Height / 2 - 50);
+
+	StatsBG = Spawn(class'UIBGBox', StatsPanel);
+	StatsBG.LibID = class'UIUtilities_Controls'.const.MC_X2Background;
+	StatsBG.InitBG('StatsBG', 0, 0, StatsPanel.Width, StatsPanel.Height);
+
+	StatsHeader = Spawn(class'UIX2PanelHeader', StatsPanel).InitPanelHeader('', "STATS", "");
+	StatsHeader.SetHeaderWidth(StatsPanel.Width - StatsHeader.X - 10);
+
+	StatList = Spawn(class'UIStatList', StatsPanel);
+	StatList.InitStatList('StatList', , 0, StatsHeader.Height, StatsPanel.Width - 50, StatsPanel.Height - StatList.Y);
+}
+
+function InitAwardsPanel()
+{
+	local UIX2PanelHeader AwardsHeader;
+	local UIBGBox AwardsBG;
+
+	AwardsPanel = Spawn(class'UIPanel', Container).InitPanel('AwardsPanel');
+	AwardsPanel.SetPosition(StatsPanel.X, StatsPanel.Y + StatsPanel.Height + 10);
+	AwardsPanel.SetSize(StatsPanel.Width, Container.Height - AwardsPanel.Y - 70);
+
+	AwardsBG = Spawn(class'UIBGBox', AwardsPanel);
+	AwardsBG.LibID = class'UIUtilities_Controls'.const.MC_X2Background;
+	AwardsBG.InitBG('StatsBG', 0, 0, AwardsPanel.Width, AwardsPanel.Height);
+
+	AwardsHeader = Spawn(class'UIX2PanelHeader', AwardsPanel).InitPanelHeader('', "AWARDS", "");
+	AwardsHeader.SetHeaderWidth(AwardsPanel.Width - AwardsHeader.X - 10);
+
+	AwardsList = Spawn(class'UIList', AwardsPanel).InitList('AwardsList');
+	AwardsList.SetPosition(0, AwardsHeader.Height);
+	AwardsList.SetSize(AwardsPanel.Width - 50, AwardsPanel.Height - AwardsList.Y - 30);
+}
+
+private function NMD_BaseAward AddAward(NMD_BaseAward Award, name Type, string Label, string Tooltip)
+{
+	Award.Initialize(Type, Label, Tooltip);
+	Awards.AddItem(Award);
+	return Award;
+}
+
+function DetermineAwards()
+{
+	local NMD_BaseAward Award;
+
+	AddAward(new class'NMD_BaseAward', class'NMD_Stat_TilesMoved'.const.ID, "MOVED FURTHEST", "Traversed the most tiles");
+
+	foreach Awards(Award)
+	{
+		Award.DetermineWinners(SoldierList);
+	}
+}
+
 function ShowStatsForUnit(XComGameState_Unit Unit)
 {
 	local X2SoldierClassTemplate SoldierClass;
@@ -114,6 +184,7 @@ function ShowStatsForUnit(XComGameState_Unit Unit)
 	local X2PhotoBooth_PhotoManager PhotoManager;
 	local XComGameState_NMD_Unit NMDUnit;
 	local NMD_PersistentData PersistentData;
+	local NMD_BaseAward Award;
 
 	UnitRef = Unit.GetReference();
 
@@ -141,8 +212,9 @@ function ShowStatsForUnit(XComGameState_Unit Unit)
 		if (PersistentData.PosterIndex >= 0 && PersistentData.PosterIndex < PhotoManager.GetNumOfPosterForCampaign(SettingsState.GameIndex, false))
 		{
 			SoldierTexture = PhotoManager.GetPosterTexture(SettingsState.GameIndex, PersistentData.PosterIndex);
+			SoldierImage.SetSize(280, 420);
 		}
-	} else `log("NMD Failed to find component");
+	}
 
 	if (SoldierTexture == none)
 	{
@@ -154,39 +226,60 @@ function ShowStatsForUnit(XComGameState_Unit Unit)
 		{
 			SoldierTexture = Texture2D'gfxComponents.UIXcomEmblem';
 		}
+		SoldierImage.SetSize(256, 256);
 	}
 
 	SoldierImage.LoadImage(class'UIUtilities_Image'.static.ValidateImagePath(PathName(SoldierTexture)));
 
-	PopulateStats(Unit);
+	PopulateStats(Unit, NMDUnit);
+
+	// Show awards
+	AwardsList.ClearItems();
+
+	foreach Awards(Award)
+	{
+		if (Award.IsWinner(CurrentSoldierIndex))
+		{
+			Spawn(class'UIListItemString', AwardsList.ItemContainer).InitListItem(Award.Label).SetTooltipText(Award.Tooltip);
+		}
+	}
 }
 
-function PopulateStats(XComGameState_Unit Unit)
+function PopulateStats(XComGameState_Unit Unit, XComGameState_NMD_Unit NMDUnit)
 {
 	local array<UISummary_ItemStat> UnitStats;
 	local UISummary_ItemStat AStat;
-	local XComGameState_NMD_Unit NMDUnit;
-	local NMD_Stats Stats;
+	local NMD_Stats Stats;	
+	local StateObjectReference Ref;
+	local NMD_BaseStat Stat;
+	local XComGameStateHistory History;
 
-	NMDUnit = class'NMD_Utilities'.static.EnsureHasUnitStats(Unit);
-	if (NMDUnit != none)
+	History = `XCOMHISTORY;
+
+	Stats = NMDUnit.GetMainStats();
+
+	AStat.Label = "KILLS";
+	AStat.Value = string(Stats.numKills);
+	UnitStats.AddItem( AStat );
+
+	AStat.Label = "SHOTS";
+	AStat.Value = string(Stats.numHits) @ "/" @ string(Stats.numShots);
+	UnitStats.AddItem( AStat );
+
+	AStat.Label = "DAMAGE DEALT";
+	AStat.Value = string(Stats.damageDealt);
+	UnitStats.AddItem( AStat );
+
+	foreach NMDUnit.StatsRefs(Ref)
 	{
-		Stats = NMDUnit.GetMainStats();
-
-		AStat.Label = "KILLS";
-		AStat.Value = string(Stats.numKills);
-		UnitStats.AddItem( AStat );
-
-		AStat.Label = "SHOTS";
-		AStat.Value = string(Stats.numHits) @ "/" @ string(Stats.numShots);
-		UnitStats.AddItem( AStat );
-
-		AStat.Label = "DAMAGE DEALT";
-		AStat.Value = string(Stats.damageDealt);
-		UnitStats.AddItem( AStat );
-
-		StatList.RefreshData(UnitStats);
+		Stat = NMD_BaseStat(History.GetGameStateForObjectID(Ref.ObjectID));
+		AStat.Label = Stat.GetName();
+		AStat.Value = Stat.GetDisplayValue();
+		UnitStats.AddItem(AStat);
 	}
+
+	StatList.RefreshData(UnitStats);
+	
 }
 
 function OnPreviousClick(UIButton Button)
@@ -285,7 +378,7 @@ function SavePosterIndex(int PosterIndex)
 
 defaultproperties
 {
-	Width = 1300
+	Width = 800
 	Height = 800
 
 	bConsumeMouseEvents = true

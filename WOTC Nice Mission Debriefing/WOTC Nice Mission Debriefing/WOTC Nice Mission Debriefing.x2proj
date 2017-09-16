@@ -24,11 +24,20 @@
     <Content Include="Config\XComEditor.ini" />
     <Content Include="Config\XComEngine.ini" />
     <Content Include="Config\XComGame.ini" />
-    <Content Include="Localization\XComGame.int" />
+    <Content Include="Localization\WOTCNiceMissionDebriefing.int" />
+    <Content Include="Src\WOTCNiceMissionDebriefing\Classes\NMD_BaseAward.uc">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Src\WOTCNiceMissionDebriefing\Classes\NMD_BaseStat.uc">
+      <SubType>Content</SubType>
+    </Content>
     <Content Include="Src\WOTCNiceMissionDebriefing\Classes\NMD_PersistentData.uc">
       <SubType>Content</SubType>
     </Content>
     <Content Include="Src\WOTCNiceMissionDebriefing\Classes\NMD_Stats.uc">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Src\WOTCNiceMissionDebriefing\Classes\NMD_Stat_TilesMoved.uc">
       <SubType>Content</SubType>
     </Content>
     <Content Include="Src\WOTCNiceMissionDebriefing\Classes\NMD_UITacticalHUD_ScreenListener.uc">
