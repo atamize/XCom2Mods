@@ -131,6 +131,7 @@ function InitStatsPanel()
 	StatsBG.InitBG('StatsBG', 0, 0, StatsPanel.Width, StatsPanel.Height);
 
 	StatsHeader = Spawn(class'UIX2PanelHeader', StatsPanel).InitPanelHeader('', "STATS", "");
+	StatsHeader.SetPosition(10, 10);
 	StatsHeader.SetHeaderWidth(StatsPanel.Width - StatsHeader.X - 10);
 
 	StatList = Spawn(class'UIStatList', StatsPanel);
@@ -151,6 +152,7 @@ function InitAwardsPanel()
 	AwardsBG.InitBG('StatsBG', 0, 0, AwardsPanel.Width, AwardsPanel.Height);
 
 	AwardsHeader = Spawn(class'UIX2PanelHeader', AwardsPanel).InitPanelHeader('', "AWARDS", "");
+	AwardsHeader.SetPosition(10, 10);
 	AwardsHeader.SetHeaderWidth(AwardsPanel.Width - AwardsHeader.X - 10);
 
 	AwardsList = Spawn(class'UIList', AwardsPanel).InitList('AwardsList');
@@ -201,8 +203,9 @@ function ShowStatsForUnit(XComGameState_Unit Unit)
 	local Texture2D SoldierTexture;
 	local X2PhotoBooth_PhotoManager PhotoManager;
 	local XComGameState_NMD_Unit NMDUnit;
-	local NMD_PersistentData PersistentData;
+	local NMD_BaseStat PosterData;
 	local NMD_BaseAward Award;
+	local int PosterIndex;
 
 	UnitRef = Unit.GetReference();
 
@@ -225,11 +228,12 @@ function ShowStatsForUnit(XComGameState_Unit Unit)
 
 	if (NMDUnit != none)
 	{
-		PersistentData = NMDUnit.GetPersistentData();
-		`log("NMDUnit found with poster index " $ PersistentData.PosterIndex);
-		if (PersistentData.PosterIndex >= 0 && PersistentData.PosterIndex < PhotoManager.GetNumOfPosterForCampaign(SettingsState.GameIndex, false))
+		PosterData = NMDUnit.GetStat(class'NMD_PersistentStat_PosterData'.const.ID);
+		PosterIndex = PosterData.GetValue();
+		`log("NMDUnit found with poster index " $ PosterIndex);
+		if (PosterIndex >= 0 && PosterIndex < PhotoManager.GetNumOfPosterForCampaign(SettingsState.GameIndex, false))
 		{
-			SoldierTexture = PhotoManager.GetPosterTexture(SettingsState.GameIndex, PersistentData.PosterIndex);
+			SoldierTexture = PhotoManager.GetPosterTexture(SettingsState.GameIndex, PosterIndex);
 			SoldierImage.SetSize(280, 420);
 		}
 	}
@@ -267,14 +271,10 @@ function PopulateStats(XComGameState_Unit Unit, XComGameState_NMD_Unit NMDUnit)
 {
 	local array<UISummary_ItemStat> UnitStats;
 	local UISummary_ItemStat AStat;
-	local StateObjectReference Ref;
 	local NMD_BaseStat Stat;
-	local XComGameStateHistory History;
 	local string StatValue;
 	local NMD_BaseAward Award;
 	local name StatType;
-
-	History = `XCOMHISTORY;
 
 	foreach StatsOrder(StatType)
 	{
@@ -290,6 +290,9 @@ function PopulateStats(XComGameState_Unit Unit, XComGameState_NMD_Unit NMDUnit)
 		AStat.Label = Stat.GetName();
 
 		StatValue = Stat.GetDisplayValue();
+
+		`log("NMD Displaying Stats for " $ Unit.GetFullName() $ ", type: " $ Stat.GetType() $ ", value: " $ Stat.GetValue());
+
 		Award = GetAwardForStat(Stat.GetType());
 		if (Award != none)
 		{
@@ -311,7 +314,6 @@ function PopulateStats(XComGameState_Unit Unit, XComGameState_NMD_Unit NMDUnit)
 	}
 
 	StatList.RefreshData(UnitStats);
-	
 }
 
 function OnPreviousClick(UIButton Button)
