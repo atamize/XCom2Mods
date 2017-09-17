@@ -1,5 +1,6 @@
-// This is an Unreal Script
-class NMD_UIMissionDebriefingScreen extends UIScreen;
+class NMD_UIMissionDebriefingScreen extends UIScreen config (WOTCNiceMissionDebriefing);
+
+var config array<name> StatsOrder;
 
 var UIPanel Container;
 var UIBGBox PanelBG;
@@ -157,9 +158,9 @@ function InitAwardsPanel()
 	AwardsList.SetSize(AwardsPanel.Width - 50, AwardsPanel.Height - AwardsList.Y - 30);
 }
 
-private function NMD_BaseAward AddAward(NMD_BaseAward Award, name Type, string Label, string Tooltip)
+private function NMD_BaseAward AddAward(NMD_BaseAward Award, name Type, string Label, string Tooltip, optional bool IsVisible = true)
 {
-	Award.Initialize(Type, Label, Tooltip);
+	Award.Initialize(Type, Label, Tooltip, IsVisible);
 	Awards.AddItem(Award);
 	return Award;
 }
@@ -168,12 +169,29 @@ function DetermineAwards()
 {
 	local NMD_BaseAward Award;
 
+	AddAward(new class'NMD_BaseAward', class'NMD_Stat_Kills'.const.ID, "", "", false);
+	AddAward(new class'NMD_BaseAward', class'NMD_Stat_ShotAccuracy'.const.ID, "", "", false);
+	AddAward(new class'NMD_BaseAward', class'NMD_Stat_DamageDealt'.const.ID, "", "", false);
 	AddAward(new class'NMD_BaseAward', class'NMD_Stat_TilesMoved'.const.ID, "MOVED FURTHEST", "Traversed the most tiles");
 
 	foreach Awards(Award)
 	{
 		Award.DetermineWinners(SoldierList);
 	}
+}
+
+function NMD_BaseAward GetAwardForStat(name Type)
+{
+	local NMD_BaseAward Award;
+
+	foreach Awards(Award)
+	{
+		if (Award.StatType == Type)
+		{
+			return Award;
+		}
+	}
+	return none;
 }
 
 function ShowStatsForUnit(XComGameState_Unit Unit)
@@ -238,7 +256,7 @@ function ShowStatsForUnit(XComGameState_Unit Unit)
 
 	foreach Awards(Award)
 	{
-		if (Award.IsWinner(CurrentSoldierIndex))
+		if (Award.IsVisible && Award.IsWinner(CurrentSoldierIndex))
 		{
 			Spawn(class'UIListItemString', AwardsList.ItemContainer).InitListItem(Award.Label).SetTooltipText(Award.Tooltip);
 		}
@@ -249,32 +267,46 @@ function PopulateStats(XComGameState_Unit Unit, XComGameState_NMD_Unit NMDUnit)
 {
 	local array<UISummary_ItemStat> UnitStats;
 	local UISummary_ItemStat AStat;
-	local NMD_Stats Stats;	
 	local StateObjectReference Ref;
 	local NMD_BaseStat Stat;
 	local XComGameStateHistory History;
+	local string StatValue;
+	local NMD_BaseAward Award;
+	local name StatType;
 
 	History = `XCOMHISTORY;
 
-	Stats = NMDUnit.GetMainStats();
-
-	AStat.Label = "KILLS";
-	AStat.Value = string(Stats.numKills);
-	UnitStats.AddItem( AStat );
-
-	AStat.Label = "SHOTS";
-	AStat.Value = string(Stats.numHits) @ "/" @ string(Stats.numShots);
-	UnitStats.AddItem( AStat );
-
-	AStat.Label = "DAMAGE DEALT";
-	AStat.Value = string(Stats.damageDealt);
-	UnitStats.AddItem( AStat );
-
-	foreach NMDUnit.StatsRefs(Ref)
+	foreach StatsOrder(StatType)
 	{
-		Stat = NMD_BaseStat(History.GetGameStateForObjectID(Ref.ObjectID));
+		Stat = NMDUnit.GetStat(StatType);
+		if (Stat == none)
+		{
+			continue;
+		}
+
+		if (!Stat.IsVisible())
+			continue;
+
 		AStat.Label = Stat.GetName();
-		AStat.Value = Stat.GetDisplayValue();
+
+		StatValue = Stat.GetDisplayValue();
+		Award = GetAwardForStat(Stat.GetType());
+		if (Award != none)
+		{
+			if (Award.HasWinner())
+			{
+				if (Stat.GetValue() == Award.MaxValue)
+				{
+					StatValue = class'UIUtilities_Text'.static.GetColoredText(StatValue, eUIState_Good);
+				}
+				else if (Stat.GetValue() == Award.MinValue)
+				{
+					StatValue = class'UIUtilities_Text'.static.GetColoredText(StatValue, eUIState_Bad);
+				}
+			}
+		}
+		
+		AStat.Value = StatValue;
 		UnitStats.AddItem(AStat);
 	}
 

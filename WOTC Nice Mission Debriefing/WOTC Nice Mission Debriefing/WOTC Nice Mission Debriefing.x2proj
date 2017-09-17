@@ -37,6 +37,15 @@
     <Content Include="Src\WOTCNiceMissionDebriefing\Classes\NMD_Stats.uc">
       <SubType>Content</SubType>
     </Content>
+    <Content Include="Src\WOTCNiceMissionDebriefing\Classes\NMD_Stat_DamageDealt.uc">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Src\WOTCNiceMissionDebriefing\Classes\NMD_Stat_Kills.uc">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Src\WOTCNiceMissionDebriefing\Classes\NMD_Stat_ShotAccuracy.uc">
+      <SubType>Content</SubType>
+    </Content>
     <Content Include="Src\WOTCNiceMissionDebriefing\Classes\NMD_Stat_TilesMoved.uc">
       <SubType>Content</SubType>
     </Content>
