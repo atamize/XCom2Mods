@@ -31,7 +31,7 @@
     <Content Include="Src\WOTCNiceMissionDebriefing\Classes\NMD_BaseStat.uc">
       <SubType>Content</SubType>
     </Content>
-    <Content Include="Src\WOTCNiceMissionDebriefing\Classes\NMD_PersistentData.uc">
+    <Content Include="Src\WOTCNiceMissionDebriefing\Classes\NMD_PersistentStat_PosterData.uc">
       <SubType>Content</SubType>
     </Content>
     <Content Include="Src\WOTCNiceMissionDebriefing\Classes\NMD_Stats.uc">

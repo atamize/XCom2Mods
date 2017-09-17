@@ -145,8 +145,45 @@ static function XComGameState_NMD_Unit EnsureHasUnitStats(XComGameState_Unit uni
 		newGameState.AddStateObject(unitStats);
 		History.AddGameStateToHistory(newGameState);
 	}// else unitStats = updateUnitToV1(unit);
-	
+
 	return unitStats;
+}
+
+static function ResetMissionStats()
+{
+	local XComGameState NewGameState;
+	local XComGameState_HeadquartersXCom HQ;
+	local StateObjectReference Ref;
+	local XComGameState_Unit Unit;
+	local XComGameState_NMD_Unit NMDUnit;
+	local XComGameStateHistory History;
+	
+	HQ = class'UIUtilities_Strategy'.static.GetXComHQ(true);
+	if (HQ == none)
+		return;
+
+	History = `XCOMHISTORY;
+	NewGameState = class'XComGameStateContext_ChangeContainer'.static.CreateChangeState("Clear mission stats");
+
+	foreach HQ.Squad(Ref)
+	{
+		Unit = XComGameState_Unit(History.GetGameStateForObjectId(Ref.ObjectID));
+		NMDUnit = XComGameState_NMD_Unit(Unit.FindComponentObject(class'XComGameState_NMD_Unit'));
+		if (NMDUnit != none)
+		{
+			NMDUnit = XComGameState_NMD_Unit(NewGameState.ModifyStateObject(class'XComGameState_NMD_Unit', NMDUnit.ObjectID));
+			NMDUnit.ClearMissionStats(NewGameState);
+		}
+	}
+
+	if (NewGameState.GetNumGameStateObjects() > 0)
+	{
+		`GAMERULES.SubmitGameState(NewGameState);
+	}
+	else    
+	{
+		`XCOMHISTORY.CleanupPendingGameState(newGameState);
+	}
 }
 
 /**
@@ -154,14 +191,25 @@ static function XComGameState_NMD_Unit EnsureHasUnitStats(XComGameState_Unit uni
 */
 static function CleanupDismissedUnits() {
     local XComGameState newGameState;
-    //local XComGameState_Unit unit;
+    local XComGameState_Unit unit;
     local XComGameState_NMD_Unit unitStats;
 	
     newGameState = class'XComGameStateContext_ChangeContainer'.static.CreateChangeState("NMD Cleanup");
     foreach `XCOMHISTORY.IterateByClassType(class'XComGameState_NMD_Unit', unitStats, , true) {
         //check and see if the OwningObject is still alive and exists
         if( unitStats.OwningObjectId > 0 ) {
-            newGameState.RemoveStateObject(unitStats.ObjectID);
+            unit = XComGameState_Unit(`XCOMHISTORY.GetGameStateForObjectID(unitStats.OwningObjectID));
+            if( unit == none ) {
+                if( DEBUG ) `log("WOTCLifetimeStats_Unit Component has no current owning unit, cleaning up state.");
+                // Remove disconnected officer state
+                newGameState.RemoveStateObject(unitStats.ObjectID);
+            }
+            else {
+                if(unit.bRemoved) {
+                    if( DEBUG ) `log("WOTCLifetimeStats_Unit Owning Unit was removed, Removing unitStats");
+                    newGameState.RemoveStateObject(unitStats.ObjectID);
+                }
+            }
         }
     }
 	

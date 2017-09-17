@@ -17,4 +17,5 @@ static event OnExitPostMissionSequence()
 {
 	`log("NMD - cleaning up units");
 	class'NMD_Utilities'.static.CleanupDismissedUnits();
+	class'NMD_Utilities'.static.ResetMissionStats();
 }

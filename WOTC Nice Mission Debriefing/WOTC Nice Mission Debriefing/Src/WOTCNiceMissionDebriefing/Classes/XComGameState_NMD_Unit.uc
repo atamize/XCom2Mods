@@ -1,7 +1,5 @@
 class XComGameState_NMD_Unit extends XComGameState_BaseObject;
 
-var StateObjectReference PersistentDataRef;
-
 var array<name> StatTypes;
 var array<StateObjectReference> StatsRefs;
 
@@ -9,14 +7,33 @@ var array<StateObjectReference> StatsRefs;
 var int multifireIndex;
 var int multifireHistoryIndex;
 
-function XComGameState_NMD_Unit InitComponent(XComGameState NewGameState, optional bool upgrade=false) {
-	local NMD_PersistentData PersistentData;
+function XComGameState_NMD_Unit InitComponent(XComGameState NewGameState, optional bool upgrade=false)
+{
+	CreateOrUpdateStat(class'NMD_PersistentStat_PosterData'.const.ID, class'NMD_PersistentStat_PosterData', NewGameState);
 
-	PersistentData = NMD_PersistentData(NewGameState.CreateStateObject(class'NMD_PersistentData'));
-	PersistentData.InitComponent();
-	PersistentDataRef = PersistentData.GetReference();
-	NewGameState.AddStateObject(PersistentData);
+	CreateOrUpdateStat(class'NMD_Stat_TilesMoved'.const.ID, class'NMD_Stat_TilesMoved', NewGameState);
+	CreateOrUpdateStat(class'NMD_Stat_DamageDealt'.const.ID, class'NMD_Stat_DamageDealt', NewGameState);
+	CreateOrUpdateStat(class'NMD_Stat_ShotAccuracy'.const.ID, class'NMD_Stat_ShotAccuracy', NewGameState);
+	CreateOrUpdateStat(class'NMD_Stat_Kills'.const.ID, class'NMD_Stat_Kills', NewGameState);
 	return self;
+}
+
+function ClearMissionStats(XComGameState NewGameState)
+{
+	local NMD_BaseStat Stat;
+	local int i;
+
+	for (i = 0; i < StatsRefs.Length; ++i)
+	{
+		Stat = NMD_BaseStat(`XCOMHISTORY.GetGameStateForObjectID(StatsRefs[i].ObjectID));
+		if (!Stat.IsPersistent)
+		{
+			Stat = NMD_BaseStat(NewGameState.CreateStateObject(class'NMD_BaseStat', Stat.ObjectID));
+			Stat.InitComponent();
+			//`log("NMD - clearing mission stat " $ Stat.GetType() $ " to value: " $ Stat.GetValue());
+			NewGameState.AddStateObject(Stat);
+		}
+	}
 }
 
 function NMD_BaseStat GetStat(name StatType)
@@ -32,11 +49,6 @@ function NMD_BaseStat GetStat(name StatType)
 	}
 
 	return none;
-}
-
-function NMD_PersistentData GetPersistentData()
-{
-	return NMD_PersistentData(`XCOMHISTORY.GetGameStateForObjectID(PersistentDataRef.ObjectID));
 }
 
 function NMD_BaseStat CreateStat(name Type, class<NMD_BaseStat> StatClass, XComGameState NewGameState)
@@ -87,12 +99,15 @@ function AddDamageDone(string catToAdd, int dealt, int negated, bool executed, b
 	Stat.AddValue(dealt);
 	NewGameState.AddStateObject(Stat);
 
+	`log("NMD - " $ catToAdd $ " dealt damage: " $ dealt $ ", isKill? " $ isKill);
+
 	if (isKill)
 	{
 		BaseStat = CreateOrUpdateStat(class'NMD_Stat_Kills'.const.ID, class'NMD_Stat_Kills', NewGameState);
 		KillStat = NMD_Stat_Kills(NewGameState.CreateStateObject(class'NMD_Stat_Kills', BaseStat.ObjectID));
 		KillStat.AddValue(1);
 		NewGameState.AddStateObject(KillStat);
+		`log("NMD - Kill should have been logged: " $ KillStat.GetValue());
 	}
 }
 
@@ -124,11 +139,14 @@ function NMD_Stat_TilesMoved AddTilesMoved(int Moved, XComGameState NewGameState
 
 function SetPosterIndex(int Index, XComGameState NewGameState)
 {
-	local NMD_PersistentData PersistentData;
+	local NMD_PersistentStat_PosterData Stat;
+	local NMD_BaseStat BaseStat;
+	
+	BaseStat = CreateOrUpdateStat(class'NMD_PersistentStat_PosterData'.const.ID, class'NMD_PersistentStat_PosterData', NewGameState);
 
-	PersistentData = NMD_PersistentData(NewGameState.CreateStateObject(class 'NMD_PersistentData', PersistentDataRef.ObjectID));
-	PersistentData.SetPosterIndex(Index);
-	NewGameState.AddStateObject(PersistentData);
+	Stat = NMD_PersistentStat_PosterData(NewGameState.CreateStateObject(class'NMD_PersistentStat_PosterData', BaseStat.ObjectID));
+	Stat.SetIndex(Index);
+	NewGameState.AddStateObject(Stat);
 }
 
 defaultproperties
