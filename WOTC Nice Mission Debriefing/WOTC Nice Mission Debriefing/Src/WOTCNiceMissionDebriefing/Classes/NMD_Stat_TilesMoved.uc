@@ -20,7 +20,7 @@ function SetValue(int Tiles)
 	NumTiles = Tiles;
 }
 
-function int GetValue()
+function int GetValue(int UnitID)
 {
 	return NumTiles;
 }

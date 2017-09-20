@@ -8,7 +8,7 @@ var int Kills;
 
 function InitComponent()
 {
-	Kills = 0;
+	Kills = -1;
 }
 
 function AddValue(int Amount)
@@ -16,8 +16,17 @@ function AddValue(int Amount)
 	Kills += Amount;
 }
 
-function int GetValue()
+function int GetValue(int UnitID)
 {
+	local XComGameState_Analytics Analytics;
+
+	if (Kills < 0)
+	{
+		Analytics = XComGameState_Analytics(`XCOMHISTORY.GetSingleGameStateObjectForClass(class'XComGameState_Analytics'));
+		Kills = int(Analytics.GetTacticalFloatValue("UNIT_" $ UnitID $ "_ACC_UNIT_KILLS"));
+		`log("NMD - getting kills for Unit " $ UnitID);
+	}
+
 	return Kills;
 }
 

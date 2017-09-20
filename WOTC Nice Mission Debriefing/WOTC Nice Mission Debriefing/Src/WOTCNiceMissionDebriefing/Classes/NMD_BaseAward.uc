@@ -38,7 +38,7 @@ function DetermineWinners(array<XComGameState_Unit> Squad)
 		if (Stat == none)
 			Value = 0;
 		else
-			Value = Stat.GetValue();
+			Value = Stat.GetValue(Unit.ObjectID);
 
 		Scores.AddItem(Value);
 	}

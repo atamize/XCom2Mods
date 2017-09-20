@@ -14,7 +14,7 @@ function SetIndex(int Index)
 	PosterIndex = Index;
 }
 
-function int GetValue()
+function int GetValue(int UnitID)
 {
 	return PosterIndex;
 }
@@ -23,8 +23,3 @@ function string GetName() { return "POSTER INDEX"; }
 function string GetDisplayValue() { return string(PosterIndex); }
 function name GetType() { return ID; }
 function bool IsVisible() { return false; }
-
-defaultProperties
-{
-	IsPersistent=true
-}

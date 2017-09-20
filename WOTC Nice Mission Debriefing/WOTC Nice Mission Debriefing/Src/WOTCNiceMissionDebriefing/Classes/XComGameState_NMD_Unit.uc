@@ -26,7 +26,7 @@ function ClearMissionStats(XComGameState NewGameState)
 	for (i = 0; i < StatsRefs.Length; ++i)
 	{
 		Stat = NMD_BaseStat(`XCOMHISTORY.GetGameStateForObjectID(StatsRefs[i].ObjectID));
-		if (!Stat.IsPersistent)
+		if (!Stat.IsPersistent())
 		{
 			Stat = NMD_BaseStat(NewGameState.CreateStateObject(class'NMD_BaseStat', Stat.ObjectID));
 			Stat.InitComponent();
@@ -89,25 +89,31 @@ function AddShot(string catToAdd, bool isHit, EAbilityHitResult hitResult, float
 
 function AddDamageDone(string catToAdd, int dealt, int negated, bool executed, bool isKill, int targetId, XComGameState NewGameState)
 {
+	/*
 	local NMD_Stat_DamageDealt Stat;
 	local NMD_Stat_Kills KillStat;
 	local NMD_BaseStat BaseStat;
+	
 	
 	BaseStat = CreateOrUpdateStat(class'NMD_Stat_DamageDealt'.const.ID, class'NMD_Stat_DamageDealt', NewGameState);
 
 	Stat = NMD_Stat_DamageDealt(NewGameState.CreateStateObject(class'NMD_Stat_DamageDealt', BaseStat.ObjectID));
 	Stat.AddValue(dealt);
 	NewGameState.AddStateObject(Stat);
+	*/
 
 	`log("NMD - " $ catToAdd $ " dealt damage: " $ dealt $ ", isKill? " $ isKill);
 
 	if (isKill)
 	{
+		/*
 		BaseStat = CreateOrUpdateStat(class'NMD_Stat_Kills'.const.ID, class'NMD_Stat_Kills', NewGameState);
 		KillStat = NMD_Stat_Kills(NewGameState.CreateStateObject(class'NMD_Stat_Kills', BaseStat.ObjectID));
 		KillStat.AddValue(1);
 		NewGameState.AddStateObject(KillStat);
-		`log("NMD - Kill should have been logged: " $ KillStat.GetValue());
+		`log("NMD - Kill should have been logged: " $ KillStat.GetValue() $ " at ObjectID: " $ BaseStat.ObjectID);
+		Kills = KillStat.GetValue();
+		*/
 	}
 }
 

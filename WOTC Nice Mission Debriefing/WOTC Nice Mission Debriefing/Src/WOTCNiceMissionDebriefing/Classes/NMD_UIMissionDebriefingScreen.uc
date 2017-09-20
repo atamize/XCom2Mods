@@ -63,7 +63,7 @@ simulated function InitScreen(XComPlayerController InitController, UIMovie InitM
 	PhotoPanel.InitBG('photoBG', 0, 100, 300, 500);	
 
 	SoldierImage = Spawn(class'UIImage', Container).InitImage();
-	SoldierImage.SetPosition(PhotoPanel.X + 20, PhotoPanel.Y + 20);
+	SoldierImage.SetPosition(PhotoPanel.X, PhotoPanel.Y + 20);
 
 	CreatePhotoButton = Spawn(class'UIButton', Container);
 	CreatePhotoButton.ResizeToText = false;
@@ -229,7 +229,7 @@ function ShowStatsForUnit(XComGameState_Unit Unit)
 	if (NMDUnit != none)
 	{
 		PosterData = NMDUnit.GetStat(class'NMD_PersistentStat_PosterData'.const.ID);
-		PosterIndex = PosterData.GetValue();
+		PosterIndex = PosterData.GetValue(Unit.ObjectID);
 		`log("NMDUnit found with poster index " $ PosterIndex);
 		if (PosterIndex >= 0 && PosterIndex < PhotoManager.GetNumOfPosterForCampaign(SettingsState.GameIndex, false))
 		{
@@ -275,6 +275,7 @@ function PopulateStats(XComGameState_Unit Unit, XComGameState_NMD_Unit NMDUnit)
 	local string StatValue;
 	local NMD_BaseAward Award;
 	local name StatType;
+	local int Value;
 
 	foreach StatsOrder(StatType)
 	{
@@ -289,26 +290,27 @@ function PopulateStats(XComGameState_Unit Unit, XComGameState_NMD_Unit NMDUnit)
 
 		AStat.Label = Stat.GetName();
 
+		Value = Stat.GetValue(Unit.ObjectID);
 		StatValue = Stat.GetDisplayValue();
 
-		`log("NMD Displaying Stats for " $ Unit.GetFullName() $ ", type: " $ Stat.GetType() $ ", value: " $ Stat.GetValue());
+		`log("NMD Displaying Stats for " $ Unit.GetFullName() $ ", type: " $ Stat.GetType() $ ", value: " $ Value $ ", ObjectID: " $ Unit.ObjectID);
 
 		Award = GetAwardForStat(Stat.GetType());
 		if (Award != none)
 		{
 			if (Award.HasWinner())
 			{
-				if (Stat.GetValue() == Award.MaxValue)
+				if (Value == Award.MaxValue)
 				{
 					StatValue = class'UIUtilities_Text'.static.GetColoredText(StatValue, eUIState_Good);
 				}
-				else if (Stat.GetValue() == Award.MinValue)
+				else if (Value == Award.MinValue)
 				{
 					StatValue = class'UIUtilities_Text'.static.GetColoredText(StatValue, eUIState_Bad);
 				}
 			}
 		}
-		
+
 		AStat.Value = StatValue;
 		UnitStats.AddItem(AStat);
 	}

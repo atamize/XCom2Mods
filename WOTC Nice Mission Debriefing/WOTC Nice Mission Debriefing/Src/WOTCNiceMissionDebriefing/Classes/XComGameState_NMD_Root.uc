@@ -43,7 +43,7 @@ function EventListenerReturn OnMoved(Object EventData, Object EventSource, XComG
 	UnitStats = XComGameState_NMD_Unit(GameState.ModifyStateObject(class'XComGameState_NMD_Unit', UnitStats.ObjectID));
 	Stat = UnitStats.addTilesMoved( AbilityContext.InputContext.MovementPaths[0].MovementTiles.Length-1, GameState );
 	
-	`log("NMD - unit " $ Unit.GetFullName() $ " moved " $ Stat.GetValue() $ " tiles");
+	`log("NMD - unit " $ Unit.GetFullName() $ " moved " $ Stat.GetValue(Unit.ObjectID) $ " tiles");
 	// Trigger EventData
 	`XEventMGR.TriggerEvent('NMDUpdated', UnitStats, Unit, GameState);
 	
@@ -53,7 +53,7 @@ function EventListenerReturn OnMoved(Object EventData, Object EventSource, XComG
 function EventListenerReturn onUnitTakeDamage(Object EventData, Object EventSource, XComGameState GameState, Name EventID, Object callbackData) {
 	local XComGameStateContext_Ability context;
 	local XComGameState_NMD_Unit UnitStats;
-	local XComGameState_Unit damagedUnit, attackingUnit, soldierUnit;
+	local XComGameState_Unit damagedUnit, attackingUnit;//, soldierUnit;
 	local DamageResult damageResult;
 	local int damageIndexMod;
 
@@ -89,19 +89,14 @@ function EventListenerReturn onUnitTakeDamage(Object EventData, Object EventSour
 	if( attackingUnit.IsSoldier() ) {
 		// Update stats if we were the attacker
 		UnitStats.addDamageDone(damagedUnit.getFullName(), damageResult.DamageAmount, damageResult.MitigationAmount, damageResult.bFreeKill, damagedUnit.IsDead(), damagedUnit.ObjectID, GameState);
-		soldierUnit = attackingUnit;
+		//soldierUnit = attackingUnit;
 	} else if( damagedUnit.IsSoldier() ) {
 		// Update stats of we were the attacked
 		UnitStats.addDamageTaken(attackingUnit.getFullName(), damageResult.DamageAmount, damageResult.MitigationAmount, GameState);
-		soldierUnit = damagedUnit;
+		//soldierUnit = damagedUnit;
 	} else return ELR_NoInterrupt;
 
 	if( class'NMD_Utilities'.const.DEBUG ) `log("===============  onUnitTakeDamage - done ====================");
-	
-	if( UnitStats != none ) {		
-		// Trigger EventData
-		`XEventMGR.TriggerEvent('NMDUpdated', UnitStats, soldierUnit, GameState);
-	}
 
 	return ELR_NoInterrupt;
 }

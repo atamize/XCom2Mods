@@ -34,7 +34,7 @@ function int GetPercentage()
 	return int(pct * 100);
 }
 
-function int GetValue()
+function int GetValue(int UnitID)
 {
 	return GetPercentage();
 }
