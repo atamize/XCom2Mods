@@ -23,3 +23,4 @@ function string GetName() { return "POSTER INDEX"; }
 function string GetDisplayValue() { return string(PosterIndex); }
 function name GetType() { return ID; }
 function bool IsVisible() { return false; }
+function bool IsPersistent() { return true; }
