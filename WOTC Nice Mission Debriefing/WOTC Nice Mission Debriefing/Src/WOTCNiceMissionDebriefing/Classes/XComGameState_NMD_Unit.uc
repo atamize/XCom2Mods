@@ -2,6 +2,7 @@ class XComGameState_NMD_Unit extends XComGameState_BaseObject;
 
 var array<name> StatTypes;
 var array<StateObjectReference> StatsRefs;
+var array<NMD_BaseStat> DynamicStats;
 
 // Help figure out fanfire damage -- TODO: figure out better way to handle this
 var int multifireIndex;
@@ -48,6 +49,11 @@ function ClearMissionStats(XComGameState NewGameState)
 	EnemyDamageResults.Length = 0;
 }
 
+function AddDynamicStat(NMD_BaseStat Stat)
+{
+	DynamicStats.AddItem(Stat);
+}
+
 function NMD_BaseStat GetStat(name StatType)
 {
 	local int i;
@@ -57,6 +63,14 @@ function NMD_BaseStat GetStat(name StatType)
 		if (StatTypes[i] == StatType)
 		{
 			return NMD_BaseStat(`XCOMHISTORY.GetGameStateForObjectID(StatsRefs[i].ObjectID));	
+		}
+	}
+
+	for (i = 0; i < DynamicStats.Length; ++i)
+	{
+		if (DynamicStats[i].GetType() == StatType)
+		{
+			return DynamicStats[i];
 		}
 	}
 

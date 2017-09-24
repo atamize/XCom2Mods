@@ -86,7 +86,7 @@ simulated function InitScreen(XComPlayerController InitController, UIMovie InitM
 
 	// MVP Panel
 	MVPPanel = Spawn(class'UIPanel', Container).InitPanel('MVPPanel');
-	MVPPanel.SetSize(800, 800);
+	MVPPanel.SetSize(PhotoPanel.Width, Height);
 	MVPPanel.SetPosition(SoldierImage.X + 150 - (MVPPanel.Width / 2), SoldierImage.Y + 500);
 
 	MVPImage = Spawn(class'UIImage', MVPPanel).InitImage();
@@ -97,7 +97,7 @@ simulated function InitScreen(XComPlayerController InitController, UIMovie InitM
 
 	MVPText = Spawn(class'UIText', MVPPanel);
 	MVPText.InitText('mvpptext');
-	MVPText.SetPosition(MVPPanel.Width/2, MVPImage.Y + MVPImage.Height);
+	MVPText.SetPosition(-Width - 15, MVPImage.Y + MVPImage.Height);
 	MVPText.SetCenteredText(class'UIUtilities_Text'.static.GetSizedText("MVP", 42));
 
 	// Navigation

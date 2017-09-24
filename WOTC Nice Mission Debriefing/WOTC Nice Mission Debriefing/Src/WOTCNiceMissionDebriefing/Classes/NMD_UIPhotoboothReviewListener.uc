@@ -129,6 +129,7 @@ function SelectButton(UIButton Button)
 		NMD.SetPhoto(SelectedPosterIndex);
 	}
 
+	PhotoboothReview.Movie.Pres.PlayUISound(eSUISound_MenuClose);
 	PhotoboothReview.CloseScreen();
 }
 

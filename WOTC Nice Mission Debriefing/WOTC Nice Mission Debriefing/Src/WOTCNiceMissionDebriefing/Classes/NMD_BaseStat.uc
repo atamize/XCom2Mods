@@ -12,6 +12,11 @@ function int GetValue(int UnitID)
 	return Value; 
 }
 
+function SetValue(int Val)
+{
+	Value = Val;
+}
+
 function AddValue(int Amount)
 {
 	Value += Amount;

@@ -10,6 +10,7 @@ event OnInit(UIScreen Screen)
 		return;
 	
 	MissionSummary.m_PosterButton.SetPosition(600, MissionSummary.m_PosterButton.Y);
+	MissionSummary.m_PosterButton.OnClickedDelegate = OnMakePosterButton;
 
 	StatsButton = MissionSummary.Spawn(class'UIButton', MissionSummary);
 	StatsButton.ResizeToText = false;
@@ -17,6 +18,28 @@ event OnInit(UIScreen Screen)
 	StatsButton.SetPosition(940, MissionSummary.m_PosterButton.Y);
 	StatsButton.SetWidth(MissionSummary.m_PosterButton.Width);
 	StatsButton.SetGamepadIcon(class'UIUtilities_Input'.const.ICON_X_SQUARE);
+}
+
+function OnMakePosterButton(UIButton Button)
+{
+	local TDialogueBoxData kConfirmData;
+
+	kConfirmData.strTitle = "WARNING";
+	kConfirmData.strText = "After entering the photo booth, the mission debriefing will no longer be available. Do you want to continue?";
+	kConfirmData.strAccept = class'UIUtilities_Text'.default.m_strGenericYes;
+	kConfirmData.strCancel = class'UIUtilities_Text'.default.m_strGenericNo;
+
+	kConfirmData.fnCallback = OnDestructiveActionPopupExitDialog;
+
+	MissionSummary.Movie.Pres.UIRaiseDialog(kConfirmData);
+}
+
+function OnDestructiveActionPopupExitDialog(Name eAction)
+{
+	if (eAction == 'eUIAction_Accept')
+	{
+		MissionSummary.CloseThenOpenPhotographerScreen();
+	}
 }
 
 simulated function OpenStatsButton(UIButton button)

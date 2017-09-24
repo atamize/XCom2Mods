@@ -37,6 +37,9 @@
     <Content Include="Src\WOTCNiceMissionDebriefing\Classes\NMD_BaseStat.uc">
       <SubType>Content</SubType>
     </Content>
+    <Content Include="Src\WOTCNiceMissionDebriefing\Classes\NMD_DynamicStat.uc">
+      <SubType>Content</SubType>
+    </Content>
     <Content Include="Src\WOTCNiceMissionDebriefing\Classes\NMD_MissionInfo.uc">
       <SubType>Content</SubType>
     </Content>

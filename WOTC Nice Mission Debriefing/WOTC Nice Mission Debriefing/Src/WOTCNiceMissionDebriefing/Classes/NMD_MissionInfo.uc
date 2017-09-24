@@ -14,12 +14,20 @@ struct NMD_UnitInfo
 	var array<NMD_BaseAward> Awards;
 };
 
+struct HateCount
+{
+	var name Type;
+	var int Damage;
+};
+
 var array<EnemyDamageCount> EnemyDamageCounts;
 var array<NMD_UnitInfo> UnitInfo;
 var array<NMD_BaseAward> Awards;
 
 var int MVPIndex;
 var array<int> MVPWinners;
+
+var array<HateCount> HateCounts;
 
 delegate int UnitInfoIterator(XComGameState_Unit Unit, XComGameState_NMD_Unit NMDUnit);
 
@@ -36,12 +44,94 @@ function Initialize(array<XComGameState_Unit> Squad)
 		{
 			UInfo.Unit = Unit;
 			UInfo.NMDUnit = NMDUnit;
+
+			AddLootStat(Unit, NMDUnit);
+			AddMostHatedStat(Unit, NMDUnit);
+
 			UnitInfo.AddItem(UInfo);
 		}
 	}
 
 	DetermineEnemyDamageCounts();
 	DetermineAwards();
+}
+
+function AddLootStat(XComGameState_Unit Unit, XComGameState_NMD_Unit NMDUnit)
+{
+	local NMD_DynamicStat Stat;
+	local array<XComGameState_Item> BackpackItems; 
+
+	Stat = new class'NMD_DynamicStat';
+	Stat.Initialize('LootPickedUp', "LOOT PICKED UP");
+
+	if (Unit.HasBackpack())
+	{
+		BackpackItems = Unit.GetAllItemsInSlot(eInvSlot_Backpack);
+		`log("NMD - " $ Unit.GetFullName() $ " has loot: " $ BackpackItems.Length);
+		Stat.SetValue(BackpackItems.Length);
+	}
+
+	NMDUnit.AddDynamicStat(Stat);
+}
+
+function int GetHateValue(int i)
+{
+	return HateCounts[i].Damage;
+}
+
+function AddMostHatedStat(XComGameState_Unit Unit, XComGameState_NMD_Unit NMDUnit)
+{
+	local int i, j, UnitID;
+	local HateCount Hate;
+	local XComGameState_Unit DamagedUnit;
+	local XComGameStateHistory History;
+	local name Type;
+	local bool Found;
+	local array<int> MostHatedIndices;
+	local NMD_DynamicStat Stat;
+
+	History = `XCOMHISTORY;
+	HateCounts.Length = 0;
+	Stat = new class'NMD_DynamicStat';
+	Stat.Initialize('MostHatedUnit', "MOST HATED UNIT");
+
+	for (i = 0; i < NMDUnit.EnemyDamageResults.Length; ++i)
+	{
+		UnitID = NMDUnit.EnemyDamageResults[i].UnitID;
+		DamagedUnit = XComGameState_Unit(History.GetGameStateForObjectId(UnitID));
+		Type = GetUnitType(DamagedUnit);
+		Found = false;
+
+		for (j = 0; j < HateCounts.Length; ++j)
+		{
+			if (HateCounts[j].Type == Type)
+			{
+				HateCounts[j].Damage += NMDUnit.EnemyDamageResults[i].Damage;
+				Found = true;
+				break;
+			}
+		}
+
+		if (!Found)
+		{
+			Hate.Type = Type;
+			Hate.Damage = NMDUnit.EnemyDamageResults[i].Damage;
+			HateCounts.AddItem(Hate);
+		}
+	}
+
+	class'NMD_Utilities'.static.FindMax(GetHateValue, HateCounts.Length, MostHatedIndices);
+
+	if (MostHatedIndices.Length > 0)
+	{
+		Stat.SetDisplayValue(string(HateCounts[MostHatedIndices[0]].Type));
+	}
+	else
+	{
+		Stat.SetDisplayValue("--");
+	}
+
+	NMDUnit.AddDynamicStat(Stat);
 }
 
 function name GetUnitType(XComGameState_Unit Unit)
@@ -165,6 +255,7 @@ function DetermineAwards()
 	AddAward(new class'NMD_BaseAward', class'NMD_Stat_ShotAccuracy'.const.ID, "", "", false);
 	AddAward(new class'NMD_BaseAward', class'NMD_Stat_DamageDealt'.const.ID, "", "", false);
 	AddAward(new class'NMD_BaseAward', class'NMD_Stat_TilesMoved'.const.ID, "MOVED FURTHEST", "Traversed the most tiles");
+	AddAward(new class'NMD_BaseAward', 'LootPickedUp', "", "", false);
 	AddAward(new class'NMD_Award_MostAssists', '', "MOST ASSISTS", "Dealt the most damage that did not result in a kill");
 	AddAward(new class'NMD_Award_SoloSlayer', '', "SOLO SLAYER", "Killed the most enemies without help from teammates");
 	AddAward(new class'NMD_BaseAward', class'NMD_Stat_CloseRange'.const.ID, "CLOSE RANGE?!", "Dealt the most damage at...close range");
@@ -179,14 +270,18 @@ function DetermineAwards()
 
 function int AwardLengthSorter(int i)
 {
+	//`log("NMD - " $ UnitInfo[i].Unit.GetFullName() $ " has awards: " $ UnitInfo[i].Awards.Length);
 	return UnitInfo[i].Awards.Length;
 }
 
 function int KillSorter(int i)
 {
 	local int Index;
+	local int Kills;
 	Index = MVPWinners[i];
-	return UnitInfo[Index].NMDUnit.GetStat(class'NMD_Stat_Kills'.const.ID).GetValue(UnitInfo[Index].Unit.ObjectID);
+	Kills = UnitInfo[Index].NMDUnit.GetStat(class'NMD_Stat_Kills'.const.ID).GetValue(UnitInfo[Index].Unit.ObjectID);
+	//`log("NMD - Kills for Unit " $ UnitInfo[Index].Unit.GetFullName() $ ": " $ Kills);
+	return Kills;
 }
 
 function int DamageSorter(int i)
@@ -225,25 +320,28 @@ function int DetermineMVP()
 	class'NMD_Utilities'.static.FindMax(KillSorter, MVPWinners.Length, TieBreaker);
 	if (TieBreaker.Length == 1)
 	{
-		return TieBreaker[0];
+		return MVPWinners[TieBreaker[0]];
 	}
 
+	TieBreaker.Length = 0;
 	class'NMD_Utilities'.static.FindMax(DamageSorter, MVPWinners.Length, TieBreaker);
 	if (TieBreaker.Length == 1)
 	{
-		return TieBreaker[0];
+		return MVPWinners[TieBreaker[0]];
 	}
 
+	TieBreaker.Length = 0;
 	class'NMD_Utilities'.static.FindMax(AccuracySorter, MVPWinners.Length, TieBreaker);
 	if (TieBreaker.Length == 1)
 	{
-		return TieBreaker[0];
+		return MVPWinners[TieBreaker[0]];
 	}
 
+	TieBreaker.Length = 0;
 	class'NMD_Utilities'.static.FindMax(RankSorter, MVPWinners.Length, TieBreaker);
 	if (TieBreaker.Length == 1)
 	{
-		return TieBreaker[0];
+		return MVPWinners[TieBreaker[0]];
 	}
 
 	return 0;
