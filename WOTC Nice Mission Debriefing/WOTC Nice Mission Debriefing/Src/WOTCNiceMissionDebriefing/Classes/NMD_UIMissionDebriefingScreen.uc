@@ -8,6 +8,10 @@ var UIBGBox FullBG;
 var UIX2PanelHeader TitleHeader;
 var UIImage SCImage;
 
+var UIPanel MVPPanel;
+var UIImage MVPImage;
+var UIText MVPText;
+
 var UIBGBox PhotoPanel;
 var UIImage SoldierImage;
 var UIButton CreatePhotoButton;
@@ -24,14 +28,15 @@ var UIList AwardsList;
 var UINavigationHelp NavHelp;
 
 var StateObjectReference UnitRef;
-var array<XComGameState_Unit> SoldierList;
 var int CurrentSoldierIndex;
 
-var array<NMD_BaseAward> Awards;
+var NMD_MissionInfo MissionInfo;
 
 simulated function InitScreen(XComPlayerController InitController, UIMovie InitMovie, optional name InitName)
 {
 	local UIMissionSummary MissionSummary;
+	local array<XComGameState_Unit> MissionUnits;
+	local Texture2D MVPTexture;
 
 	super.InitScreen(InitController, InitMovie, InitName);
 
@@ -63,7 +68,7 @@ simulated function InitScreen(XComPlayerController InitController, UIMovie InitM
 	PhotoPanel.InitBG('photoBG', 0, 100, 300, 500);	
 
 	SoldierImage = Spawn(class'UIImage', Container).InitImage();
-	SoldierImage.SetPosition(PhotoPanel.X, PhotoPanel.Y + 20);
+	SoldierImage.SetPosition(PhotoPanel.X + 10, PhotoPanel.Y + 20);
 
 	CreatePhotoButton = Spawn(class'UIButton', Container);
 	CreatePhotoButton.ResizeToText = false;
@@ -78,6 +83,22 @@ simulated function InitScreen(XComPlayerController InitController, UIMovie InitM
 	SelectPhotoButton.SetWidth(130);
 	SelectPhotoButton.SetGamepadIcon(class'UIUtilities_Input'.const.ICON_Y_TRIANGLE);
 	SelectPhotoButton.SetPosition(CreatePhotoButton.X + CreatePhotoButton.Width + 20, CreatePhotoButton.Y);
+
+	// MVP Panel
+	MVPPanel = Spawn(class'UIPanel', Container).InitPanel('MVPPanel');
+	MVPPanel.SetSize(800, 800);
+	MVPPanel.SetPosition(SoldierImage.X + 150 - (MVPPanel.Width / 2), SoldierImage.Y + 500);
+
+	MVPImage = Spawn(class'UIImage', MVPPanel).InitImage();
+	MVPTexture = Texture2D'gfxEndGameStats.EndGameStats_I36';
+	MVPImage.LoadImage(class'UIUtilities_Image'.static.ValidateImagePath(PathName(MVPTexture)));
+	MVPImage.SetSize(128, 128);
+	MVPImage.SetPosition((MVPPanel.Width / 2) - (MVPImage.Width / 2), 0);
+
+	MVPText = Spawn(class'UIText', MVPPanel);
+	MVPText.InitText('mvpptext');
+	MVPText.SetPosition(MVPPanel.Width/2, MVPImage.Y + MVPImage.Height);
+	MVPText.SetCenteredText(class'UIUtilities_Text'.static.GetSizedText("MVP", 42));
 
 	// Navigation
 	PreviousButton = Spawn(class'UIButton', Container);
@@ -103,12 +124,13 @@ simulated function InitScreen(XComPlayerController InitController, UIMovie InitM
 	MissionSummary = UIMissionSummary(`ScreenStack.GetFirstInstanceOf(class'UIMissionSummary'));
 	if (MissionSummary != none)
 	{
-		MissionSummary.BATTLE().GetHumanPlayer().GetOriginalUnits(SoldierList, true);
-		
-		DetermineAwards();
+		MissionSummary.BATTLE().GetHumanPlayer().GetOriginalUnits(MissionUnits, true);
+
+		MissionInfo = new class'NMD_MissionInfo';
+		MissionInfo.Initialize(MissionUnits);
 
 		CurrentSoldierIndex = 0;
-		ShowStatsForUnit(SoldierList[CurrentSoldierIndex]);
+		ShowStatsForUnit(CurrentSoldierIndex);
 
 		NavHelp = Spawn(class'UINavigationHelp', self).InitNavHelp();
 		NavHelp.AddContinueButton(MissionSummary.CloseScreenTakePhoto);
@@ -160,43 +182,7 @@ function InitAwardsPanel()
 	AwardsList.SetSize(AwardsPanel.Width - 50, AwardsPanel.Height - AwardsList.Y - 30);
 }
 
-private function NMD_BaseAward AddAward(NMD_BaseAward Award, name Type, string Label, string Tooltip, optional bool IsVisible = true)
-{
-	Award.Initialize(Type, Label, Tooltip, IsVisible);
-	Awards.AddItem(Award);
-	return Award;
-}
-
-function DetermineAwards()
-{
-	local NMD_BaseAward Award;
-
-	AddAward(new class'NMD_BaseAward', class'NMD_Stat_Kills'.const.ID, "", "", false);
-	AddAward(new class'NMD_BaseAward', class'NMD_Stat_ShotAccuracy'.const.ID, "", "", false);
-	AddAward(new class'NMD_BaseAward', class'NMD_Stat_DamageDealt'.const.ID, "", "", false);
-	AddAward(new class'NMD_BaseAward', class'NMD_Stat_TilesMoved'.const.ID, "MOVED FURTHEST", "Traversed the most tiles");
-
-	foreach Awards(Award)
-	{
-		Award.DetermineWinners(SoldierList);
-	}
-}
-
-function NMD_BaseAward GetAwardForStat(name Type)
-{
-	local NMD_BaseAward Award;
-
-	foreach Awards(Award)
-	{
-		if (Award.StatType == Type)
-		{
-			return Award;
-		}
-	}
-	return none;
-}
-
-function ShowStatsForUnit(XComGameState_Unit Unit)
+function ShowStatsForUnit(int SoldierIndex)
 {
 	local X2SoldierClassTemplate SoldierClass;
 	local XComGameState_CampaignSettings SettingsState;
@@ -206,7 +192,9 @@ function ShowStatsForUnit(XComGameState_Unit Unit)
 	local NMD_BaseStat PosterData;
 	local NMD_BaseAward Award;
 	local int PosterIndex;
+	local XComGameState_Unit Unit;
 
+	Unit = MissionInfo.GetUnit(SoldierIndex);
 	UnitRef = Unit.GetReference();
 
 	SoldierClass = Unit.GetSoldierClassTemplate();
@@ -224,7 +212,7 @@ function ShowStatsForUnit(XComGameState_Unit Unit)
 	SettingsState = XComGameState_CampaignSettings(`XCOMHISTORY.GetSingleGameStateObjectForClass(class'XComGameState_CampaignSettings'));
 	PhotoManager = `XENGINE.m_kPhotoManager;
 
-	NMDUnit = XComGameState_NMD_Unit(Unit.FindComponentObject(class'XComGameState_NMD_Unit'));
+	NMDUnit = MissionInfo.GetNMDUnit(SoldierIndex);
 
 	if (NMDUnit != none)
 	{
@@ -235,6 +223,7 @@ function ShowStatsForUnit(XComGameState_Unit Unit)
 		{
 			SoldierTexture = PhotoManager.GetPosterTexture(SettingsState.GameIndex, PosterIndex);
 			SoldierImage.SetSize(280, 420);
+			SoldierImage.SetPosition(PhotoPanel.X + 10, PhotoPanel.Y + 20);
 		}
 	}
 
@@ -249,16 +238,26 @@ function ShowStatsForUnit(XComGameState_Unit Unit)
 			SoldierTexture = Texture2D'gfxComponents.UIXcomEmblem';
 		}
 		SoldierImage.SetSize(256, 256);
+		SoldierImage.SetPosition(PhotoPanel.X + 10, PhotoPanel.Y + (PhotoPanel.Height / 2) - (SoldierImage.Height / 2));
 	}
 
 	SoldierImage.LoadImage(class'UIUtilities_Image'.static.ValidateImagePath(PathName(SoldierTexture)));
 
+	if (CurrentSoldierIndex == MissionInfo.MVPIndex)
+	{
+		MVPPanel.Show();
+		Movie.Pres.PlayUISound(eSUISound_SoldierPromotion);
+	}
+	else
+	{
+		MVPPanel.Hide();
+	}
 	PopulateStats(Unit, NMDUnit);
 
 	// Show awards
 	AwardsList.ClearItems();
 
-	foreach Awards(Award)
+	foreach MissionInfo.Awards(Award)
 	{
 		if (Award.IsVisible && Award.IsWinner(CurrentSoldierIndex))
 		{
@@ -295,7 +294,7 @@ function PopulateStats(XComGameState_Unit Unit, XComGameState_NMD_Unit NMDUnit)
 
 		`log("NMD Displaying Stats for " $ Unit.GetFullName() $ ", type: " $ Stat.GetType() $ ", value: " $ Value $ ", ObjectID: " $ Unit.ObjectID);
 
-		Award = GetAwardForStat(Stat.GetType());
+		Award = MissionInfo.GetAwardForStat(Stat.GetType());
 		if (Award != none)
 		{
 			if (Award.HasWinner())
@@ -323,17 +322,17 @@ function OnPreviousClick(UIButton Button)
 	CurrentSoldierIndex--;
 	if (CurrentSoldierIndex < 0)
 	{
-		CurrentSoldierIndex = SoldierList.Length - 1;
+		CurrentSoldierIndex = MissionInfo.GetSquadSize() - 1;
 	}
 	Movie.Pres.PlayUISound(eSUISound_MenuSelect);
-	ShowStatsForUnit(SoldierList[CurrentSoldierIndex]);
+	ShowStatsForUnit(CurrentSoldierIndex);
 }
 
 function OnNextClick(UIButton Button)
 {
-	CurrentSoldierIndex = (CurrentSoldierIndex + 1) % SoldierList.Length;
+	CurrentSoldierIndex = (CurrentSoldierIndex + 1) % MissionInfo.GetSquadSize();
 	Movie.Pres.PlayUISound(eSUISound_MenuSelect);
-	ShowStatsForUnit(SoldierList[CurrentSoldierIndex]);
+	ShowStatsForUnit(CurrentSoldierIndex);
 }
 
 function BackToSummary()
@@ -392,16 +391,15 @@ function SetPhotoTexture(Texture2D SoldierTexture)
 {
 	SoldierImage.LoadImage(class'UIUtilities_Image'.static.ValidateImagePath(PathName(SoldierTexture)));
 	SoldierImage.SetSize(280, 420);
+	SoldierImage.SetPosition(PhotoPanel.X + 10, PhotoPanel.Y + 20);
 }
 
 function SavePosterIndex(int PosterIndex)
 {
-	local XComGameState_Unit Unit;
 	local XComGameState_NMD_Unit NMDUnit;
 	local XComGameState NewGameState;
 
-	Unit = SoldierList[CurrentSoldierIndex];
-	NMDUnit = XComGameState_NMD_Unit(Unit.FindComponentObject(class'XComGameState_NMD_Unit'));
+	NMDUnit = MissionInfo.GetNMDUnit(CurrentSoldierIndex);
 	if (NMDUnit != none)
 	{
 		NewGameState = class'XComGameStateContext_ChangeContainer'.static.CreateChangeState("Update Poster Index");

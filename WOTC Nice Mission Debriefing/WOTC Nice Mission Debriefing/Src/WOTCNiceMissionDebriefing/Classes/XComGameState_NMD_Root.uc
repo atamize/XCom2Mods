@@ -88,7 +88,7 @@ function EventListenerReturn onUnitTakeDamage(Object EventData, Object EventSour
 	UnitStats = XComGameState_NMD_Unit(GameState.ModifyStateObject(class'XComGameState_NMD_Unit', UnitStats.ObjectID));
 	if( attackingUnit.IsSoldier() ) {
 		// Update stats if we were the attacker
-		UnitStats.addDamageDone(damagedUnit.getFullName(), damageResult.DamageAmount, damageResult.MitigationAmount, damageResult.bFreeKill, damagedUnit.IsDead(), damagedUnit.ObjectID, GameState);
+		UnitStats.addDamageDone(damagedUnit.getFullName(), damageResult.DamageAmount, damageResult.MitigationAmount, damageResult.bFreeKill, damagedUnit.IsDead(), AttackingUnit, damagedUnit, Context, GameState);
 		//soldierUnit = attackingUnit;
 	} else if( damagedUnit.IsSoldier() ) {
 		// Update stats of we were the attacked

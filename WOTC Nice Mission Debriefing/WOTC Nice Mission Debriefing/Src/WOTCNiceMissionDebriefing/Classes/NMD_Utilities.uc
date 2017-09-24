@@ -149,9 +149,8 @@ static function XComGameState_NMD_Unit EnsureHasUnitStats(XComGameState_Unit uni
 	return unitStats;
 }
 
-static function ResetMissionStats()
+static function ResetMissionStats(XComGameState NewGameState)
 {
-	local XComGameState NewGameState;
 	local XComGameState_HeadquartersXCom HQ;
 	local StateObjectReference Ref;
 	local XComGameState_Unit Unit;
@@ -163,26 +162,18 @@ static function ResetMissionStats()
 		return;
 
 	History = `XCOMHISTORY;
-	NewGameState = class'XComGameStateContext_ChangeContainer'.static.CreateChangeState("Clear mission stats");
 
+	`log("NMD - Resetting missions stats for squad of " $ HQ.Squad.Length);
 	foreach HQ.Squad(Ref)
 	{
 		Unit = XComGameState_Unit(History.GetGameStateForObjectId(Ref.ObjectID));
 		NMDUnit = XComGameState_NMD_Unit(Unit.FindComponentObject(class'XComGameState_NMD_Unit'));
 		if (NMDUnit != none)
 		{
+			`log("NMD Clearing mission stats for " $ Unit.GetFullName());
 			NMDUnit = XComGameState_NMD_Unit(NewGameState.ModifyStateObject(class'XComGameState_NMD_Unit', NMDUnit.ObjectID));
 			NMDUnit.ClearMissionStats(NewGameState);
 		}
-	}
-
-	if (NewGameState.GetNumGameStateObjects() > 0)
-	{
-		`GAMERULES.SubmitGameState(NewGameState);
-	}
-	else    
-	{
-		`XCOMHISTORY.CleanupPendingGameState(newGameState);
 	}
 }
 
@@ -255,6 +246,31 @@ static function bool isMoveType(name type) {
 	}
 	
 	return false;
+}
+
+static delegate int IntArrayDelegate(int i);
+
+static function int FindMax(delegate<IntArrayDelegate> Del, int Length, optional out array<int> Output)
+{
+	local int i, MaxValue, Value;
+
+	MaxValue = -1;
+
+	for (i = 0; i < Length; ++i)
+	{
+		Value = Del(i);
+		if (Value > MaxValue)
+			MaxValue = Value;
+	}
+
+	for (i = 0; i < Length; ++i)
+	{
+		Value = Del(i);
+		if (Value == MaxValue)
+			Output.AddItem(i);
+	}
+
+	return MaxValue;
 }
 
 /*

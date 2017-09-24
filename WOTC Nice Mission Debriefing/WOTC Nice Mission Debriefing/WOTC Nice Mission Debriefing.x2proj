@@ -25,16 +25,28 @@
     <Content Include="Config\XComEngine.ini" />
     <Content Include="Config\XComGame.ini" />
     <Content Include="Localization\WOTCNiceMissionDebriefing.int" />
+    <Content Include="Src\WOTCNiceMissionDebriefing\Classes\NMD_Award_MostAssists.uc">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Src\WOTCNiceMissionDebriefing\Classes\NMD_Award_SoloSlayer.uc">
+      <SubType>Content</SubType>
+    </Content>
     <Content Include="Src\WOTCNiceMissionDebriefing\Classes\NMD_BaseAward.uc">
       <SubType>Content</SubType>
     </Content>
     <Content Include="Src\WOTCNiceMissionDebriefing\Classes\NMD_BaseStat.uc">
       <SubType>Content</SubType>
     </Content>
+    <Content Include="Src\WOTCNiceMissionDebriefing\Classes\NMD_MissionInfo.uc">
+      <SubType>Content</SubType>
+    </Content>
     <Content Include="Src\WOTCNiceMissionDebriefing\Classes\NMD_PersistentStat_PosterData.uc">
       <SubType>Content</SubType>
     </Content>
     <Content Include="Src\WOTCNiceMissionDebriefing\Classes\NMD_Stats.uc">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Src\WOTCNiceMissionDebriefing\Classes\NMD_Stat_CloseRange.uc">
       <SubType>Content</SubType>
     </Content>
     <Content Include="Src\WOTCNiceMissionDebriefing\Classes\NMD_Stat_DamageDealt.uc">

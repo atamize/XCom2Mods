@@ -17,8 +17,7 @@ event OnInit(UIScreen Screen)
 			SelectPhotoButton = Screen.Spawn(class'UILargeButton', Screen);
 			SelectPhotoButton.LibID = 'X2ContinueButton';
 			SelectPhotoButton.InitLargeButton('SelectPhotoMC', "SELECT PHOTO", , SelectButton, eUILargeButtonStyle_READY);
-			SelectPhotoButton.AnchorBottomRight();
-			SelectPhotoButton.SetPosition(-100, -100);
+			SelectPhotoButton.SetPosition(1325, 925);
 		}
 
 		PhotoboothReview.MC.BeginFunctionOp("setScreenData");
