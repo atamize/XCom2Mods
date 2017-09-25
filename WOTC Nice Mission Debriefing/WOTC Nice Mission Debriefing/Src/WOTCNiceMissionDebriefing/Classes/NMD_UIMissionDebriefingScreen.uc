@@ -206,7 +206,7 @@ function ShowStatsForUnit(int SoldierIndex)
 
 	TitleHeader.SetX(10 + SCImage.Width + 10);
 	TitleHeader.SetWidth(Container.Width - TitleHeader.X - 10);
-	TitleHeader.SetText(Unit.GetFullName(), Caps(SoldierClass != None ? SoldierClass.DisplayName : ""));
+	TitleHeader.SetText(Unit.GetName(eNameType_FullNick), Caps(SoldierClass != None ? SoldierClass.DisplayName : ""));
 	TitleHeader.MC.FunctionVoid("realize");
 
 	SettingsState = XComGameState_CampaignSettings(`XCOMHISTORY.GetSingleGameStateObjectForClass(class'XComGameState_CampaignSettings'));

@@ -1,4 +1,6 @@
-class NMD_UIMissionSummaryListener extends UIScreenListener;
+class NMD_UIMissionSummaryListener extends UIScreenListener config(WOTCNiceMissionDebriefing);
+
+var config bool EnableTeamPosterWarning;
 
 var UIMissionSummary MissionSummary;
 var UIButton StatsButton;
@@ -10,7 +12,11 @@ event OnInit(UIScreen Screen)
 		return;
 	
 	MissionSummary.m_PosterButton.SetPosition(600, MissionSummary.m_PosterButton.Y);
-	MissionSummary.m_PosterButton.OnClickedDelegate = OnMakePosterButton;
+
+	if (EnableTeamPosterWarning)
+	{
+		MissionSummary.m_PosterButton.OnClickedDelegate = OnMakePosterButton;
+	}
 
 	StatsButton = MissionSummary.Spawn(class'UIButton', MissionSummary);
 	StatsButton.ResizeToText = false;

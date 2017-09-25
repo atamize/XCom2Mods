@@ -251,14 +251,21 @@ function DetermineAwards()
 {
 	local NMD_BaseAward Award;
 
+	// Stat-based awards
 	AddAward(new class'NMD_BaseAward', class'NMD_Stat_Kills'.const.ID, "", "", false);
 	AddAward(new class'NMD_BaseAward', class'NMD_Stat_ShotAccuracy'.const.ID, "", "", false);
+	AddAward(new class'NMD_BaseAward', class'NMD_Stat_OverwatchAccuracy'.const._ID, "", "", false);
 	AddAward(new class'NMD_BaseAward', class'NMD_Stat_DamageDealt'.const.ID, "", "", false);
 	AddAward(new class'NMD_BaseAward', class'NMD_Stat_TilesMoved'.const.ID, "MOVED FURTHEST", "Traversed the most tiles");
-	AddAward(new class'NMD_BaseAward', 'LootPickedUp', "", "", false);
+	AddAward(new class'NMD_BaseAward', class'NMD_Stat_CloseRange'.const.ID, "CLOSE RANGE?!", "Dealt the most damage at...close range");
+
+	// Non stat-based awards
 	AddAward(new class'NMD_Award_MostAssists', '', "MOST ASSISTS", "Dealt the most damage that did not result in a kill");
 	AddAward(new class'NMD_Award_SoloSlayer', '', "SOLO SLAYER", "Killed the most enemies without help from teammates");
-	AddAward(new class'NMD_BaseAward', class'NMD_Stat_CloseRange'.const.ID, "CLOSE RANGE?!", "Dealt the most damage at...close range");
+	AddAward(new class'NMD_Award_KillStealer', '', "KILL STEALER", "Finished off the most enemies previously damaged by others");
+
+	// Dynamic awards
+	AddAward(new class'NMD_BaseAward', 'LootPickedUp', "", "", false);
 
 	foreach Awards(Award)
 	{

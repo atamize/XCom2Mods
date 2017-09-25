@@ -21,6 +21,7 @@ function registerAbilityActivated()
 	`XEventMGR.RegisterForEvent(selfObj, 'ObjectMoved', OnMoved, ELD_PreStateSubmitted, 0, );
 	`XEventMGR.RegisterForEvent(selfObj, 'AbilityActivated', onAbilityActivated, ELD_PreStateSubmitted, 0, );
 	`XEventMGR.RegisterForEvent(selfObj, 'UnitTakeEffectDamage', onUnitTakeDamage, ELD_OnStateSubmitted, 0, );
+	`XEventMGR.RegisterForEvent(selfObj, 'UnitChangedTeam', onUnitChangedTeam, ELD_OnStateSubmitted, 0, );
 }
 
 function EventListenerReturn OnMoved(Object EventData, Object EventSource, XComGameState GameState, Name EventID, Object callbackData)
@@ -147,6 +148,23 @@ function EventListenerReturn onAbilityActivated(Object EventData, Object EventSo
 	return ELR_NoInterrupt;
 }
 
+function EventListenerReturn OnUnitChangedTeam(Object EventData, Object EventSource, XComGameState GameState, Name inEventID, Object callbackData)
+{
+	local XComGameState_Unit Source;
+
+	Source = XComGameState_Unit(EventSource);
+
+	`log("NMD - Unit " $ Source.GetFullName() $ " changing teams");
+	
+	if (Source.GetTeam() == eTeam_XCom && Source.IsSoldier())
+	{
+		`log("    Ensuring has stats");
+		class'NMD_Utilities'.static.EnsureHasUnitStats(Source);
+	}
+
+	return ELR_NoInterrupt;
+}
+
 function XComGameState_NMD_Unit updateStats(XComGameState_Unit Unit, XComGameState_Ability Ability, XComGameStateContext_Ability AbilityContext, XComGameState GameState) {
 	// To perform the GameState modification
 	local XComGameState_NMD_Unit UnitStats;
@@ -184,7 +202,12 @@ function XComGameState_NMD_Unit updateStats(XComGameState_Unit Unit, XComGameSta
 								Clamp(breakdown.FinalHitChance, 0, 100),
 								Clamp(breakdown.ResultTable[eHit_Crit], 0, 100),
 								GameState);
-			
+	
+	if (Ability.GetMyTemplateName() == 'OverwatchShot' || Ability.GetMyTemplateName() == 'PistolOverwatchShot')
+	{
+		UnitStats.AddOverwatchShot(AbilityContext.IsResultContextHit(), GameState);
+	}
+
 	// Update stats from multi shots
 	for(i=0; i<AbilityContext.InputContext.MultiTargets.Length; ++i) {
 		target.PrimaryTarget = target.AdditionalTargets[i];

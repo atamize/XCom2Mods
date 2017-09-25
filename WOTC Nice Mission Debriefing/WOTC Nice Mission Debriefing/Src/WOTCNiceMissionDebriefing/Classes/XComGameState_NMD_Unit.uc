@@ -26,6 +26,7 @@ function XComGameState_NMD_Unit InitComponent(XComGameState NewGameState, option
 	CreateOrUpdateStat(class'NMD_Stat_ShotAccuracy'.const.ID, class'NMD_Stat_ShotAccuracy', NewGameState);
 	CreateOrUpdateStat(class'NMD_Stat_Kills'.const.ID, class'NMD_Stat_Kills', NewGameState);
 	CreateOrUpdateStat(class'NMD_Stat_CloseRange'.const.ID, class'NMD_Stat_CloseRange', NewGameState);
+	CreateOrUpdateStat(class'NMD_Stat_OverwatchAccuracy'.const._ID, class'NMD_Stat_OverwatchAccuracy', NewGameState);
 	return self;
 }
 
@@ -109,6 +110,18 @@ function AddShot(string catToAdd, bool isHit, EAbilityHitResult hitResult, float
 	BaseStat = CreateOrUpdateStat(class'NMD_Stat_ShotAccuracy'.const.ID, class'NMD_Stat_ShotAccuracy', NewGameState);
 
 	Stat = NMD_Stat_ShotAccuracy(NewGameState.CreateStateObject(class'NMD_Stat_ShotAccuracy', BaseStat.ObjectID));
+	Stat.AddShot(isHit);
+	NewGameState.AddStateObject(Stat);
+}
+
+function AddOverwatchShot(bool isHit, XComGameState NewGameState)
+{
+	local NMD_Stat_OverwatchAccuracy Stat;
+	local NMD_BaseStat BaseStat;
+	
+	BaseStat = CreateOrUpdateStat(class'NMD_Stat_OverwatchAccuracy'.const._ID, class'NMD_Stat_OverwatchAccuracy', NewGameState);
+
+	Stat = NMD_Stat_OverwatchAccuracy(NewGameState.CreateStateObject(class'NMD_Stat_OverwatchAccuracy', BaseStat.ObjectID));
 	Stat.AddShot(isHit);
 	NewGameState.AddStateObject(Stat);
 }
