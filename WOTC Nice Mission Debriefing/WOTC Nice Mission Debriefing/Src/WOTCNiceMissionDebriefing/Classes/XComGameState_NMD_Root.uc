@@ -15,14 +15,37 @@ function XComGameState_NMD_Root InitComponent()
 
 function registerAbilityActivated()
 {
+	local X2EventManager EventMgr;
 	local Object selfObj;
+	
 	selfObj = self;
 	
-	`XEventMGR.RegisterForEvent(selfObj, 'ObjectMoved', OnMoved, ELD_PreStateSubmitted, 0, );
-	`XEventMGR.RegisterForEvent(selfObj, 'AbilityActivated', onAbilityActivated, ELD_PreStateSubmitted, 0, );
-	`XEventMGR.RegisterForEvent(selfObj, 'UnitTakeEffectDamage', onUnitTakeDamage, ELD_OnStateSubmitted, 0, );
-	`XEventMGR.RegisterForEvent(selfObj, 'UnitChangedTeam', onUnitChangedTeam, ELD_OnStateSubmitted, 0, );
+	EventMgr = `XEventMGR;
+	EventMgr.RegisterForEvent(selfObj, 'ObjectMoved', OnMoved, ELD_PreStateSubmitted, 0, );
+	EventMgr.RegisterForEvent(selfObj, 'AbilityActivated', onAbilityActivated, ELD_PreStateSubmitted, 0, );
+	EventMgr.RegisterForEvent(selfObj, 'UnitTakeEffectDamage', onUnitTakeDamage, ELD_OnStateSubmitted, 0, );
+	EventMgr.RegisterForEvent(selfObj, 'UnitChangedTeam', onUnitChangedTeam, ELD_OnStateSubmitted, 0, );
+	EventMgr.RegisterForEvent(selfObj, 'PlayerTurnBegun', OnPlayerTurnBegun, ELD_OnStateSubmitted, 0);
 }
+
+function EventListenerReturn OnPlayerTurnBegun(Object EventData, Object EventSource, XComGameState GameState, Name EventID, Object callbackData)
+{
+	local XComTacticalController kTacticalController;
+	local array<XComGameState_Unit> PlayableUnits;
+	local XComGameState_Unit Unit;
+	
+	kTacticalController = XComTacticalController(class'WorldInfo'.static.GetWorldInfo().GetALocalPlayerController());
+	kTacticalController.m_XGPlayer.GetPlayableUnits(PlayableUnits, true);
+
+	`log("NMD - Turn began with playable units: " $ PlayableUnits.Length);
+	foreach PlayableUnits(Unit)
+	{
+		class'NMD_Utilities'.static.EnsureHasUnitStats(Unit);
+	}
+
+	return ELR_NoInterrupt;
+}
+
 
 function EventListenerReturn OnMoved(Object EventData, Object EventSource, XComGameState GameState, Name EventID, Object callbackData)
 {
@@ -208,6 +231,11 @@ function XComGameState_NMD_Unit updateStats(XComGameState_Unit Unit, XComGameSta
 		UnitStats.AddOverwatchShot(AbilityContext.IsResultContextHit(), GameState);
 	}
 
+	if (Unit.HasHeightAdvantageOver(TargetUnit, true))
+	{
+		UnitStats.AddShotFromElevation(Unit, TargetUnit, GameState);
+	}
+
 	// Update stats from multi shots
 	for(i=0; i<AbilityContext.InputContext.MultiTargets.Length; ++i) {
 		target.PrimaryTarget = target.AdditionalTargets[i];
@@ -220,7 +248,14 @@ function XComGameState_NMD_Unit updateStats(XComGameState_Unit Unit, XComGameSta
 								Clamp(multiBreakdown.FinalHitChance, 0, 100),
 								Clamp(multiBreakdown.ResultTable[eHit_Crit], 0, 100),
 								GameState);
+
+		if (Unit.HasHeightAdvantageOver(TargetUnit, true))
+		{
+			UnitStats.AddShotFromElevation(Unit, TargetUnit, GameState);
+		}
 	}
+
+
 	
 	// Trigger EventData
 	`XEventMGR.TriggerEvent('NMDUpdated', UnitStats, Unit, GameState);

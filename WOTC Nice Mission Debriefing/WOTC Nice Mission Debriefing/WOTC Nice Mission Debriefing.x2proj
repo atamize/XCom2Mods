@@ -67,6 +67,9 @@
     <Content Include="Src\WOTCNiceMissionDebriefing\Classes\NMD_Stat_ShotAccuracy.uc">
       <SubType>Content</SubType>
     </Content>
+    <Content Include="Src\WOTCNiceMissionDebriefing\Classes\NMD_Stat_ShotsFromElevation.uc">
+      <SubType>Content</SubType>
+    </Content>
     <Content Include="Src\WOTCNiceMissionDebriefing\Classes\NMD_Stat_TilesMoved.uc">
       <SubType>Content</SubType>
     </Content>

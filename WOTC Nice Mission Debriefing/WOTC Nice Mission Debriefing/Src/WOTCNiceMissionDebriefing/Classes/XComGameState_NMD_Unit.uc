@@ -27,6 +27,7 @@ function XComGameState_NMD_Unit InitComponent(XComGameState NewGameState, option
 	CreateOrUpdateStat(class'NMD_Stat_Kills'.const.ID, class'NMD_Stat_Kills', NewGameState);
 	CreateOrUpdateStat(class'NMD_Stat_CloseRange'.const.ID, class'NMD_Stat_CloseRange', NewGameState);
 	CreateOrUpdateStat(class'NMD_Stat_OverwatchAccuracy'.const._ID, class'NMD_Stat_OverwatchAccuracy', NewGameState);
+	CreateOrUpdateStat(class'NMD_Stat_ShotsFromElevation'.const.ID, class'NMD_Stat_ShotsFromElevation', NewGameState);
 	return self;
 }
 
@@ -144,6 +145,23 @@ function AddCloseRangeDamage(XComGameState_Unit AttackingUnit, XComGameState_Uni
 	}
 	Stat.AddValue(CloseRangeValue);
 	`log("NMD - Total close range damage for " $ AttackingUnit.GetFullName() $ ": " $ Stat.GetValue(0)); 
+	NewGameState.AddStateObject(Stat);
+}
+
+function AddShotFromElevation(XComGameState_Unit AttackingUnit, XComGameState_Unit TargetUnit, XComGameState NewGameState)
+{
+	local NMD_Stat_ShotsFromElevation Stat;
+	local NMD_BaseStat BaseStat;
+	local int Value;
+	local int ShotsFromElevationValue;
+
+	BaseStat = CreateOrUpdateStat(class'NMD_Stat_ShotsFromElevation'.const.ID, class'NMD_Stat_ShotsFromElevation', NewGameState);
+
+	Stat = NMD_Stat_ShotsFromElevation(NewGameState.CreateStateObject(class'NMD_Stat_ShotsFromElevation', BaseStat.ObjectID));
+	Value = AttackingUnit.TileLocation.Z - TargetUnit.TileLocation.Z;
+	Stat.AddValue(Value);
+
+	`log("NMD - Total elevation shot value for " $ AttackingUnit.GetFullName() $ ": " $ Stat.GetValue(0));
 	NewGameState.AddStateObject(Stat);
 }
 

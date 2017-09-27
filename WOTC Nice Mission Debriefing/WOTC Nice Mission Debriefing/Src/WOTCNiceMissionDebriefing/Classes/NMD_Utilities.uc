@@ -82,12 +82,17 @@ static function ensureAllHaveUnitStats() {
 */
 static function ensureSquadHasUnitStats() {
 	local XComGameState_HeadquartersXCom HQ;
+	local ReserveSquad Reserve;
+
 	// Setup shortcut vars
 	HQ = class'UIUtilities_Strategy'.static.GetXComHQ(true);
 	if( HQ == none )
 		return;
 		
-	ensureHaveUnitStats(HQ.Squad);
+	foreach HQ.AllSquads(Reserve)
+	{
+		ensureHaveUnitStats(Reserve.SquadMembers);
+	}
 }
 
 /**
@@ -156,23 +161,27 @@ static function ResetMissionStats(XComGameState NewGameState)
 	local XComGameState_Unit Unit;
 	local XComGameState_NMD_Unit NMDUnit;
 	local XComGameStateHistory History;
-	
+	local ReserveSquad Reserve;
+
 	HQ = class'UIUtilities_Strategy'.static.GetXComHQ(true);
 	if (HQ == none)
 		return;
 
 	History = `XCOMHISTORY;
 
-	`log("NMD - Resetting missions stats for squad of " $ HQ.Squad.Length);
-	foreach HQ.Squad(Ref)
+	foreach HQ.AllSquads(Reserve)
 	{
-		Unit = XComGameState_Unit(History.GetGameStateForObjectId(Ref.ObjectID));
-		NMDUnit = XComGameState_NMD_Unit(Unit.FindComponentObject(class'XComGameState_NMD_Unit'));
-		if (NMDUnit != none)
+		`log("NMD - Resetting missions stats for squad of " $ Reserve.SquadMembers.Length);
+		foreach Reserve.SquadMembers(Ref)
 		{
-			`log("NMD Clearing mission stats for " $ Unit.GetFullName());
-			NMDUnit = XComGameState_NMD_Unit(NewGameState.ModifyStateObject(class'XComGameState_NMD_Unit', NMDUnit.ObjectID));
-			NMDUnit.ClearMissionStats(NewGameState);
+			Unit = XComGameState_Unit(History.GetGameStateForObjectId(Ref.ObjectID));
+			NMDUnit = XComGameState_NMD_Unit(Unit.FindComponentObject(class'XComGameState_NMD_Unit'));
+			if (NMDUnit != none)
+			{
+				`log("NMD Clearing mission stats for " $ Unit.GetFullName());
+				NMDUnit = XComGameState_NMD_Unit(NewGameState.ModifyStateObject(class'XComGameState_NMD_Unit', NMDUnit.ObjectID));
+				NMDUnit.ClearMissionStats(NewGameState);
+			}
 		}
 	}
 }
