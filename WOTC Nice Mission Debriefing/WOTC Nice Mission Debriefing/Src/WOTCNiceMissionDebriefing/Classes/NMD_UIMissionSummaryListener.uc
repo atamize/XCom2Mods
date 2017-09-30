@@ -2,8 +2,14 @@ class NMD_UIMissionSummaryListener extends UIScreenListener config(WOTCNiceMissi
 
 var config bool EnableTeamPosterWarning;
 
+var localized string m_strViewStatsButton;
+var localized string m_strWarningTitle;
+var localized string m_strWarningBody;
+
 var UIMissionSummary MissionSummary;
 var UIButton StatsButton;
+
+var bool HasSeenStats;
 
 event OnInit(UIScreen Screen)
 {
@@ -11,17 +17,15 @@ event OnInit(UIScreen Screen)
 	if (MissionSummary.BattleData.IsMultiplayer())
 		return;
 	
-	MissionSummary.m_PosterButton.SetPosition(600, MissionSummary.m_PosterButton.Y);
+	HasSeenStats = false;
 
-	if (EnableTeamPosterWarning)
-	{
-		MissionSummary.m_PosterButton.OnClickedDelegate = OnMakePosterButton;
-	}
+	MissionSummary.m_PosterButton.SetPosition(940, MissionSummary.m_PosterButton.Y);
+	MissionSummary.m_PosterButton.OnClickedDelegate = OnMakePosterButton;
 
 	StatsButton = MissionSummary.Spawn(class'UIButton', MissionSummary);
 	StatsButton.ResizeToText = false;
-	StatsButton.InitButton('missionStatsButton', "View Soldier Stats", OpenStatsButton, eUIButtonStyle_HOTLINK_BUTTON);
-	StatsButton.SetPosition(940, MissionSummary.m_PosterButton.Y);
+	StatsButton.InitButton('missionStatsButton', m_strViewStatsButton, OpenStatsButton, eUIButtonStyle_HOTLINK_BUTTON);
+	StatsButton.SetPosition(600, MissionSummary.m_PosterButton.Y);
 	StatsButton.SetWidth(MissionSummary.m_PosterButton.Width);
 	StatsButton.SetGamepadIcon(class'UIUtilities_Input'.const.ICON_X_SQUARE);
 }
@@ -30,14 +34,21 @@ function OnMakePosterButton(UIButton Button)
 {
 	local TDialogueBoxData kConfirmData;
 
-	kConfirmData.strTitle = "WARNING";
-	kConfirmData.strText = "After entering the photo booth, the mission debriefing will no longer be available. Do you want to continue?";
-	kConfirmData.strAccept = class'UIUtilities_Text'.default.m_strGenericYes;
-	kConfirmData.strCancel = class'UIUtilities_Text'.default.m_strGenericNo;
+	if (EnableTeamPosterWarning && !HasSeenStats)
+	{
+		kConfirmData.strTitle = m_strWarningTitle;
+		kConfirmData.strText = m_strWarningBody;
+		kConfirmData.strAccept = class'UIUtilities_Text'.default.m_strGenericYes;
+		kConfirmData.strCancel = class'UIUtilities_Text'.default.m_strGenericNo;
 
-	kConfirmData.fnCallback = OnDestructiveActionPopupExitDialog;
+		kConfirmData.fnCallback = OnDestructiveActionPopupExitDialog;
 
-	MissionSummary.Movie.Pres.UIRaiseDialog(kConfirmData);
+		MissionSummary.Movie.Pres.UIRaiseDialog(kConfirmData);
+	}
+	else
+	{
+		MissionSummary.CloseThenOpenPhotographerScreen();
+	}
 }
 
 function OnDestructiveActionPopupExitDialog(Name eAction)
@@ -71,9 +82,12 @@ simulated function OpenStatsButton(UIButton button)
 
 	TempScreen = Pres.Spawn(class'NMD_UIMissionDebriefingScreen', Pres);
 	ScreenStack.Push(TempScreen);
+
+	HasSeenStats = true;
 }
 
 defaultProperties
 {
     ScreenClass = UIMissionSummary
+	HasSeenStats = false
 }

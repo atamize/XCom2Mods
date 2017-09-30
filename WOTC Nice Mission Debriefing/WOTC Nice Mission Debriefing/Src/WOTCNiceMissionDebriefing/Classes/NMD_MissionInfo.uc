@@ -1,5 +1,10 @@
 class NMD_MissionInfo extends Object dependson(XComGameState_NMD_Unit);
 
+var localized string m_strHeavyHitter;
+var localized string m_strHeavyHitterDesc;
+var localized string m_strSneakiest;
+var localized string m_strSneakiestDesc;
+
 struct EnemyDamageCount
 {
 	var int UnitID;
@@ -259,11 +264,14 @@ function DetermineAwards()
 	AddAward(new class'NMD_BaseAward', class'NMD_Stat_TilesMoved'.const.ID, "MOVED FURTHEST", "Traversed the most tiles");
 	AddAward(new class'NMD_BaseAward', class'NMD_Stat_CloseRange'.const.ID, "CLOSE RANGE?!", "Dealt the most damage at...close range");
 	AddAward(new class'NMD_BaseAward', class'NMD_Stat_ShotsFromElevation'.const.ID, "MOST HIGH", "Took the most shots with a height advantage");
+	AddAward(new class'NMD_BaseAward', class'NMD_Stat_CriticalDamage'.const.ID, m_strHeavyHitter, m_strHeavyHitterDesc);
+	AddAward(new class'NMD_BaseAward', class'NMD_Stat_ConcealedTiles'.const.ID, m_strSneakiest, m_strSneakiestDesc);
 
 	// Non stat-based awards
 	AddAward(new class'NMD_Award_MostAssists', '', "MOST ASSISTS", "Dealt the most damage that did not result in a kill");
 	AddAward(new class'NMD_Award_SoloSlayer', '', "SOLO SLAYER", "Killed the most enemies without help from teammates");
 	AddAward(new class'NMD_Award_KillStealer', '', "KILL STEALER", "Finished off the most enemies previously damaged by others");
+	AddAward(new class'NMD_Award_NotBadKid', '', "NOT BAD KID", "Lowest ranked soldier dealt more than damage than any higher ranked soldier");
 
 	// Dynamic awards
 	AddAward(new class'NMD_BaseAward', 'LootPickedUp', "", "", false);

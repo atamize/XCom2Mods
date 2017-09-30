@@ -53,6 +53,7 @@ function EventListenerReturn OnMoved(Object EventData, Object EventSource, XComG
 	local XComGameState_NMD_Unit UnitStats;
 	local XComGameStateContext_Ability AbilityContext;
 	local NMD_Stat_TilesMoved Stat;
+	local int MovementTiles;
 
 	Unit = XComGameState_Unit(EventSource);
 	AbilityContext = XComGameStateContext_Ability(GameState.GetContext());
@@ -65,11 +66,17 @@ function EventListenerReturn OnMoved(Object EventData, Object EventSource, XComG
 	
 	UnitStats = class'NMD_Utilities'.static.ensureHasUnitStats(Unit);
 	UnitStats = XComGameState_NMD_Unit(GameState.ModifyStateObject(class'XComGameState_NMD_Unit', UnitStats.ObjectID));
-	Stat = UnitStats.addTilesMoved( AbilityContext.InputContext.MovementPaths[0].MovementTiles.Length-1, GameState );
+
+	MovementTiles = AbilityContext.InputContext.MovementPaths[0].MovementTiles.Length - 1;
+	Stat = UnitStats.AddTilesMoved(MovementTiles, GameState );
 	
+	if (Unit.IsConcealed())
+	{
+		UnitStats.AddConcealedTilesMoved(MovementTiles, GameState);
+	}
 	`log("NMD - unit " $ Unit.GetFullName() $ " moved " $ Stat.GetValue(Unit.ObjectID) $ " tiles");
 	// Trigger EventData
-	`XEventMGR.TriggerEvent('NMDUpdated', UnitStats, Unit, GameState);
+	//`XEventMGR.TriggerEvent('NMDUpdated', UnitStats, Unit, GameState);
 	
 	return ELR_NoInterrupt;
 }

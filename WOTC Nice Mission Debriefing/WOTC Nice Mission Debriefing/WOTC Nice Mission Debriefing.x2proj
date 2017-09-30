@@ -31,6 +31,9 @@
     <Content Include="Src\WOTCNiceMissionDebriefing\Classes\NMD_Award_MostAssists.uc">
       <SubType>Content</SubType>
     </Content>
+    <Content Include="Src\WOTCNiceMissionDebriefing\Classes\NMD_Award_NotBadKid.uc">
+      <SubType>Content</SubType>
+    </Content>
     <Content Include="Src\WOTCNiceMissionDebriefing\Classes\NMD_Award_SoloSlayer.uc">
       <SubType>Content</SubType>
     </Content>
@@ -53,6 +56,12 @@
       <SubType>Content</SubType>
     </Content>
     <Content Include="Src\WOTCNiceMissionDebriefing\Classes\NMD_Stat_CloseRange.uc">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Src\WOTCNiceMissionDebriefing\Classes\NMD_Stat_ConcealedTiles.uc">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Src\WOTCNiceMissionDebriefing\Classes\NMD_Stat_CriticalDamage.uc">
       <SubType>Content</SubType>
     </Content>
     <Content Include="Src\WOTCNiceMissionDebriefing\Classes\NMD_Stat_DamageDealt.uc">

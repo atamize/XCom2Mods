@@ -87,7 +87,7 @@ simulated function InitScreen(XComPlayerController InitController, UIMovie InitM
 	// MVP Panel
 	MVPPanel = Spawn(class'UIPanel', Container).InitPanel('MVPPanel');
 	MVPPanel.SetSize(PhotoPanel.Width, Height);
-	MVPPanel.SetPosition(SoldierImage.X + 150 - (MVPPanel.Width / 2), SoldierImage.Y + 500);
+	MVPPanel.SetPosition(SoldierImage.X + 150 - (MVPPanel.Width / 2), SoldierImage.Y + 480);
 
 	MVPImage = Spawn(class'UIImage', MVPPanel).InitImage();
 	MVPTexture = Texture2D'gfxEndGameStats.EndGameStats_I36';
@@ -145,8 +145,8 @@ function InitStatsPanel()
 	local UIBGBox StatsBG;
 
 	StatsPanel = Spawn(class'UIPanel', Container).InitPanel('StatsPanel');
-	StatsPanel.SetPosition(Container.Width / 2, TitleHeader.Y + TitleHeader.Height);
-	StatsPanel.SetSize(Width / 2, Height / 2 - 50);
+	StatsPanel.SetPosition(360, PhotoPanel.Y);
+	StatsPanel.SetSize(Container.Width - StatsPanel.X, Container.Height / 2 - 50);
 
 	StatsBG = Spawn(class'UIBGBox', StatsPanel);
 	StatsBG.LibID = class'UIUtilities_Controls'.const.MC_X2Background;
@@ -157,7 +157,7 @@ function InitStatsPanel()
 	StatsHeader.SetHeaderWidth(StatsPanel.Width - StatsHeader.X - 10);
 
 	StatList = Spawn(class'UIStatList', StatsPanel);
-	StatList.InitStatList('StatList', , 0, StatsHeader.Height, StatsPanel.Width - 50, StatsPanel.Height - StatList.Y);
+	StatList.InitStatList('StatList', , 0, StatsHeader.Height, StatsPanel.Width - 20, StatsPanel.Height - StatList.Y);
 }
 
 function InitAwardsPanel()
@@ -238,7 +238,7 @@ function ShowStatsForUnit(int SoldierIndex)
 			SoldierTexture = Texture2D'gfxComponents.UIXcomEmblem';
 		}
 		SoldierImage.SetSize(256, 256);
-		SoldierImage.SetPosition(PhotoPanel.X + 10, PhotoPanel.Y + (PhotoPanel.Height / 2) - (SoldierImage.Height / 2));
+		SoldierImage.SetPosition(PhotoPanel.X + 10, PhotoPanel.Y + (PhotoPanel.Height / 2) - (SoldierImage.Height / 2) - 50);
 	}
 
 	SoldierImage.LoadImage(class'UIUtilities_Image'.static.ValidateImagePath(PathName(SoldierTexture)));

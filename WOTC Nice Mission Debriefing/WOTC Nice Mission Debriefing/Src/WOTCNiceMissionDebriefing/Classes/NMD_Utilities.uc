@@ -282,6 +282,29 @@ static function int FindMax(delegate<IntArrayDelegate> Del, int Length, optional
 	return MaxValue;
 }
 
+static function int FindMin(delegate<IntArrayDelegate> Del, int Length, optional out array<int> Output)
+{
+	local int i, MinValue, Value;
+
+	MinValue = MaxInt;
+
+	for (i = 0; i < Length; ++i)
+	{
+		Value = Del(i);
+		if (Value < MinValue)
+			MinValue = Value;
+	}
+
+	for (i = 0; i < Length; ++i)
+	{
+		Value = Del(i);
+		if (Value == MinValue)
+			Output.AddItem(i);
+	}
+
+	return MinValue;
+}
+
 /*
 static function updateToV1(XComGameState newGameState) {
 	local XComGameState_Unit unit;

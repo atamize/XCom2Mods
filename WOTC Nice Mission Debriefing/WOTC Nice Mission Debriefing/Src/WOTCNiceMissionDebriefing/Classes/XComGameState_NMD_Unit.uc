@@ -148,12 +148,24 @@ function AddCloseRangeDamage(XComGameState_Unit AttackingUnit, XComGameState_Uni
 	NewGameState.AddStateObject(Stat);
 }
 
+function AddCriticalDamage(int DamageDealt, XComGameState NewGameState)
+{
+	local NMD_Stat_CriticalDamage Stat;
+	local NMD_BaseStat BaseStat;
+
+	BaseStat = CreateOrUpdateStat(class'NMD_Stat_CriticalDamage'.const.ID, class'NMD_Stat_CriticalDamage', NewGameState);
+
+	Stat = NMD_Stat_CriticalDamage(NewGameState.CreateStateObject(class'NMD_Stat_CriticalDamage', BaseStat.ObjectID));
+
+	Stat.AddValue(DamageDealt);
+	NewGameState.AddStateObject(Stat);
+}
+
 function AddShotFromElevation(XComGameState_Unit AttackingUnit, XComGameState_Unit TargetUnit, XComGameState NewGameState)
 {
 	local NMD_Stat_ShotsFromElevation Stat;
 	local NMD_BaseStat BaseStat;
 	local int Value;
-	local int ShotsFromElevationValue;
 
 	BaseStat = CreateOrUpdateStat(class'NMD_Stat_ShotsFromElevation'.const.ID, class'NMD_Stat_ShotsFromElevation', NewGameState);
 
@@ -200,6 +212,11 @@ function AddDamageDone(string catToAdd, int dealt, int negated, bool executed, b
 
 	if (Context != none)
 	{
+		if (Context.ResultContext.HitResult == eHit_Crit)
+		{
+			AddCriticalDamage(Dealt, NewGameState);
+		}
+
 		AddCloseRangeDamage(Attacker, Unit, Dealt, NewGameState);
 	}
 	/*
@@ -255,6 +272,21 @@ function NMD_Stat_TilesMoved AddTilesMoved(int Moved, XComGameState NewGameState
 
 	return Stat;
 }
+
+function NMD_Stat_ConcealedTiles AddConcealedTilesMoved(int Moved, XComGameState NewGameState)
+{
+	local NMD_Stat_ConcealedTiles Stat;
+	local NMD_BaseStat BaseStat;
+	
+	BaseStat = CreateOrUpdateStat(class'NMD_Stat_ConcealedTiles'.const.ID, class'NMD_Stat_ConcealedTiles', NewGameState);
+
+	Stat = NMD_Stat_ConcealedTiles(NewGameState.CreateStateObject(class'NMD_Stat_ConcealedTiles', BaseStat.ObjectID));
+	Stat.AddValue(Moved);
+	NewGameState.AddStateObject(Stat);
+
+	return Stat;
+}
+
 
 function SetPosterIndex(int Index, XComGameState NewGameState)
 {
