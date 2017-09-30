@@ -366,6 +366,21 @@ function NMD_Stat_Exposure AddExposure(int Value, XComGameState NewGameState)
 	return Stat;
 }
 
+function NMD_Stat_EnvironmentDamage AddEnvironmentDamage(int Value, XComGameState NewGameState)
+{
+	local NMD_Stat_EnvironmentDamage Stat;
+	local NMD_BaseStat BaseStat;
+	
+	BaseStat = CreateOrUpdateStat(class'NMD_Stat_EnvironmentDamage'.const.ID, class'NMD_Stat_EnvironmentDamage', NewGameState);
+
+	Stat = NMD_Stat_EnvironmentDamage(NewGameState.CreateStateObject(class'NMD_Stat_EnvironmentDamage', BaseStat.ObjectID));
+	Stat.AddValue(Value);
+
+	NewGameState.AddStateObject(Stat);
+
+	return Stat;
+}
+
 function SetPosterIndex(int Index, XComGameState NewGameState)
 {
 	local NMD_PersistentStat_PosterData Stat;

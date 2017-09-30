@@ -70,6 +70,9 @@
     <Content Include="Src\WOTCNiceMissionDebriefing\Classes\NMD_Stat_DamageDealt.uc">
       <SubType>Content</SubType>
     </Content>
+    <Content Include="Src\WOTCNiceMissionDebriefing\Classes\NMD_Stat_EnvironmentDamage.uc">
+      <SubType>Content</SubType>
+    </Content>
     <Content Include="Src\WOTCNiceMissionDebriefing\Classes\NMD_Stat_Exposure.uc">
       <SubType>Content</SubType>
     </Content>

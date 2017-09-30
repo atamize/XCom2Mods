@@ -27,6 +27,9 @@ function RegisterAbilityActivated()
 	EventMgr.RegisterForEvent(selfObj, 'UnitChangedTeam', onUnitChangedTeam, ELD_OnStateSubmitted, 0, );
 	EventMgr.RegisterForEvent(selfObj, 'PlayerTurnBegun', OnPlayerTurnBegun, ELD_OnStateSubmitted, 0);
 	EventMgr.RegisterForEvent(selfObj, 'PlayerTurnEnded', OnPlayerTurnEnd, ELD_OnStateSubmitted, 0);
+	EventMgr.RegisterForEvent(selfObj, 'BreakWindow', OnBrokeWindow, ELD_OnStateSubmitted, 0);
+	EventMgr.RegisterForEvent(selfObj, 'BreakDoor', OnKickedDoor, ELD_OnStateSubmitted, 0);
+	EventMgr.RegisterForEvent(selfObj, 'OnEnvironmentalDamage', OnBlownUp, ELD_OnStateSubmitted, 0);
 }
 
 function ClearStatsOnFirstTurn()
@@ -390,4 +393,70 @@ function bool isFirstTile(XComGameState_Unit Unit, XComGameStateContext_Ability 
 	}
 	
 	return false;
+}
+
+function EventListenerReturn OnBrokeWindow(Object EventData, Object EventSource, XComGameState GameState, Name inEventID, Object callbackData)
+{
+	local XComGameState_Unit Unit;
+	local XComGameState_NMD_Unit UnitStats;
+
+	`log("NMD - a window broke");
+
+	Unit = XComGameState_Unit(EventSource);
+
+	if (class'NMD_Utilities'.static.IsFriendly(Unit))
+	{
+		UnitStats = class'NMD_Utilities'.static.ensureHasUnitStats(Unit);
+		if (UnitStats == none)
+			return ELR_NoInterrupt;
+
+		`log("NMD - " $ Unit.GetFullName() $ " broke a damn window");
+		UnitStats.AddEnvironmentDamage(1, GameState);
+	}
+	
+	return ELR_NoInterrupt;
+}
+
+function EventListenerReturn OnKickedDoor(Object EventData, Object EventSource, XComGameState GameState, Name inEventID, Object callbackData)
+{
+	local XComGameState_Unit Unit;
+	local XComGameState_NMD_Unit UnitStats;
+
+	`log("NMD - a door was kicked");
+
+	Unit = XComGameState_Unit(EventSource);
+
+	if (class'NMD_Utilities'.static.IsFriendly(Unit))
+	{
+		UnitStats = class'NMD_Utilities'.static.ensureHasUnitStats(Unit);
+		if (UnitStats == none)
+			return ELR_NoInterrupt;
+
+		`log("NMD - " $ Unit.GetFullName() $ " kicked a damn door");
+		UnitStats.AddEnvironmentDamage(1, GameState);
+	}
+	
+	return ELR_NoInterrupt;
+}
+
+function EventListenerReturn OnBlownUp(Object EventData, Object EventSource, XComGameState GameState, Name inEventID, Object callbackData)
+{
+	local XComGameState_EnvironmentDamage DamageEvent;
+	local XComGameState_Unit Unit;
+	local XComGameState_NMD_Unit UnitStats;
+	
+	DamageEvent = XComGameState_EnvironmentDamage(EventSource);
+	Unit = XComGameState_Unit(`XCOMHISTORY.GetGameStateForObjectID(DamageEvent.DamageCause.ObjectID));
+
+	if (class'NMD_Utilities'.static.IsFriendly(Unit))
+	{
+		UnitStats = class'NMD_Utilities'.static.ensureHasUnitStats(Unit);
+		if (UnitStats == none)
+			return ELR_NoInterrupt;
+
+		`log("NMD - environmental damage caused by " $ Unit.GetFullName() $ " of magnitude " $ DamageEvent.DamageAmount);
+		UnitStats.AddEnvironmentDamage(DamageEvent.DamageAmount, GameState);
+	}
+
+	return ELR_NoInterrupt;
 }

@@ -23,6 +23,8 @@ var localized string m_strKillStealer;
 var localized string m_strKillStealerDesc;
 var localized string m_strNotBadKid;
 var localized string m_strNotBadKidDesc;
+var localized string m_strWantonDestruction;
+var localized string m_strWantonDestructionDesc;
 
 var localized string m_strHeadshots;
 
@@ -290,6 +292,7 @@ function DetermineAwards()
 	AddAward(new class'NMD_BaseAward', class'NMD_Stat_ConcealedTiles'.const.ID, m_strSneakiest, m_strSneakiestDesc);
 	AddAward(new class'NMD_BaseAward', class'NMD_Stat_OverwatchRuns'.const.ID, m_strRunningOverwatch, m_strRunningOverwatchDesc);
 	AddAward(new class'NMD_BaseAward', class'NMD_Stat_Exposure'.const.ID, m_strMostExposed, m_strMostExposedDesc);
+	AddAward(new class'NMD_BaseAward', class'NMD_Stat_EnvironmentDamage'.const.ID, m_strWantonDestruction, m_strWantonDestructionDesc);
 	AddAward(new class'NMD_Award_TimeToBleed', class'NMD_Stat_WoundedDamage'.const.ID, m_strTimeToBleed, m_strTimeToBleedDesc);
 
 	// Non stat-based awards
