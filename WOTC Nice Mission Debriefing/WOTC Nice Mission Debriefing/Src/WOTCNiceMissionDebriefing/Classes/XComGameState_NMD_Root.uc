@@ -26,6 +26,7 @@ function RegisterAbilityActivated()
 	EventMgr.RegisterForEvent(selfObj, 'UnitTakeEffectDamage', onUnitTakeDamage, ELD_OnStateSubmitted, 0, );
 	EventMgr.RegisterForEvent(selfObj, 'UnitChangedTeam', onUnitChangedTeam, ELD_OnStateSubmitted, 0, );
 	EventMgr.RegisterForEvent(selfObj, 'PlayerTurnBegun', OnPlayerTurnBegun, ELD_OnStateSubmitted, 0);
+	EventMgr.RegisterForEvent(selfObj, 'PlayerTurnEnded', OnPlayerTurnEnd, ELD_OnStateSubmitted, 0);
 }
 
 function ClearStatsOnFirstTurn()
@@ -235,6 +236,46 @@ function EventListenerReturn OnUnitChangedTeam(Object EventData, Object EventSou
 	{
 		`log("    Ensuring has stats");
 		class'NMD_Utilities'.static.EnsureHasUnitStats(Source);
+	}
+
+	return ELR_NoInterrupt;
+}
+
+function EventListenerReturn OnPlayerTurnEnd(Object EventData, Object EventSource, XComGameState GameState, Name inEventID, Object callbackData)
+{	
+	local int NumVisibleEnemies, CoverValue;
+	local XComGameStateHistory History;
+	local XComGameState_Unit Unit;
+	local XComGameState_NMD_Unit UnitStats;
+
+	History = `XCOMHISTORY;
+
+	foreach History.IterateByClassType(class'XComGameState_Unit', Unit)
+	{
+		if (Unit.GetTeam() == eTeam_XCom && !Unit.IsDead())
+		{
+			if (Unit.CanTakeCover() && !Unit.IsConcealed() && !Unit.IsInStasis())
+			{
+				UnitStats = class'NMD_Utilities'.static.EnsureHasUnitStats(Unit);
+				if (UnitStats == none)
+					continue;
+
+				// Check cover and visible enemies for Most Exposed award
+				switch (Unit.GetCoverTypeFromLocation())
+				{
+					case CT_None:		CoverValue = 3; break;
+					case CT_MidLevel:	CoverValue = 2; break;
+					case CT_Standing:	CoverValue = 1; break;
+				}
+				NumVisibleEnemies = class'X2TacticalVisibilityHelpers'.static.GetNumVisibleEnemyTargetsToSource(Unit.ObjectID);
+
+				if (NumVisibleEnemies > 0)
+				{
+					UnitStats.AddExposure(CoverValue * NumVisibleEnemies, GameState);
+					`log("NMD: " $ Unit.GetFullName() $ " exposed to " $ NumVisibleEnemies $ " enemies, cover: " $ CoverValue);
+				}
+			}
+		}
 	}
 
 	return ELR_NoInterrupt;

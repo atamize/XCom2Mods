@@ -103,3 +103,8 @@ function string GetLabel(XComGameState_Unit Unit)
 {
 	return Label;
 }
+
+function bool HideStatIfNoWinner()
+{
+	return false;
+}

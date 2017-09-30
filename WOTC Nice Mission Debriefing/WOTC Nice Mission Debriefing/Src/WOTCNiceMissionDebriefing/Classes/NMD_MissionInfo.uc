@@ -9,6 +9,20 @@ var localized string m_strTimeToBleedDesc;
 var localized string m_strTimeToBleedRobot;
 var localized string m_strRunningOverwatch;
 var localized string m_strRunningOverwatchDesc;
+var localized string m_strMostExposed;
+var localized string m_strMostExposedDesc;
+var localized string m_strCloseRange;
+var localized string m_strCloseRangeDesc;
+var localized string m_strMostHigh;
+var localized string m_strMostHighDesc;
+var localized string m_strMostAssists;
+var localized string m_strMostAssistsDesc;
+var localized string m_strSoloSlayer;
+var localized string m_strSoloSlayerDesc;
+var localized string m_strKillStealer;
+var localized string m_strKillStealerDesc;
+var localized string m_strNotBadKid;
+var localized string m_strNotBadKidDesc;
 
 var localized string m_strHeadshots;
 
@@ -268,20 +282,21 @@ function DetermineAwards()
 	AddAward(new class'NMD_BaseAward', class'NMD_Stat_ShotAccuracy'.const.ID, "", "", false);
 	AddAward(new class'NMD_BaseAward', class'NMD_Stat_OverwatchAccuracy'.const._ID, "", "", false);
 	AddAward(new class'NMD_BaseAward', class'NMD_Stat_DamageDealt'.const.ID, "", "", false);
-	AddAward(new class'NMD_BaseAward', class'NMD_Stat_TilesMoved'.const.ID, "MOVED FURTHEST", "Traversed the most tiles");
+	AddAward(new class'NMD_BaseAward', class'NMD_Stat_TilesMoved'.const.ID, "", "", false);
 	AddAward(new class'NMD_BaseAward', class'NMD_Stat_Headshots'.const.ID, "", "", false);
-	AddAward(new class'NMD_BaseAward', class'NMD_Stat_CloseRange'.const.ID, "CLOSE RANGE?!", "Dealt the most damage at...close range");
-	AddAward(new class'NMD_BaseAward', class'NMD_Stat_ShotsFromElevation'.const.ID, "MOST HIGH", "Took the most shots with a height advantage");
+	AddAward(new class'NMD_BaseAward', class'NMD_Stat_CloseRange'.const.ID, m_strCloseRange, m_strCloseRangeDesc);
+	AddAward(new class'NMD_BaseAward', class'NMD_Stat_ShotsFromElevation'.const.ID, m_strMostHigh, m_strMostHighDesc);
 	AddAward(new class'NMD_BaseAward', class'NMD_Stat_CriticalDamage'.const.ID, m_strHeavyHitter, m_strHeavyHitterDesc);
 	AddAward(new class'NMD_BaseAward', class'NMD_Stat_ConcealedTiles'.const.ID, m_strSneakiest, m_strSneakiestDesc);
 	AddAward(new class'NMD_BaseAward', class'NMD_Stat_OverwatchRuns'.const.ID, m_strRunningOverwatch, m_strRunningOverwatchDesc);
+	AddAward(new class'NMD_BaseAward', class'NMD_Stat_Exposure'.const.ID, m_strMostExposed, m_strMostExposedDesc);
 	AddAward(new class'NMD_Award_TimeToBleed', class'NMD_Stat_WoundedDamage'.const.ID, m_strTimeToBleed, m_strTimeToBleedDesc);
 
 	// Non stat-based awards
-	AddAward(new class'NMD_Award_MostAssists', '', "MOST ASSISTS", "Dealt the most damage that did not result in a kill");
-	AddAward(new class'NMD_Award_SoloSlayer', '', "SOLO SLAYER", "Killed the most enemies without help from teammates");
-	AddAward(new class'NMD_Award_KillStealer', '', "KILL STEALER", "Finished off the most enemies previously damaged by others");
-	AddAward(new class'NMD_Award_NotBadKid', '', "NOT BAD KID", "Lowest ranked soldier dealt more than damage than any higher ranked soldier");
+	AddAward(new class'NMD_Award_MostAssists', '', m_strMostAssists, m_strMostAssistsDesc);
+	AddAward(new class'NMD_Award_SoloSlayer', '', m_strSoloSlayer, m_strSoloSlayerDesc);
+	AddAward(new class'NMD_Award_KillStealer', '', m_strKillStealer, m_strKillStealerDesc);
+	AddAward(new class'NMD_Award_NotBadKid', '', m_strNotBadKid, m_strNotBadKidDesc);
 
 	// Dynamic awards
 	AddAward(new class'NMD_BaseAward', 'LootPickedUp', "", "", false);

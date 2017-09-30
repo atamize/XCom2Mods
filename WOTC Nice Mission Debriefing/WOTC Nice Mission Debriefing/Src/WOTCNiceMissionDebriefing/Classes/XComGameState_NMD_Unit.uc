@@ -250,9 +250,12 @@ function AddDamageDone(string catToAdd, int dealt, int negated, bool executed, b
 
 		if (IsKill)
 		{
-			if (class'X2Effect_TheLostHeadshot'.default.ValidHeadshotAbilities.Find(Context.InputContext.AbilityTemplateName) != INDEX_NONE)
+			if (Unit.GetMyTemplate().CharacterGroupName == 'TheLost')
 			{
-				AddHeadshot(Attacker, NewGameState);
+				if (class'X2Effect_TheLostHeadshot'.default.ValidHeadshotAbilities.Find(Context.InputContext.AbilityTemplateName) != INDEX_NONE)
+				{
+					AddHeadshot(Attacker, NewGameState);
+				}
 			}
 		}
 	}
@@ -342,6 +345,21 @@ function NMD_Stat_OverwatchRuns AddOverwatchRun(bool IsHit, XComGameState NewGam
 		Stat.AddValue(1);
 	else
 		Stat.AddValue(2);
+
+	NewGameState.AddStateObject(Stat);
+
+	return Stat;
+}
+
+function NMD_Stat_Exposure AddExposure(int Value, XComGameState NewGameState)
+{
+	local NMD_Stat_Exposure Stat;
+	local NMD_BaseStat BaseStat;
+	
+	BaseStat = CreateOrUpdateStat(class'NMD_Stat_Exposure'.const.ID, class'NMD_Stat_Exposure', NewGameState);
+
+	Stat = NMD_Stat_Exposure(NewGameState.CreateStateObject(class'NMD_Stat_Exposure', BaseStat.ObjectID));
+	Stat.AddValue(Value);
 
 	NewGameState.AddStateObject(Stat);
 
