@@ -87,7 +87,7 @@ simulated function InitScreen(XComPlayerController InitController, UIMovie InitM
 	// MVP Panel
 	MVPPanel = Spawn(class'UIPanel', Container).InitPanel('MVPPanel');
 	MVPPanel.SetSize(PhotoPanel.Width, Height);
-	MVPPanel.SetPosition(SoldierImage.X + 150 - (MVPPanel.Width / 2), SoldierImage.Y + 480);
+	MVPPanel.SetPosition(SoldierImage.X + 150 - (MVPPanel.Width / 2), SoldierImage.Y + 490);
 
 	MVPImage = Spawn(class'UIImage', MVPPanel).InitImage();
 	MVPTexture = Texture2D'gfxEndGameStats.EndGameStats_I36';
@@ -178,8 +178,8 @@ function InitAwardsPanel()
 	AwardsHeader.SetHeaderWidth(AwardsPanel.Width - AwardsHeader.X - 10);
 
 	AwardsList = Spawn(class'UIList', AwardsPanel).InitList('AwardsList');
-	AwardsList.SetPosition(0, AwardsHeader.Height);
-	AwardsList.SetSize(AwardsPanel.Width - 50, AwardsPanel.Height - AwardsList.Y - 30);
+	AwardsList.SetPosition(20, AwardsHeader.Height);
+	AwardsList.SetSize(AwardsPanel.Width - 30, AwardsPanel.Height - AwardsList.Y - 30);
 }
 
 function ShowStatsForUnit(int SoldierIndex)
@@ -261,7 +261,7 @@ function ShowStatsForUnit(int SoldierIndex)
 	{
 		if (Award.IsVisible && Award.IsWinner(CurrentSoldierIndex))
 		{
-			Spawn(class'UIListItemString', AwardsList.ItemContainer).InitListItem(Award.Label).SetTooltipText(Award.Tooltip);
+			Spawn(class'UIListItemString', AwardsList.ItemContainer).InitListItem(Award.GetLabel(Unit)).SetTooltipText(Award.Tooltip);
 		}
 	}
 }

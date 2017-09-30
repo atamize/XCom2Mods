@@ -98,3 +98,8 @@ function bool IsWinner(int Index)
 
 	return false;
 }
+
+function string GetLabel(XComGameState_Unit Unit)
+{
+	return Label;
+}

@@ -13,11 +13,11 @@ function XComGameState_NMD_Root InitComponent()
 	return self;
 }
 
-function registerAbilityActivated()
+function RegisterAbilityActivated()
 {
 	local X2EventManager EventMgr;
 	local Object selfObj;
-	
+
 	selfObj = self;
 	
 	EventMgr = `XEventMGR;
@@ -26,6 +26,53 @@ function registerAbilityActivated()
 	EventMgr.RegisterForEvent(selfObj, 'UnitTakeEffectDamage', onUnitTakeDamage, ELD_OnStateSubmitted, 0, );
 	EventMgr.RegisterForEvent(selfObj, 'UnitChangedTeam', onUnitChangedTeam, ELD_OnStateSubmitted, 0, );
 	EventMgr.RegisterForEvent(selfObj, 'PlayerTurnBegun', OnPlayerTurnBegun, ELD_OnStateSubmitted, 0);
+}
+
+function ClearStatsOnFirstTurn()
+{
+	local XComGameStateHistory History;
+	local XComGameState NewGameState;
+	local XComGameStateContext_ChangeContainer ChangeContainer;
+	local XComGameState_Player PlayerState;
+	local XComTacticalController kTacticalController;
+	local array<XComGameState_Unit> PlayableUnits;
+	local XComGameState_Unit Unit;
+	local XComGameState_NMD_Unit NMDUnit;
+
+	History = `XCOMHISTORY;
+
+	// Only clear stats if we are starting a new mission (no turns taken)
+	foreach History.IterateByClassType(class'XComGameState_Player', PlayerState)
+	{
+		if (PlayerState.GetTeam() == eTeam_XCom)
+		{
+			//`log("NMD PlayerTurnCount: " $ PlayerState.PlayerTurnCount);
+			if (PlayerState.PlayerTurnCount > 1)
+			{
+				return;
+			}
+			break;
+		}
+	}
+
+	ChangeContainer = class'XComGameStateContext_ChangeContainer'.static.CreateEmptyChangeContainer("Clearing mission stats");
+	NewGameState = History.CreateNewGameState(true, ChangeContainer);
+	
+	kTacticalController = XComTacticalController(class'WorldInfo'.static.GetWorldInfo().GetALocalPlayerController());
+	kTacticalController.m_XGPlayer.GetPlayableUnits(PlayableUnits, true);
+
+	foreach PlayableUnits(Unit)
+	{
+		NMDUnit = XComGameState_NMD_Unit(Unit.FindComponentObject(class'XComGameState_NMD_Unit'));
+		if (NMDUnit != none)
+		{
+			`log("NMD Clearing mission stats for " $ Unit.GetFullName());
+			NMDUnit = XComGameState_NMD_Unit(NewGameState.ModifyStateObject(class'XComGameState_NMD_Unit', NMDUnit.ObjectID));
+			NMDUnit.ClearMissionStats(NewGameState);
+		}
+	}
+	
+	History.AddGameStateToHistory(NewGameState);
 }
 
 function EventListenerReturn OnPlayerTurnBegun(Object EventData, Object EventSource, XComGameState GameState, Name EventID, Object callbackData)
@@ -155,10 +202,7 @@ function EventListenerReturn onAbilityActivated(Object EventData, Object EventSo
 	Ability = XComGameState_Ability(EventData);
 	source = XComGameState_Unit(EventSource);
 	
-	// If not a soldier, skip
-	if( !source.IsSoldier() )
-		return ELR_NoInterrupt;
-	
+
 	//seqEvent_Abilitytriggered
 	AbilityContext = XComGameStateContext_Ability(GameState.GetContext());
 	if( Ability != none && source != none && AbilityContext != none ) {
@@ -174,6 +218,7 @@ function EventListenerReturn onAbilityActivated(Object EventData, Object EventSo
 		//else
 			//if( class'NMD_Utilities'.const.DEBUG ) `log("NMD - NotShotType: " $ Ability.GetMyTemplateName());
 	}
+
 
 	return ELR_NoInterrupt;
 }
@@ -202,67 +247,89 @@ function XComGameState_NMD_Unit updateStats(XComGameState_Unit Unit, XComGameSta
 	local ShotBreakdown breakdown, multiBreakdown;
 	local AvailableTarget target;
 	local int i;
-	
+	local bool IsFriendly;
+
 	if( Unit == none || Ability == none || AbilityContext == none )
 		return none;
 	
-	// Get/Create Unit stats for Unit
-	UnitStats = class'NMD_Utilities'.static.ensureHasUnitStats(Unit);
-	if( UnitStats == none )
-		return none;
-
-	// Setup Unitstats to be modified
-	UnitStats = XComGameState_NMD_Unit(GameState.ModifyStateObject(class'XComGameState_NMD_Unit', UnitStats.ObjectID));
-		
-	// Get Unit data
-	target.PrimaryTarget = AbilityContext.InputContext.PrimaryTarget;
-	target.AdditionalTargets = AbilityContext.InputContext.MultiTargets;
-	Ability.GetShotBreakdown(target, breakdown);
+	IsFriendly = class'NMD_Utilities'.static.IsFriendly(Unit);
 	
-	
-		`log("===== Updating UnitStats for " $ Unit.GetFullName() $ " =======");
-		`log("Ability: " $ Ability.GetMyTemplateName());
-	
-	
-	// Update stats from primary shot
-	targetUnit = XComGameState_Unit(`XCOMHISTORY.GetGameStateForObjectID(target.PrimaryTarget.ObjectID));
-	UnitStats.addShot(targetUnit.GetFullName(),
-								AbilityContext.IsResultContextHit(),
-								AbilityContext.ResultContext.HitResult,
-								Clamp(breakdown.FinalHitChance, 0, 100),
-								Clamp(breakdown.ResultTable[eHit_Crit], 0, 100),
-								GameState);
-	
-	if (Ability.GetMyTemplateName() == 'OverwatchShot' || Ability.GetMyTemplateName() == 'PistolOverwatchShot')
+	if (IsFriendly)
 	{
-		UnitStats.AddOverwatchShot(AbilityContext.IsResultContextHit(), GameState);
-	}
+		// Get/Create Unit stats for Unit
+		UnitStats = class'NMD_Utilities'.static.ensureHasUnitStats(Unit);
+		if( UnitStats == none )
+			return none;
 
-	if (Unit.HasHeightAdvantageOver(TargetUnit, true))
-	{
-		UnitStats.AddShotFromElevation(Unit, TargetUnit, GameState);
-	}
-
-	// Update stats from multi shots
-	for(i=0; i<AbilityContext.InputContext.MultiTargets.Length; ++i) {
-		target.PrimaryTarget = target.AdditionalTargets[i];
-		Ability.GetShotBreakdown(target, multiBreakdown);
+		// Setup Unitstats to be modified
+		UnitStats = XComGameState_NMD_Unit(GameState.ModifyStateObject(class'XComGameState_NMD_Unit', UnitStats.ObjectID));
 		
+		// Get Unit data
+		target.PrimaryTarget = AbilityContext.InputContext.PrimaryTarget;
+		target.AdditionalTargets = AbilityContext.InputContext.MultiTargets;
+		Ability.GetShotBreakdown(target, breakdown);
+	
+	
+			`log("===== Updating UnitStats for " $ Unit.GetFullName() $ " =======");
+			`log("Ability: " $ Ability.GetMyTemplateName());
+	
+	
+		// Update stats from primary shot
 		targetUnit = XComGameState_Unit(`XCOMHISTORY.GetGameStateForObjectID(target.PrimaryTarget.ObjectID));
 		UnitStats.addShot(targetUnit.GetFullName(),
-								AbilityContext.IsResultContextMultiHit(i),
-								AbilityContext.ResultContext.MultiTargetHitResults[i],
-								Clamp(multiBreakdown.FinalHitChance, 0, 100),
-								Clamp(multiBreakdown.ResultTable[eHit_Crit], 0, 100),
-								GameState);
+									AbilityContext.IsResultContextHit(),
+									AbilityContext.ResultContext.HitResult,
+									Clamp(breakdown.FinalHitChance, 0, 100),
+									Clamp(breakdown.ResultTable[eHit_Crit], 0, 100),
+									GameState);
+	
+		if (Ability.GetMyTemplateName() == 'OverwatchShot' || Ability.GetMyTemplateName() == 'PistolOverwatchShot')
+		{
+			UnitStats.AddOverwatchShot(AbilityContext.IsResultContextHit(), GameState);
+		}
 
 		if (Unit.HasHeightAdvantageOver(TargetUnit, true))
 		{
 			UnitStats.AddShotFromElevation(Unit, TargetUnit, GameState);
 		}
+
+		// Update stats from multi shots
+		for(i=0; i<AbilityContext.InputContext.MultiTargets.Length; ++i) {
+			target.PrimaryTarget = target.AdditionalTargets[i];
+			Ability.GetShotBreakdown(target, multiBreakdown);
+		
+			targetUnit = XComGameState_Unit(`XCOMHISTORY.GetGameStateForObjectID(target.PrimaryTarget.ObjectID));
+			UnitStats.addShot(targetUnit.GetFullName(),
+									AbilityContext.IsResultContextMultiHit(i),
+									AbilityContext.ResultContext.MultiTargetHitResults[i],
+									Clamp(multiBreakdown.FinalHitChance, 0, 100),
+									Clamp(multiBreakdown.ResultTable[eHit_Crit], 0, 100),
+									GameState);
+
+			if (Unit.HasHeightAdvantageOver(TargetUnit, true))
+			{
+				UnitStats.AddShotFromElevation(Unit, TargetUnit, GameState);
+			}
+		}
 	}
+	else
+	{
+		if (Ability.GetMyTemplateName() == 'OverwatchShot' || Ability.GetMyTemplateName() == 'PistolOverwatchShot')
+		{
+			TargetUnit = XComGameState_Unit(`XCOMHISTORY.GetGameStateForObjectID(AbilityContext.InputContext.PrimaryTarget.ObjectID));
 
+			`log("NMD - " $ TargetUnit.GetFullName() $ " taking overwatch from " $ Unit.GetFullName());
 
+			UnitStats = class'NMD_Utilities'.static.ensureHasUnitStats(TargetUnit);
+			if (UnitStats == none)
+				return none;
+
+			// Setup Unitstats to be modified
+			UnitStats = XComGameState_NMD_Unit(GameState.ModifyStateObject(class'XComGameState_NMD_Unit', UnitStats.ObjectID));
+
+			UnitStats.AddOverwatchRun(AbilityContext.IsResultContextHit(), GameState);
+		}
+	}
 	
 	// Trigger EventData
 	`XEventMGR.TriggerEvent('NMDUpdated', UnitStats, Unit, GameState);

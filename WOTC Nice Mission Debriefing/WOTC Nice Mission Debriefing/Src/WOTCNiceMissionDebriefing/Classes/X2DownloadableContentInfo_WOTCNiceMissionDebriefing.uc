@@ -14,10 +14,10 @@ class X2DownloadableContentInfo_WOTCNiceMissionDebriefing extends X2Downloadable
 /// Called just before the player launches into a tactical a mission while this DLC / Mod is installed.
 /// Allows dlcs/mods to modify the start state before launching into the mission
 /// </summary>
-static event OnPreMission(XComGameState StartGameState, XComGameState_MissionSite MissionState)
-{
-	class'NMD_Utilities'.static.ResetMissionStats(StartGameState);
-}
+//static event OnPreMission(XComGameState StartGameState, XComGameState_MissionSite MissionState)
+//{
+	//class'NMD_Utilities'.static.ResetMissionStats(StartGameState);
+//}
 
 /// <summary>
 /// Called after the player exits the post-mission sequence while this DLC / Mod is installed.

@@ -305,6 +305,34 @@ static function int FindMin(delegate<IntArrayDelegate> Del, int Length, optional
 	return MinValue;
 }
 
+static function bool IsFriendly(XComGameState_Unit Unit)
+{
+	local name TemplateName;
+
+	if (Unit == none)
+		return false;
+
+	if (Unit.GetTeam() == eTeam_XCom || Unit.IsMindControlled())
+		return true;
+
+	TemplateName = Unit.GetMyTemplateName();
+
+	switch(TemplateName)
+	{
+	case 'Soldier_VIP':
+	case 'Scientist_VIP':
+	case 'Engineer_VIP':
+	case 'FriendlyVIPCivilian':
+	case 'HostileVIPCivilian':
+	case 'CommanderVIP':
+	case 'Engineer':
+	case 'Scientist':
+		return true;
+	}
+
+	return false;
+}
+
 /*
 static function updateToV1(XComGameState newGameState) {
 	local XComGameState_Unit unit;

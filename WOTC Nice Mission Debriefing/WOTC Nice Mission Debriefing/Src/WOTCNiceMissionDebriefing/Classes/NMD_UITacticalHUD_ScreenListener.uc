@@ -13,7 +13,9 @@ function InitNMD()
 	`log("[NMD] - NMD Initializing");
 
 	root = class'NMD_Utilities'.static.checkOrCreateRoot();
-	root.registerAbilityActivated();
+	root.RegisterAbilityActivated();
+
+	root.ClearStatsOnFirstTurn();
 	
 	// Make sure everyone on mission has UnitStats
 	class'NMD_Utilities'.static.ensureSquadHasUnitStats();

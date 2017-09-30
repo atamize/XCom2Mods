@@ -4,6 +4,13 @@ var localized string m_strHeavyHitter;
 var localized string m_strHeavyHitterDesc;
 var localized string m_strSneakiest;
 var localized string m_strSneakiestDesc;
+var localized string m_strTimeToBleed;
+var localized string m_strTimeToBleedDesc;
+var localized string m_strTimeToBleedRobot;
+var localized string m_strRunningOverwatch;
+var localized string m_strRunningOverwatchDesc;
+
+var localized string m_strHeadshots;
 
 struct EnemyDamageCount
 {
@@ -262,10 +269,13 @@ function DetermineAwards()
 	AddAward(new class'NMD_BaseAward', class'NMD_Stat_OverwatchAccuracy'.const._ID, "", "", false);
 	AddAward(new class'NMD_BaseAward', class'NMD_Stat_DamageDealt'.const.ID, "", "", false);
 	AddAward(new class'NMD_BaseAward', class'NMD_Stat_TilesMoved'.const.ID, "MOVED FURTHEST", "Traversed the most tiles");
+	AddAward(new class'NMD_BaseAward', class'NMD_Stat_Headshots'.const.ID, "", "", false);
 	AddAward(new class'NMD_BaseAward', class'NMD_Stat_CloseRange'.const.ID, "CLOSE RANGE?!", "Dealt the most damage at...close range");
 	AddAward(new class'NMD_BaseAward', class'NMD_Stat_ShotsFromElevation'.const.ID, "MOST HIGH", "Took the most shots with a height advantage");
 	AddAward(new class'NMD_BaseAward', class'NMD_Stat_CriticalDamage'.const.ID, m_strHeavyHitter, m_strHeavyHitterDesc);
 	AddAward(new class'NMD_BaseAward', class'NMD_Stat_ConcealedTiles'.const.ID, m_strSneakiest, m_strSneakiestDesc);
+	AddAward(new class'NMD_BaseAward', class'NMD_Stat_OverwatchRuns'.const.ID, m_strRunningOverwatch, m_strRunningOverwatchDesc);
+	AddAward(new class'NMD_Award_TimeToBleed', class'NMD_Stat_WoundedDamage'.const.ID, m_strTimeToBleed, m_strTimeToBleedDesc);
 
 	// Non stat-based awards
 	AddAward(new class'NMD_Award_MostAssists', '', "MOST ASSISTS", "Dealt the most damage that did not result in a kill");

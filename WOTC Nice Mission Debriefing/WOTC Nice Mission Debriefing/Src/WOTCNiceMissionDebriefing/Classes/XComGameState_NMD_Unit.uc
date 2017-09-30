@@ -25,9 +25,8 @@ function XComGameState_NMD_Unit InitComponent(XComGameState NewGameState, option
 	CreateOrUpdateStat(class'NMD_Stat_DamageDealt'.const.ID, class'NMD_Stat_DamageDealt', NewGameState);
 	CreateOrUpdateStat(class'NMD_Stat_ShotAccuracy'.const.ID, class'NMD_Stat_ShotAccuracy', NewGameState);
 	CreateOrUpdateStat(class'NMD_Stat_Kills'.const.ID, class'NMD_Stat_Kills', NewGameState);
-	CreateOrUpdateStat(class'NMD_Stat_CloseRange'.const.ID, class'NMD_Stat_CloseRange', NewGameState);
 	CreateOrUpdateStat(class'NMD_Stat_OverwatchAccuracy'.const._ID, class'NMD_Stat_OverwatchAccuracy', NewGameState);
-	CreateOrUpdateStat(class'NMD_Stat_ShotsFromElevation'.const.ID, class'NMD_Stat_ShotsFromElevation', NewGameState);
+	CreateOrUpdateStat(class'NMD_Stat_Headshots'.const.ID, class'NMD_Stat_Headshots', NewGameState);
 	return self;
 }
 
@@ -161,6 +160,22 @@ function AddCriticalDamage(int DamageDealt, XComGameState NewGameState)
 	NewGameState.AddStateObject(Stat);
 }
 
+function AddWoundedDamage(XComGameState_Unit Unit, int DamageDealt, XComGameState NewGameState)
+{
+	local NMD_Stat_WoundedDamage Stat;
+	local NMD_BaseStat BaseStat;
+	local int WoundHP;
+
+	BaseStat = CreateOrUpdateStat(class'NMD_Stat_WoundedDamage'.const.ID, class'NMD_Stat_WoundedDamage', NewGameState);
+
+	Stat = NMD_Stat_WoundedDamage(NewGameState.CreateStateObject(class'NMD_Stat_WoundedDamage', BaseStat.ObjectID));
+
+	WoundHP = Unit.GetMaxStat(eStat_HP) - Unit.GetCurrentStat(eStat_HP);
+
+	Stat.AddValue(WoundHP * DamageDealt);
+	NewGameState.AddStateObject(Stat);
+}
+
 function AddShotFromElevation(XComGameState_Unit AttackingUnit, XComGameState_Unit TargetUnit, XComGameState NewGameState)
 {
 	local NMD_Stat_ShotsFromElevation Stat;
@@ -174,6 +189,20 @@ function AddShotFromElevation(XComGameState_Unit AttackingUnit, XComGameState_Un
 	Stat.AddValue(Value);
 
 	`log("NMD - Total elevation shot value for " $ AttackingUnit.GetFullName() $ ": " $ Stat.GetValue(0));
+	NewGameState.AddStateObject(Stat);
+}
+
+function AddHeadshot(XComGameState_Unit Unit, XComGameState NewGameState)
+{
+	local NMD_Stat_Headshots Stat;
+	local NMD_BaseStat BaseStat;
+
+	BaseStat = CreateOrUpdateStat(class'NMD_Stat_Headshots'.const.ID, class'NMD_Stat_Headshots', NewGameState);
+
+	Stat = NMD_Stat_Headshots(NewGameState.CreateStateObject(class'NMD_Stat_Headshots', BaseStat.ObjectID));
+	Stat.AddValue(1);
+
+	`log("NMD - Headshot damage for " $ Unit.GetFullName() $ ": " $ Stat.GetValue(0));
 	NewGameState.AddStateObject(Stat);
 }
 
@@ -218,6 +247,19 @@ function AddDamageDone(string catToAdd, int dealt, int negated, bool executed, b
 		}
 
 		AddCloseRangeDamage(Attacker, Unit, Dealt, NewGameState);
+
+		if (IsKill)
+		{
+			if (class'X2Effect_TheLostHeadshot'.default.ValidHeadshotAbilities.Find(Context.InputContext.AbilityTemplateName) != INDEX_NONE)
+			{
+				AddHeadshot(Attacker, NewGameState);
+			}
+		}
+	}
+
+	if (Attacker.IsInjured())
+	{
+		AddWoundedDamage(Attacker, Dealt, NewGameState);
 	}
 	/*
 	local NMD_Stat_DamageDealt Stat;
@@ -287,6 +329,24 @@ function NMD_Stat_ConcealedTiles AddConcealedTilesMoved(int Moved, XComGameState
 	return Stat;
 }
 
+function NMD_Stat_OverwatchRuns AddOverwatchRun(bool IsHit, XComGameState NewGameState)
+{
+	local NMD_Stat_OverwatchRuns Stat;
+	local NMD_BaseStat BaseStat;
+	
+	BaseStat = CreateOrUpdateStat(class'NMD_Stat_OverwatchRuns'.const.ID, class'NMD_Stat_OverwatchRuns', NewGameState);
+
+	Stat = NMD_Stat_OverwatchRuns(NewGameState.CreateStateObject(class'NMD_Stat_OverwatchRuns', BaseStat.ObjectID));
+
+	if (IsHit)
+		Stat.AddValue(1);
+	else
+		Stat.AddValue(2);
+
+	NewGameState.AddStateObject(Stat);
+
+	return Stat;
+}
 
 function SetPosterIndex(int Index, XComGameState NewGameState)
 {
