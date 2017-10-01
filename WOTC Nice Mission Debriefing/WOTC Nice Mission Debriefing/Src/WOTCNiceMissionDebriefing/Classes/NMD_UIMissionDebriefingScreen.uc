@@ -179,7 +179,7 @@ function InitAwardsPanel()
 
 	AwardsList = Spawn(class'UIList', AwardsPanel).InitList('AwardsList');
 	AwardsList.SetPosition(20, AwardsHeader.Height);
-	AwardsList.SetSize(AwardsPanel.Width - 30, AwardsPanel.Height - AwardsList.Y - 30);
+	AwardsList.SetSize(AwardsPanel.Width - 50, AwardsPanel.Height - AwardsList.Y - 30);
 }
 
 function ShowStatsForUnit(int SoldierIndex)
@@ -296,7 +296,7 @@ function PopulateStats(XComGameState_Unit Unit, XComGameState_NMD_Unit NMDUnit)
 
 		Award = MissionInfo.GetAwardForStat(Stat.GetType());
 		if (Award != none)
-		{
+		{	
 			if (Award.HasWinner())
 			{
 				if (Value == Award.MaxValue)

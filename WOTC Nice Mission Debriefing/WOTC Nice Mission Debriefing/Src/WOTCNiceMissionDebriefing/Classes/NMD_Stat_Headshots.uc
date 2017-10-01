@@ -11,8 +11,3 @@ function name GetType()
 {
 	return ID;
 }
-
-function bool HideStatIfNoWinner()
-{
-	return true;
-}

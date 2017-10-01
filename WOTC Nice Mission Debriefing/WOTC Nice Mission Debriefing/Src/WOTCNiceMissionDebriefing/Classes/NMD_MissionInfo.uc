@@ -274,9 +274,9 @@ function AddAwardForUnit(NMD_BaseAward Award, int Index)
 	UnitInfo[Index].Awards.AddItem(Award);
 }
 
-private function NMD_BaseAward AddAward(NMD_BaseAward Award, name Type, string Label, string Tooltip, optional bool IsVisible = true)
+private function NMD_BaseAward AddAward(NMD_BaseAward Award, name Type, string Label, string Tooltip, optional bool IsVisible = true, optional bool HideIfNoWinner = false)
 {
-	Award.Initialize(Type, Label, Tooltip, UnitInfo.Length, IsVisible);
+	Award.Initialize(Type, Label, Tooltip, UnitInfo.Length, IsVisible, HideIfNoWinner);
 	Awards.AddItem(Award);
 	return Award;
 }
@@ -291,7 +291,7 @@ function DetermineAwards()
 	AddAward(new class'NMD_BaseAward', class'NMD_Stat_OverwatchAccuracy'.const._ID, "", "", false);
 	AddAward(new class'NMD_BaseAward', class'NMD_Stat_DamageDealt'.const.ID, "", "", false);
 	AddAward(new class'NMD_BaseAward', class'NMD_Stat_TilesMoved'.const.ID, "", "", false);
-	AddAward(new class'NMD_BaseAward', class'NMD_Stat_Headshots'.const.ID, "", "", false);
+	AddAward(new class'NMD_BaseAward', class'NMD_Stat_Headshots'.const.ID, "", "", false, true);
 	AddAward(new class'NMD_BaseAward', class'NMD_Stat_CloseRange'.const.ID, m_strCloseRange, m_strCloseRangeDesc);
 	AddAward(new class'NMD_BaseAward', class'NMD_Stat_ShotsFromElevation'.const.ID, m_strMostHigh, m_strMostHighDesc);
 	AddAward(new class'NMD_BaseAward', class'NMD_Stat_CriticalDamage'.const.ID, m_strHeavyHitter, m_strHeavyHitterDesc);

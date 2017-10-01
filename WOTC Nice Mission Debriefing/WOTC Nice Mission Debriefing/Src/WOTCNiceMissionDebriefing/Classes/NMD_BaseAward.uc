@@ -11,8 +11,9 @@ var int MinValue;
 var string Label;
 var string Tooltip;
 var bool IsVisible;
+var bool HideIfNoWinner;
 
-function NMD_BaseAward Initialize(name Type, string DisplayName, string Tip, int Size, optional bool Visible)
+function NMD_BaseAward Initialize(name Type, string DisplayName, string Tip, int Size, optional bool Visible, optional bool HideNoWin)
 {
 	local int i;
 
@@ -22,6 +23,7 @@ function NMD_BaseAward Initialize(name Type, string DisplayName, string Tip, int
 	Label = DisplayName;
 	Tooltip = Tip;
 	IsVisible = Visible;
+	HideIfNoWinner = HideNoWin;
 
 	for (i = 0; i < Size; ++i)
 		Scores.AddItem(0);
@@ -106,5 +108,5 @@ function string GetLabel(XComGameState_Unit Unit)
 
 function bool HideStatIfNoWinner()
 {
-	return false;
+	return HideIfNoWinner;
 }
