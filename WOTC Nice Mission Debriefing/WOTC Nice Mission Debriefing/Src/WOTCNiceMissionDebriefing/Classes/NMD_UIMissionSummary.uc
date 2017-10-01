@@ -1,35 +1,33 @@
-class NMD_UIMissionSummaryListener extends UIScreenListener config(WOTCNiceMissionDebriefing);
+class NMD_UIMissionSummary extends UIMissionSummary config(WOTCNiceMissionDebriefing);
 
-var config bool EnableTeamPosterWarning;
+//var config bool EnableTeamPosterWarning;
 
 var localized string m_strViewStatsButton;
-var localized string m_strWarningTitle;
-var localized string m_strWarningBody;
+//var localized string m_strWarningTitle;
+//var localized string m_strWarningBody;
 
-var UIMissionSummary MissionSummary;
 var UIButton StatsButton;
 
 var bool HasSeenStats;
 
-event OnInit(UIScreen Screen)
+simulated function InitScreen(XComPlayerController InitController, UIMovie InitMovie, optional name InitName)
 {
-	MissionSummary = UIMissionSummary(Screen);
-	if (MissionSummary.BattleData.IsMultiplayer())
-		return;
+	super.InitScreen(InitController, InitMovie, InitName);
 	
 	HasSeenStats = false;
 
-	MissionSummary.m_PosterButton.SetPosition(940, MissionSummary.m_PosterButton.Y);
-	MissionSummary.m_PosterButton.OnClickedDelegate = OnMakePosterButton;
+	m_PosterButton.SetPosition(940, m_PosterButton.Y);
+	//m_PosterButton.OnClickedDelegate = OnMakePosterButton;
 
-	StatsButton = MissionSummary.Spawn(class'UIButton', MissionSummary);
+	StatsButton = Spawn(class'UIButton', self);
 	StatsButton.ResizeToText = false;
 	StatsButton.InitButton('missionStatsButton', m_strViewStatsButton, OpenStatsButton, eUIButtonStyle_HOTLINK_BUTTON);
-	StatsButton.SetPosition(600, MissionSummary.m_PosterButton.Y);
-	StatsButton.SetWidth(MissionSummary.m_PosterButton.Width);
+	StatsButton.SetPosition(600, m_PosterButton.Y);
+	StatsButton.SetWidth(m_PosterButton.Width);
 	StatsButton.SetGamepadIcon(class'UIUtilities_Input'.const.ICON_X_SQUARE);
 }
 
+/*
 function OnMakePosterButton(UIButton Button)
 {
 	local TDialogueBoxData kConfirmData;
@@ -43,11 +41,11 @@ function OnMakePosterButton(UIButton Button)
 
 		kConfirmData.fnCallback = OnDestructiveActionPopupExitDialog;
 
-		MissionSummary.Movie.Pres.UIRaiseDialog(kConfirmData);
+		Movie.Pres.UIRaiseDialog(kConfirmData);
 	}
 	else
 	{
-		MissionSummary.CloseThenOpenPhotographerScreen();
+		CloseThenOpenPhotographerScreen();
 	}
 }
 
@@ -55,9 +53,10 @@ function OnDestructiveActionPopupExitDialog(Name eAction)
 {
 	if (eAction == 'eUIAction_Accept')
 	{
-		MissionSummary.CloseThenOpenPhotographerScreen();
+		CloseThenOpenPhotographerScreen();
 	}
 }
+*/
 
 simulated function OpenStatsButton(UIButton button)
 {
@@ -66,13 +65,13 @@ simulated function OpenStatsButton(UIButton button)
 	local UIScreenStack ScreenStack;
 	local XComTacticalController LocalController;
 
-	LocalController = XComTacticalController(MissionSummary.BATTLE().GetALocalPlayerController());
+	LocalController = XComTacticalController(BATTLE().GetALocalPlayerController());
 	if (LocalController != none && LocalController.PlayerCamera != none && LocalController.PlayerCamera.bEnableFading)
 	{
 		LocalController.ClientSetCameraFade(false);
 	}
 
-	MissionSummary.HideObscuringParticleSystems();
+	HideObscuringParticleSystems();
 
 	Pres = `PRES;
 	ScreenStack = Pres.ScreenStack;
@@ -86,8 +85,22 @@ simulated function OpenStatsButton(UIButton button)
 	HasSeenStats = true;
 }
 
+simulated function bool OnUnrealCommand(int ucmd, int arg)
+{
+	if(!CheckInputIsReleaseOrDirectionRepeat(ucmd, arg))
+		return false;
+
+	switch(ucmd)
+	{
+		case (class'UIUtilities_Input'.const.FXS_BUTTON_X):
+			OpenStatsButton(none);
+			return true;
+	}
+
+	return super.OnUnrealCommand(ucmd, arg);
+}
+
 defaultProperties
 {
-    ScreenClass = UIMissionSummary
 	HasSeenStats = false
 }

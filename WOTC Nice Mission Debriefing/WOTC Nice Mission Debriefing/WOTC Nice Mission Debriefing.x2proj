@@ -109,6 +109,12 @@
     <Content Include="Src\WOTCNiceMissionDebriefing\Classes\NMD_Stat_WoundedDamage.uc">
       <SubType>Content</SubType>
     </Content>
+    <Content Include="Src\WOTCNiceMissionDebriefing\Classes\NMD_UIMissionSummary.uc">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Src\WOTCNiceMissionDebriefing\Classes\NMD_UIPhotoboothReview.uc">
+      <SubType>Content</SubType>
+    </Content>
     <Content Include="Src\WOTCNiceMissionDebriefing\Classes\NMD_UITacticalHUD_ScreenListener.uc">
       <SubType>Content</SubType>
     </Content>
@@ -122,9 +128,6 @@
       <SubType>Content</SubType>
     </Content>
     <Content Include="Src\WOTCNiceMissionDebriefing\Classes\NMD_UIMissionDebriefingScreen.uc">
-      <SubType>Content</SubType>
-    </Content>
-    <Content Include="Src\WOTCNiceMissionDebriefing\Classes\NMD_UIMissionSummaryListener.uc">
       <SubType>Content</SubType>
     </Content>
     <Content Include="Src\WOTCNiceMissionDebriefing\Classes\NMD_UIPhotoboothReviewListener.uc">

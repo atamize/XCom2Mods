@@ -1,7 +1,6 @@
 class NMD_UIPhotoboothReviewListener extends UIScreenListener;
 
 var UIPhotoboothReview PhotoboothReview;
-var UILargeButton SelectPhotoButton;
 
 event OnInit(UIScreen Screen)
 {
@@ -9,26 +8,11 @@ event OnInit(UIScreen Screen)
 
 	if (`ScreenStack.HasInstanceOf(class'NMD_UIMissionDebriefingScreen'))
 	{
-		PhotoboothReview.m_FavoriteButton.Hide();
-		PhotoboothReview.m_DeleteButton.Hide();
-
-		if (!`ISCONTROLLERACTIVE)
-		{
-			SelectPhotoButton = Screen.Spawn(class'UILargeButton', Screen);
-			SelectPhotoButton.LibID = 'X2ContinueButton';
-			SelectPhotoButton.InitLargeButton('SelectPhotoMC', "SELECT PHOTO", , SelectButton, eUILargeButtonStyle_READY);
-			SelectPhotoButton.SetPosition(1325, 925);
-		}
-
-		PhotoboothReview.MC.BeginFunctionOp("setScreenData");
-		PhotoboothReview.MC.QueueString(PhotoboothReview.m_strPrevious);
-		PhotoboothReview.MC.QueueString(PhotoboothReview.m_strNext);
-		PhotoboothReview.MC.EndOp();
+		// NMD_UIPhotoboothReview is handling this
+		return;
 	}
-	else
-	{
-		PhotoboothReview.m_DeleteButton.OnClickedDelegate = OnDelete;
-	}
+
+	PhotoboothReview.m_DeleteButton.OnClickedDelegate = OnDelete;
 }
 
 function OnDelete(UIButton Button)
@@ -52,7 +36,7 @@ function OnDestructiveActionPopupExitDialog(Name eAction)
 	DeletedPosterIndex = PhotoboothReview.m_CurrentPosterIndex - 1;
 	PhotoboothReview.OnDestructiveActionPopupExitDialog(eAction);
 
-	`log("NMD - Destructive action on poster index " $ DeletedPosterIndex);
+	//`log("NMD - Destructive action on poster index " $ DeletedPosterIndex);
 	if (eAction == 'eUIAction_Accept')
 	{
 		RearrangeSoldierPhotoIndices(DeletedPosterIndex);
@@ -87,7 +71,7 @@ function RearrangeSoldierPhotoIndices(int DeletedPosterIndex)
 			BaseStat = NMDUnit.GetStat(class'NMD_PersistentStat_PosterData'.const.ID);
 			SoldierPosterIndex = BaseStat.GetValue(Unit.ObjectID);
 
-			`log("NMD - " $ Unit.GetFullName() $ " has poster index " $ SoldierPosterIndex);
+			//`log("NMD - " $ Unit.GetFullName() $ " has poster index " $ SoldierPosterIndex);
 
 			if (SoldierPosterIndex < DeletedPosterIndex)
 				continue;
@@ -95,12 +79,12 @@ function RearrangeSoldierPhotoIndices(int DeletedPosterIndex)
 			if (SoldierPosterIndex == DeletedPosterIndex)
 			{
 				NMDUnit.SetPosterIndex(-1, NewGameState);
-				`log("NMD - " $ Unit.GetFullName() $ " had Poster Index " $ DeletedPosterIndex $ " deleted");
+				//`log("NMD - " $ Unit.GetFullName() $ " had Poster Index " $ DeletedPosterIndex $ " deleted");
 			}
 			else if (SoldierPosterIndex > DeletedPosterIndex)
 			{
 				NMDUnit.SetPosterIndex(SoldierPosterIndex - 1, NewGameState);
-				`log("NMD - " $ Unit.GetFullName() $ " had Poster Index " $ SoldierPosterIndex $ ", now " $ SoldierPosterIndex-1);
+				//`log("NMD - " $ Unit.GetFullName() $ " had Poster Index " $ SoldierPosterIndex $ ", now " $ SoldierPosterIndex-1);
 			}
 		}
 	}
@@ -113,24 +97,6 @@ function RearrangeSoldierPhotoIndices(int DeletedPosterIndex)
 	{
 		`XCOMHISTORY.CleanupPendingGameState(NewGameState);
 	}
-}
-
-function SelectButton(UIButton Button)
-{
-	local int SelectedPosterIndex;
-	local NMD_UIMissionDebriefingScreen NMD;
-
-	SelectedPosterIndex = PhotoboothReview.PosterIndices[PhotoboothReview.m_CurrentPosterIndex-1];
-	`log("NMD Selected poster: " $ SelectedPosterIndex);
-
-	NMD = NMD_UIMissionDebriefingScreen(`ScreenStack.GetLastInstanceOf(class'NMD_UIMissionDebriefingScreen'));
-	if (NMD != none)
-	{
-		NMD.SetPhoto(SelectedPosterIndex);
-	}
-
-	PhotoboothReview.Movie.Pres.PlayUISound(eSUISound_MenuClose);
-	PhotoboothReview.CloseScreen();
 }
 
 defaultProperties

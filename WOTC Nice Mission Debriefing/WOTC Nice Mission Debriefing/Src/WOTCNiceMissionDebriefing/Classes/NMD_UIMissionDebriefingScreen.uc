@@ -2,6 +2,11 @@ class NMD_UIMissionDebriefingScreen extends UIScreen config (WOTCNiceMissionDebr
 
 var config array<name> StatsOrder;
 
+var localized string m_strCreatePhoto;
+var localized string m_strSelectPhoto;
+var localized string m_strPrevious;
+var localized string m_strNext;
+
 var UIPanel Container;
 var UIBGBox PanelBG;
 var UIBGBox FullBG;
@@ -65,21 +70,22 @@ simulated function InitScreen(XComPlayerController InitController, UIMovie InitM
 	// Photo Panel
 	PhotoPanel = Spawn(class'UIBGBox', Container);
 	PhotoPanel.LibID = class'UIUtilities_Controls'.const.MC_X2Background;
-	PhotoPanel.InitBG('photoBG', 0, 100, 300, 500);	
+	PhotoPanel.InitBG('photoBG', 30, 100, 300, 500);	
+	PhotoPanel.X = 30;
 
 	SoldierImage = Spawn(class'UIImage', Container).InitImage();
 	SoldierImage.SetPosition(PhotoPanel.X + 10, PhotoPanel.Y + 20);
 
 	CreatePhotoButton = Spawn(class'UIButton', Container);
 	CreatePhotoButton.ResizeToText = false;
-	CreatePhotoButton.InitButton('CreatePhotoButton', "Create Photo", OpenCreatePhoto, eUIButtonStyle_HOTLINK_BUTTON);
+	CreatePhotoButton.InitButton('CreatePhotoButton', m_strCreatePhoto, OpenCreatePhoto, eUIButtonStyle_HOTLINK_BUTTON);
 	CreatePhotoButton.SetWidth(130);
-	CreatePhotoButton.SetGamepadIcon(class'UIUtilities_Input'.const.ICON_Y_TRIANGLE);
+	CreatePhotoButton.SetGamepadIcon(class'UIUtilities_Input'.const.ICON_X_SQUARE);
 	CreatePhotoButton.SetPosition(PhotoPanel.X + 10, PhotoPanel.Y + PhotoPanel.Height - 50);
 
 	SelectPhotoButton = Spawn(class'UIButton', Container);
 	SelectPhotoButton.ResizeToText = false;
-	SelectPhotoButton.InitButton('selectPhotoButton', "Select Photo", OpenPhotoboothReview, eUIButtonStyle_HOTLINK_BUTTON);
+	SelectPhotoButton.InitButton('selectPhotoButton', m_strSelectPhoto, OpenPhotoboothReview, eUIButtonStyle_HOTLINK_BUTTON);
 	SelectPhotoButton.SetWidth(130);
 	SelectPhotoButton.SetGamepadIcon(class'UIUtilities_Input'.const.ICON_Y_TRIANGLE);
 	SelectPhotoButton.SetPosition(CreatePhotoButton.X + CreatePhotoButton.Width + 20, CreatePhotoButton.Y);
@@ -100,26 +106,26 @@ simulated function InitScreen(XComPlayerController InitController, UIMovie InitM
 	MVPText.SetPosition(-Width - 15, MVPImage.Y + MVPImage.Height);
 	MVPText.SetCenteredText(class'UIUtilities_Text'.static.GetSizedText("MVP", 42));
 
-	// Navigation
-	PreviousButton = Spawn(class'UIButton', Container);
-	PreviousButton.ResizeToText = false;
-	PreviousButton.InitButton('PreviousButton', "Previous", OnPreviousClick, eUIButtonStyle_HOTLINK_BUTTON);
-	PreviousButton.SetWidth(150);
-	PreviousButton.SetGamepadIcon(class'UIUtilities_Input'.const.ICON_LB_L1);
-	PreviousButton.SetPosition(Container.Width - 400, Container.Height - 50);
-
-	NextButton = Spawn(class'UIButton', Container);
-	NextButton.ResizeToText = false;
-	NextButton.InitButton('NextButton', "Next", OnNextClick, eUIButtonStyle_HOTLINK_BUTTON);
-	NextButton.SetWidth(150);
-	NextButton.SetGamepadIcon(class'UIUtilities_Input'.const.ICON_RB_R1);
-	NextButton.SetPosition(PreviousButton.X + PreviousButton.Width + 30, PreviousButton.Y);
-
 	// Stats
 	InitStatsPanel();
 
 	// Awards Panel
 	InitAwardsPanel();
+	
+	// Navigation
+	PreviousButton = Spawn(class'UIButton', Container);
+	PreviousButton.ResizeToText = false;
+	PreviousButton.InitButton('PreviousButton', m_strPrevious, OnPreviousClick, eUIButtonStyle_HOTLINK_BUTTON);
+	PreviousButton.SetWidth(180);
+	PreviousButton.SetGamepadIcon(class'UIUtilities_Input'.const.ICON_LB_L1);
+	PreviousButton.SetPosition(AwardsPanel.X + 30, Container.Height - 50);
+
+	NextButton = Spawn(class'UIButton', Container);
+	NextButton.ResizeToText = false;
+	NextButton.InitButton('NextButton', m_strNext, OnNextClick, eUIButtonStyle_HOTLINK_BUTTON);
+	NextButton.SetWidth(180);
+	NextButton.SetGamepadIcon(class'UIUtilities_Input'.const.ICON_RB_R1);
+	NextButton.SetPosition(PreviousButton.X + PreviousButton.Width + 30, PreviousButton.Y);
 
 	MissionSummary = UIMissionSummary(`ScreenStack.GetFirstInstanceOf(class'UIMissionSummary'));
 	if (MissionSummary != none)
@@ -357,9 +363,9 @@ function OpenCreatePhoto(UIButton button)
 
 function OpenPhotoboothReview(UIButton button)
 {
-	if (`ScreenStack.IsNotInStack(class'UIPhotoboothReview'))
+	if (`ScreenStack.IsNotInStack(class'NMD_UIPhotoboothReview'))
 	{
-		`ScreenStack.Push(Spawn(class'UIPhotoboothReview', `PRES));
+		`ScreenStack.Push(Spawn(class'NMD_UIPhotoboothReview', `PRES));
 	}
 }
 
@@ -412,6 +418,44 @@ function SavePosterIndex(int PosterIndex)
 		`log("NMD Setting PosterIndex to " $ PosterIndex);
 		`GAMERULES.SubmitGameState(NewGameState);
 	} else `log("NMDUnit SavePosterIndex not found");
+}
+
+simulated function bool OnUnrealCommand(int ucmd, int arg)
+{
+	if(!CheckInputIsReleaseOrDirectionRepeat(ucmd, arg))
+		return false;
+
+	switch(ucmd)
+	{
+		case (class'UIUtilities_Input'.const.FXS_BUTTON_B):
+		case (class'UIUtilities_Input'.const.FXS_KEY_ESCAPE):
+			BackToSummary();
+			return true;
+
+		case (class'UIUtilities_Input'.const.FXS_BUTTON_X):
+			OpenCreatePhoto(none);
+			return true;
+
+		case (class'UIUtilities_Input'.const.FXS_BUTTON_Y):
+			OpenPhotoboothReview(none);
+			return true;
+
+		case (class'UIUtilities_Input'.const.FXS_BUTTON_A):
+		case (class'UIUtilities_Input'.const.FXS_KEY_ENTER):
+		case (class'UIUtilities_Input'.const.FXS_KEY_SPACEBAR):
+			NavHelp.OnClickedContinueDelegate();
+			return true;
+
+		case class'UIUtilities_Input'.const.FXS_BUTTON_LBUMPER:
+			OnPreviousClick(none);
+			return true;
+
+		case class'UIUtilities_Input'.const.FXS_BUTTON_RBUMPER:
+			OnNextClick(none);
+			return true;
+	}
+
+	return super.OnUnrealCommand(ucmd, arg);
 }
 
 defaultproperties
