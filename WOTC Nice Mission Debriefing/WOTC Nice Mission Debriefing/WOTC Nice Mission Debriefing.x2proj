@@ -34,10 +34,16 @@
     <Content Include="Src\WOTCNiceMissionDebriefing\Classes\NMD_Award_NotBadKid.uc">
       <SubType>Content</SubType>
     </Content>
+    <Content Include="Src\WOTCNiceMissionDebriefing\Classes\NMD_Award_Overqualified.uc">
+      <SubType>Content</SubType>
+    </Content>
     <Content Include="Src\WOTCNiceMissionDebriefing\Classes\NMD_Award_SoloSlayer.uc">
       <SubType>Content</SubType>
     </Content>
     <Content Include="Src\WOTCNiceMissionDebriefing\Classes\NMD_Award_TimeToBleed.uc">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Src\WOTCNiceMissionDebriefing\Classes\NMD_Award_TooOld.uc">
       <SubType>Content</SubType>
     </Content>
     <Content Include="Src\WOTCNiceMissionDebriefing\Classes\NMD_BaseAward.uc">
@@ -71,6 +77,9 @@
       <SubType>Content</SubType>
     </Content>
     <Content Include="Src\WOTCNiceMissionDebriefing\Classes\NMD_Stat_EnvironmentDamage.uc">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Src\WOTCNiceMissionDebriefing\Classes\NMD_Stat_EvacDamage.uc">
       <SubType>Content</SubType>
     </Content>
     <Content Include="Src\WOTCNiceMissionDebriefing\Classes\NMD_Stat_Exposure.uc">

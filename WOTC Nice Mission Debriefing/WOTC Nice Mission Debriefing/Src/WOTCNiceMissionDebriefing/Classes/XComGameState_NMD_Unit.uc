@@ -264,6 +264,11 @@ function AddDamageDone(string catToAdd, int dealt, int negated, bool executed, b
 	{
 		AddWoundedDamage(Attacker, Dealt, NewGameState);
 	}
+
+	if (class'NMD_Utilities'.static.IsAbilityAvailable(Attacker.GetReference(), 'Evac'))
+	{
+		AddEvacDamage(Dealt, NewGameState);
+	}
 	/*
 	local NMD_Stat_DamageDealt Stat;
 	local NMD_Stat_Kills KillStat;
@@ -374,6 +379,21 @@ function NMD_Stat_EnvironmentDamage AddEnvironmentDamage(int Value, XComGameStat
 	BaseStat = CreateOrUpdateStat(class'NMD_Stat_EnvironmentDamage'.const.ID, class'NMD_Stat_EnvironmentDamage', NewGameState);
 
 	Stat = NMD_Stat_EnvironmentDamage(NewGameState.CreateStateObject(class'NMD_Stat_EnvironmentDamage', BaseStat.ObjectID));
+	Stat.AddValue(Value);
+
+	NewGameState.AddStateObject(Stat);
+
+	return Stat;
+}
+
+function NMD_Stat_EvacDamage AddEvacDamage(int Value, XComGameState NewGameState)
+{
+	local NMD_Stat_EvacDamage Stat;
+	local NMD_BaseStat BaseStat;
+	
+	BaseStat = CreateOrUpdateStat(class'NMD_Stat_EvacDamage'.const.ID, class'NMD_Stat_EvacDamage', NewGameState);
+
+	Stat = NMD_Stat_EvacDamage(NewGameState.CreateStateObject(class'NMD_Stat_EvacDamage', BaseStat.ObjectID));
 	Stat.AddValue(Value);
 
 	NewGameState.AddStateObject(Stat);

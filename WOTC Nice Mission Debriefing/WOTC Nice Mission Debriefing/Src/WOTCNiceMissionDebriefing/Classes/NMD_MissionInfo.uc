@@ -25,6 +25,12 @@ var localized string m_strNotBadKid;
 var localized string m_strNotBadKidDesc;
 var localized string m_strWantonDestruction;
 var localized string m_strWantonDestructionDesc;
+var localized string m_strPartingGift;
+var localized string m_strPartingGiftDesc;
+var localized string m_strTooOld;
+var localized string m_strTooOldDesc;
+var localized string m_strOverqualified;
+var localized string m_strOverqualifiedDesc;
 
 var localized string m_strHeadshots;
 
@@ -293,6 +299,7 @@ function DetermineAwards()
 	AddAward(new class'NMD_BaseAward', class'NMD_Stat_OverwatchRuns'.const.ID, m_strRunningOverwatch, m_strRunningOverwatchDesc);
 	AddAward(new class'NMD_BaseAward', class'NMD_Stat_Exposure'.const.ID, m_strMostExposed, m_strMostExposedDesc);
 	AddAward(new class'NMD_BaseAward', class'NMD_Stat_EnvironmentDamage'.const.ID, m_strWantonDestruction, m_strWantonDestructionDesc);
+	AddAward(new class'NMD_BaseAward', class'NMD_Stat_EvacDamage'.const.ID, m_strPartingGift, m_strPartingGiftDesc);
 	AddAward(new class'NMD_Award_TimeToBleed', class'NMD_Stat_WoundedDamage'.const.ID, m_strTimeToBleed, m_strTimeToBleedDesc);
 
 	// Non stat-based awards
@@ -300,6 +307,8 @@ function DetermineAwards()
 	AddAward(new class'NMD_Award_SoloSlayer', '', m_strSoloSlayer, m_strSoloSlayerDesc);
 	AddAward(new class'NMD_Award_KillStealer', '', m_strKillStealer, m_strKillStealerDesc);
 	AddAward(new class'NMD_Award_NotBadKid', '', m_strNotBadKid, m_strNotBadKidDesc);
+	AddAward(new class'NMD_Award_TooOld', '', m_strTooOld, m_strTooOldDesc);
+	AddAward(new class'NMD_Award_Overqualified', '', m_strOverqualified, m_strOverqualifiedDesc);
 
 	// Dynamic awards
 	AddAward(new class'NMD_BaseAward', 'LootPickedUp', "", "", false);

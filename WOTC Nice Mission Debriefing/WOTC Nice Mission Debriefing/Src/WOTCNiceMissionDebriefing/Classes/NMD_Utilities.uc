@@ -333,6 +333,37 @@ static function bool IsFriendly(XComGameState_Unit Unit)
 	return false;
 }
 
+static function bool IsAbilityAvailable(StateObjectReference StateRef, name AbilityName)
+{
+	local XComGameStateHistory History;
+	local XComGameState_Ability SelectedAbilityState;
+	local X2AbilityTemplate SelectedAbilityTemplate;
+	local X2TacticalGameRuleset TacticalRules;
+	local GameRulesCache_Unit OutCachedAbilitiesInfo;
+	local AvailableAction Action;
+	local int Index;
+
+	History = `XCOMHISTORY;
+	TacticalRules = `TACTICALRULES;
+
+	TacticalRules.GetGameRulesCache_Unit(StateRef, OutCachedAbilitiesInfo);
+	
+	for (Index = 0; Index < OutCachedAbilitiesInfo.AvailableActions.Length; ++Index)
+	{		
+		Action = OutCachedAbilitiesInfo.AvailableActions[Index];
+		SelectedAbilityState = XComGameState_Ability(History.GetGameStateForObjectID(Action.AbilityObjectRef.ObjectID));
+		SelectedAbilityTemplate = SelectedAbilityState.GetMyTemplate();	
+
+		//`log("    MAVAbility action: " $ SelectedAbilityTemplate.DataName $ ", code: " $ Action.AvailableCode); 
+		if (SelectedAbilityTemplate.DataName == AbilityName && Action.AvailableCode == 'AA_Success')
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
 /*
 static function updateToV1(XComGameState newGameState) {
 	local XComGameState_Unit unit;
