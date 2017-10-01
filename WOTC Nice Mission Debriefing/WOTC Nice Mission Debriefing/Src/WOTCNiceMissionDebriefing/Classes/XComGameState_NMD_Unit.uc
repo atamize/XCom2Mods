@@ -42,7 +42,7 @@ function ClearMissionStats(XComGameState NewGameState)
 		{
 			Stat = NMD_BaseStat(NewGameState.CreateStateObject(class'NMD_BaseStat', Stat.ObjectID));
 			Stat.InitComponent();
-			`log("NMD - clearing mission stat " $ Stat.GetType());
+			//`log("NMD - clearing mission stat " $ Stat.GetType());
 			NewGameState.AddStateObject(Stat);
 		}
 	}
@@ -143,7 +143,7 @@ function AddCloseRangeDamage(XComGameState_Unit AttackingUnit, XComGameState_Uni
 		CloseRangeValue += (2 - Tiles + 1) + DamageDealt;
 	}
 	Stat.AddValue(CloseRangeValue);
-	`log("NMD - Total close range damage for " $ AttackingUnit.GetFullName() $ ": " $ Stat.GetValue(0)); 
+	//`log("NMD - Total close range damage for " $ AttackingUnit.GetFullName() $ ": " $ Stat.GetValue(0)); 
 	NewGameState.AddStateObject(Stat);
 }
 
@@ -188,7 +188,7 @@ function AddShotFromElevation(XComGameState_Unit AttackingUnit, XComGameState_Un
 	Value = AttackingUnit.TileLocation.Z - TargetUnit.TileLocation.Z;
 	Stat.AddValue(Value);
 
-	`log("NMD - Total elevation shot value for " $ AttackingUnit.GetFullName() $ ": " $ Stat.GetValue(0));
+	//`log("NMD - Total elevation shot value for " $ AttackingUnit.GetFullName() $ ": " $ Stat.GetValue(0));
 	NewGameState.AddStateObject(Stat);
 }
 
@@ -202,7 +202,7 @@ function AddHeadshot(XComGameState_Unit Unit, XComGameState NewGameState)
 	Stat = NMD_Stat_Headshots(NewGameState.CreateStateObject(class'NMD_Stat_Headshots', BaseStat.ObjectID));
 	Stat.AddValue(1);
 
-	`log("NMD - Headshot damage for " $ Unit.GetFullName() $ ": " $ Stat.GetValue(0));
+	//`log("NMD - Headshot damage for " $ Unit.GetFullName() $ ": " $ Stat.GetValue(0));
 	NewGameState.AddStateObject(Stat);
 }
 
@@ -214,7 +214,7 @@ function AddDamageDone(string catToAdd, int dealt, int negated, bool executed, b
 	
 	Found = false;
 
-	`log("NMD - " $ Attacker.GetFullName() $ " has damaged enemies: " $ EnemyDamageResults.Length);
+	//`log("NMD - " $ Attacker.GetFullName() $ " has damaged enemies: " $ EnemyDamageResults.Length);
 	for (i = 0; i < EnemyDamageResults.Length; ++i)
 	{
 		if (Unit.ObjectID == EnemyDamageResults[i].UnitID)
@@ -222,7 +222,7 @@ function AddDamageDone(string catToAdd, int dealt, int negated, bool executed, b
 			EnemyDamageResults[i].Damage += Dealt;
 			EnemyDamageResults[i].Killed = IsKill;
 
-			`log("NMD - " $ catToAdd $ " dealt damage: " $ dealt $ "; total: " $ EnemyDamageResults[i].Damage);
+			//`log("NMD - " $ catToAdd $ " dealt damage: " $ dealt $ "; total: " $ EnemyDamageResults[i].Damage);
 
 			Found = true;
 			break;
@@ -236,7 +236,7 @@ function AddDamageDone(string catToAdd, int dealt, int negated, bool executed, b
 		Result.Killed = IsKill;
 		EnemyDamageResults.AddItem(Result);
 
-		`log("NMD - " $ catToAdd $ " dealt damage: " $ dealt $ ", isKill? " $ isKill);
+		//`log("NMD - " $ catToAdd $ " dealt damage: " $ dealt $ ", isKill? " $ isKill);
 	}
 
 	if (Context != none)
@@ -295,18 +295,6 @@ function AddDamageDone(string catToAdd, int dealt, int negated, bool executed, b
 	
 	}
 	*/
-}
-
-function addDamageTaken(string catToAdd, int taken, int absorbed, XComGameState NewGameState) {
-	//local NMD_Stats subStats, MainStats;
-	//
-	//MainStats = NMD_Stats(NewGameState.CreateStateObject(class'NMD_Stats', MainStatsRef.ObjectID));
-	//subStats = createOrUpdateSubStats(catToAdd, NewGameState);
-//
-	//MainStats.addDamageTaken(taken, absorbed);
-	//subStats.addDamageTaken(taken, absorbed);
-	//NewGameState.AddStateObject(MainStats);
-	//NewGameState.AddStateObject(subStats);
 }
 
 function NMD_Stat_TilesMoved AddTilesMoved(int Moved, XComGameState NewGameState)

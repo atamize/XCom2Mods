@@ -9,65 +9,31 @@ var config array<name> moveShotAbilities;
 /**
 	Generates and stores the NMD_Root GameState into History if it does not already exist
 */
-static function XComGameState_NMD_Root checkOrCreateRoot()
+static function XComGameState_NMD_Root CheckOrCreateRoot()
 {
-	local XComGameState newGameState;
-	local XComGameState_NMD_Root rootStats;
-	rootStats = XComGameState_NMD_Root(`XCOMHISTORY.GetSingleGameStateObjectForClass(class'XComGameState_NMD_Root', true));
+	local XComGameState NewGameState;
+	local XComGameState_NMD_Root RootStats;
+	RootStats = XComGameState_NMD_Root(`XCOMHISTORY.GetSingleGameStateObjectForClass(class'XComGameState_NMD_Root', true));
 	
-	if( rootStats == none ) {
-		newGameState = class'XComGameStateContext_ChangeContainer'.static.CreateChangeState("Adding Root NMD");
+	if (RootStats == none)
+	{
+		NewGameState = class'XComGameStateContext_ChangeContainer'.static.CreateChangeState("Adding Root NMD");
 
-		rootStats = XComGameState_NMD_Root(newGameState.CreateStateObject(class'XComGameState_NMD_Root'));		
-		rootStats.InitComponent();
+		RootStats = XComGameState_NMD_Root(NewGameState.CreateStateObject(class'XComGameState_NMD_Root'));		
+		RootStats.InitComponent();
 		
-		newGameState.AddStateObject(rootStats);
-		`XCOMHISTORY.AddGameStateToHistory(newGameState);
-	} else updateVersion(rootStats);
+		NewGameState.AddStateObject(RootStats);
+		`XCOMHISTORY.AddGameStateToHistory(NewGameState);
+	}
 
 	return rootStats;
 }
 
 /**
-	Ensures that the mod is properly updated
-*/
-static function updateVersion(XComGameState_NMD_Root root) {
-	/*
-	local XComGameState newGameState;
-	local XComGameStateContext_ChangeContainer changeContainer;
-	local XComGameState_NMD_Root newRoot;
-	
-	if( root.modVersionId < 1 ) {
-		changeContainer = class'XComGameStateContext_ChangeContainer'.static.CreateEmptyChangeContainer("Checking/Adding RootStats");
-		newGameState = `XCOMHISTORY.CreateNewGameState(true, changeContainer);
-		newRoot = XComGameState_NMD_Root(newGameState.CreateStateObject(class'XComGameState_NMD_Root', root.ObjectID));
-		newRoot.InitComponent();
-		updateToV1(newGameState);
-		
-		newGameState.AddStateObject(newRoot);
-		`XCOMHISTORY.AddGameStateToHistory(newGameState);
-		
-		if( DEBUG ) `log("==== UPDATED LIFETIME_ROOT FROM " $ root.modVersion $ " TO " $ newRoot.modVersion $ " ====");
-	} else if( root.modVersionId < class'XComGameState_NMD_Root'.const.CURRENT_VERSION_ID ) {
-		changeContainer = class'XComGameStateContext_ChangeContainer'.static.CreateEmptyChangeContainer("Checking/Adding RootStats");
-		newGameState = `XCOMHISTORY.CreateNewGameState(true, changeContainer);
-		newRoot = XComGameState_NMD_Root(newGameState.CreateStateObject(class'XComGameState_NMD_Root', root.ObjectID));
-		newRoot.InitComponent();
-		
-		newGameState.AddStateObject(newRoot);
-		`XCOMHISTORY.AddGameStateToHistory(newGameState);
-		
-		if( DEBUG ) `log("==== UPDATED LIFETIME_ROOT FROM " $ root.modVersion $ " TO " $ newRoot.modVersion $ " ====");
-	} else {
-		if( DEBUG ) `log("==== LIFETIME_ROOT ALREADY AT VERSION " $ root.modVersion $ " ====");
-	}
-	*/
-}
-
-/**
 	Ensures that all soldiers currently in HQ have UnitStats
 */
-static function ensureAllHaveUnitStats() {
+static function EnsureAllHaveUnitStats()
+{
 	local XComGameState_HeadquartersXCom HQ;
 	// Setup shortcut vars
 	HQ = class'UIUtilities_Strategy'.static.GetXComHQ(true);
@@ -80,7 +46,8 @@ static function ensureAllHaveUnitStats() {
 /**
 	Ensures that all soldiers currently in the Squad have UnitStats
 */
-static function ensureSquadHasUnitStats() {
+static function EnsureSquadHasUnitStats()
+{
 	local XComGameState_HeadquartersXCom HQ;
 	local ReserveSquad Reserve;
 
@@ -91,65 +58,69 @@ static function ensureSquadHasUnitStats() {
 		
 	foreach HQ.AllSquads(Reserve)
 	{
-		ensureHaveUnitStats(Reserve.SquadMembers);
+		EnsureHaveUnitStats(Reserve.SquadMembers);
 	}
 }
 
 /**
 	Ensures that all soldiers int he given list have UnitStats
 */
-static function ensureHaveUnitStats(array<StateObjectReference> units) {
-	local XComGameState_Unit unit;
+static function EnsureHaveUnitStats(array<StateObjectReference> Units)
+{
+	local XComGameState_Unit Unit;
 	local int i;
 
 	// Update all in array
-	for(i = 0; i < units.Length; i++) {
-		unit = XComGameState_Unit( `XCOMHISTORY.GetGameStateForObjectId(units[i].ObjectID) );
-		EnsureHasUnitStats(unit);
+	for (i = 0; i < Units.Length; i++)
+	{
+		Unit = XComGameState_Unit(`XCOMHISTORY.GetGameStateForObjectId(Units[i].ObjectID));
+		EnsureHasUnitStats(Unit);
 	}
 }
 
 /**
 	Ensures the given unit has UnitStats if he is a soldier
 */
-static function XComGameState_NMD_Unit EnsureHasUnitStats(XComGameState_Unit unit) {
+static function XComGameState_NMD_Unit EnsureHasUnitStats(XComGameState_Unit Unit)
+{
 	// Shortcut variables
 	local XComGameStateHistory History;
 
 	// To perform the gamestate modification
-	local XComGameState newGameState;
-	local XComGameStateContext_ChangeContainer changeContainer;
-	local XComGameState_NMD_Unit unitStats;
-	local XComGameState_Unit newUnit;
+	local XComGameState NewGameState;
+	local XComGameStateContext_ChangeContainer ChangeContainer;
+	local XComGameState_NMD_Unit UnitStats;
+	local XComGameState_Unit NewUnit;
 	
 	// Get shortcut vars
 	History = `XCOMHISTORY;
 	
 	// If unit is not a soldier, return
-	if( !unit.IsSoldier() )
+	if (!unit.IsSoldier())
 		return none;
 	
 	// Check if unit has UnitStats
-	unitStats = XComGameState_NMD_Unit( unit.FindComponentObject(class'XComGameState_NMD_Unit') );
-	if( unitStats == none ) {
+	UnitStats = XComGameState_NMD_Unit(Unit.FindComponentObject(class'XComGameState_NMD_Unit'));
+	if (unitStats == none)
+	{
 		// If not found, we need to add it
-		if( DEBUG ) `log("=NMD= Adding UnitStats for " $ unit.GetFullName() $ " =======");
+		//if( DEBUG ) `log("=NMD= Adding UnitStats for " $ unit.GetFullName() $ " =======");
 	
 		// Setup new game state
-		changeContainer = class'XComGameStateContext_ChangeContainer'.static.CreateEmptyChangeContainer("Adding UnitStats to " $ unit.GetFullName());
-		newGameState = History.CreateNewGameState(true, changeContainer);
-		newUnit = XComGameState_Unit(newGameState.CreateStateObject(class'XComGameState_Unit', unit.ObjectID));
+		ChangeContainer = class'XComGameStateContext_ChangeContainer'.static.CreateEmptyChangeContainer("Adding UnitStats to " $ unit.GetFullName());
+		NewGameState = History.CreateNewGameState(true, ChangeContainer);
+		NewUnit = XComGameState_Unit(NewGameState.CreateStateObject(class'XComGameState_Unit', Unit.ObjectID));
 		
 		// Create and add UnitStats
-		unitStats = XComGameState_NMD_Unit(newGameState.CreateStateObject(class'XComGameState_NMD_Unit'));
-		unitStats.InitComponent(newGameState);
-		newUnit.AddComponentObject(unitStats);
+		UnitStats = XComGameState_NMD_Unit(NewGameState.CreateStateObject(class'XComGameState_NMD_Unit'));
+		UnitStats.InitComponent(NewGameState);
+		NewUnit.AddComponentObject(UnitStats);
 		
 		// Add new stats to history
-		newGameState.AddStateObject(newUnit);
-		newGameState.AddStateObject(unitStats);
-		History.AddGameStateToHistory(newGameState);
-	}// else unitStats = updateUnitToV1(unit);
+		NewGameState.AddStateObject(NewUnit);
+		NewGameState.AddStateObject(UnitStats);
+		History.AddGameStateToHistory(NewGameState);
+	}
 
 	return unitStats;
 }
@@ -189,68 +160,80 @@ static function ResetMissionStats(XComGameState NewGameState)
 /**
 	As recommended by Amineri -- Based on her NexusMods post
 */
-static function CleanupDismissedUnits() {
-    local XComGameState newGameState;
-    local XComGameState_Unit unit;
-    local XComGameState_NMD_Unit unitStats;
+static function CleanupDismissedUnits()
+{
+    local XComGameState NewGameState;
+    local XComGameState_Unit Unit;
+    local XComGameState_NMD_Unit UnitStats;
 	
-    newGameState = class'XComGameStateContext_ChangeContainer'.static.CreateChangeState("NMD Cleanup");
-    foreach `XCOMHISTORY.IterateByClassType(class'XComGameState_NMD_Unit', unitStats, , true) {
+    NewGameState = class'XComGameStateContext_ChangeContainer'.static.CreateChangeState("NMD Cleanup");
+    foreach `XCOMHISTORY.IterateByClassType(class'XComGameState_NMD_Unit', unitStats, , true)
+	{
         //check and see if the OwningObject is still alive and exists
-        if( unitStats.OwningObjectId > 0 ) {
-            unit = XComGameState_Unit(`XCOMHISTORY.GetGameStateForObjectID(unitStats.OwningObjectID));
-            if( unit == none ) {
-                if( DEBUG ) `log("WOTCLifetimeStats_Unit Component has no current owning unit, cleaning up state.");
+        if (UnitStats.OwningObjectId > 0)
+		{
+            Unit = XComGameState_Unit(`XCOMHISTORY.GetGameStateForObjectID(unitStats.OwningObjectID));
+            if (Unit == none)
+			{
+                //if( DEBUG ) `log("WOTCLifetimeStats_Unit Component has no current owning unit, cleaning up state.");
                 // Remove disconnected officer state
-                newGameState.RemoveStateObject(unitStats.ObjectID);
+                NewGameState.RemoveStateObject(UnitStats.ObjectID);
             }
-            else {
-                if(unit.bRemoved) {
-                    if( DEBUG ) `log("WOTCLifetimeStats_Unit Owning Unit was removed, Removing unitStats");
-                    newGameState.RemoveStateObject(unitStats.ObjectID);
+            else
+			{
+                if (Unit.bRemoved)
+				{
+                    //if( DEBUG ) `log("WOTCLifetimeStats_Unit Owning Unit was removed, Removing unitStats");
+                    NewGameState.RemoveStateObject(UnitStats.ObjectID);
                 }
             }
         }
     }
 	
-    if( newGameState.GetNumGameStateObjects() > 0 )
-        `GAMERULES.SubmitGameState(newGameState);
+    if (NewGameState.GetNumGameStateObjects() > 0)
+        `GAMERULES.SubmitGameState(NewGameState);
     else
-        `XCOMHISTORY.CleanupPendingGameState(newGameState);
+        `XCOMHISTORY.CleanupPendingGameState(NewGameState);
 }
 
-static function int getDamageResultIndexMod(name ability, out XComGameState_NMD_Unit stats, XComGameState sourceGameState)
+static function int GetDamageResultIndexMod(name Ability, out XComGameState_NMD_Unit Stats, XComGameState SourceGameState)
 {
-	if( ability != 'fanfire' ) {
-		stats.multifireHistoryIndex = -1;
-		stats.multifireIndex = 1;
+	if (Ability != 'fanfire')
+	{
+		Stats.multifireHistoryIndex = -1;
+		Stats.multifireIndex = 1;
 		return 1;
 	}
 
-	if( sourceGameState.HistoryIndex != stats.multifireHistoryIndex ) {
-		stats.multifireHistoryIndex = sourceGameState.HistoryIndex;
-		stats.multifireIndex = 1;
+	if (sourceGameState.HistoryIndex != Stats.multifireHistoryIndex)
+	{
+		Stats.multifireHistoryIndex = SourceGameState.HistoryIndex;
+		Stats.multifireIndex = 1;
 	}
 	
-	return stats.multifireIndex++;
+	return Stats.multifireIndex++;
 }
 
-static function bool isShotType(name type) {
-	local name basicShotAbility;
+static function bool IsShotType(name Type)
+{
+	local name BasicShotAbility;
 
-	foreach default.basicShotAbilities(basicShotAbility) {
-		if( type == basicShotAbility )
+	foreach default.basicShotAbilities(BasicShotAbility)
+	{
+		if (type == basicShotAbility)
 			return true;
 	}
 	
 	return false;
 }
 
-static function bool isMoveType(name type) {
-	local name moveShotAbility;
+static function bool IsMoveType(name Type)
+{
+	local name MoveShotAbility;
 	
-	foreach default.moveShotAbilities(moveShotAbility) {
-		if( type == moveShotAbility )
+	foreach default.MoveShotAbilities(MoveShotAbility)
+	{
+		if (Type == MoveShotAbility)
 			return true;
 	}
 	
@@ -363,49 +346,3 @@ static function bool IsAbilityAvailable(StateObjectReference StateRef, name Abil
 
 	return false;
 }
-
-/*
-static function updateToV1(XComGameState newGameState) {
-	local XComGameState_Unit unit;
-	
-	`log("UPDATING TO MODULAR STATS (v1.0.0)");
-	foreach `XCOMHISTORY.IterateByClassType(class'XComGameState_Unit', unit,, true) {
-		updateUnitToV1(unit, newGameState);
-    }
-}
-
-static function XComGameState_NMD_Unit updateUnitToV1(XComGameState_Unit unit, optional XComGameState newGameState) {
-	local XComGameStateContext_ChangeContainer changeContainer;
-	local XComGameState_NMD_Unit unitStats, newUnitStats;
-	local NMD_Stats stats;
-	local XComGameState_Unit newUnit;
-
-	unitStats = XComGameState_NMD_Unit( unit.FindComponentObject(class'XComGameState_NMD_Unit') );
-	if( unitStats == none )
-		return none;
-	
-	stats = unitStats.getMainStats();
-	if( stats == none ) {
-		if( newGameState == none ) {
-			changeContainer = class'XComGameStateContext_ChangeContainer'.static.CreateEmptyChangeContainer("Updating UnitStats to v1 for " $ unit.GetFullName());
-			newGameState = `XCOMHISTORY.CreateNewGameState(true, changeContainer);
-		}
-		
-		newUnit = XComGameState_Unit(newGameState.CreateStateObject(class'XComGameState_Unit', unit.ObjectID));
-		newUnitStats = XComGameState_NMD_Unit(newGameState.CreateStateObject(class'XComGameState_NMD_Unit', unitStats.ObjectID));
-		newUnitStats.InitComponent(newGameState, true);
-		
-		newGameState.AddStateObject(newUnit);
-		newGameState.AddStateObject(newUnitStats);
-		// Submit if we created
-		if( changeContainer != none ) {
-			`XCOMHISTORY.AddGameStateToHistory(newGameState);
-		}
-		
-		`log("UPDATED " $ unit.GetFullName() $ " To v1");
-		return newUnitStats;
-	}
-	
-	return unitStats;
-}
-*/

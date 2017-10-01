@@ -8,17 +8,19 @@ event OnInit(UIScreen Screen)
 
 function InitNMD()
 {
-	local XComGameState_NMD_Root root;
+	local XComGameState_NMD_Root Root;
 
 	`log("[NMD] - NMD Initializing");
 
-	root = class'NMD_Utilities'.static.checkOrCreateRoot();
-	root.RegisterAbilityActivated();
+	Root = class'NMD_Utilities'.static.CheckOrCreateRoot();
+	Root.RegisterAbilityActivated();
 
-	root.ClearStatsOnFirstTurn();
+	`log("[NMD] - NMD at version: " $ Root.ModVersion);
+
+	Root.ClearStatsOnFirstTurn();
 	
 	// Make sure everyone on mission has UnitStats
-	class'NMD_Utilities'.static.ensureSquadHasUnitStats();
+	class'NMD_Utilities'.static.EnsureSquadHasUnitStats();
 }
 
 defaultproperties

@@ -2,8 +2,6 @@ class NMD_Stat_DamageDealt extends NMD_BaseStat;
 
 const ID = 'DamageDealt';
 
-var localized string m_strDamageDealt;
-
 var int DamageDealt;
 
 function InitComponent()
@@ -30,7 +28,7 @@ function int GetValue(int UnitID)
 
 function string GetName()
 {
-	return m_strDamageDealt;
+	return class'NMD_MissionInfo'.default.m_strDamageDealt;
 }
 
 function string GetDisplayValue()

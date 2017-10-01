@@ -6,6 +6,7 @@ var localized string m_strCreatePhoto;
 var localized string m_strSelectPhoto;
 var localized string m_strPrevious;
 var localized string m_strNext;
+var localized string m_strMVP;
 
 var UIPanel Container;
 var UIBGBox PanelBG;
@@ -104,7 +105,7 @@ simulated function InitScreen(XComPlayerController InitController, UIMovie InitM
 	MVPText = Spawn(class'UIText', MVPPanel);
 	MVPText.InitText('mvpptext');
 	MVPText.SetPosition(-Width - 15, MVPImage.Y + MVPImage.Height);
-	MVPText.SetCenteredText(class'UIUtilities_Text'.static.GetSizedText("MVP", 42));
+	MVPText.SetCenteredText(class'UIUtilities_Text'.static.GetSizedText(m_strMVP, 42));
 
 	// Stats
 	InitStatsPanel();
@@ -224,7 +225,7 @@ function ShowStatsForUnit(int SoldierIndex)
 	{
 		PosterData = NMDUnit.GetStat(class'NMD_PersistentStat_PosterData'.const.ID);
 		PosterIndex = PosterData.GetValue(Unit.ObjectID);
-		`log("NMDUnit found with poster index " $ PosterIndex);
+		//`log("NMDUnit found with poster index " $ PosterIndex);
 		if (PosterIndex >= 0 && PosterIndex < PhotoManager.GetNumOfPosterForCampaign(SettingsState.GameIndex, false))
 		{
 			SoldierTexture = PhotoManager.GetPosterTexture(SettingsState.GameIndex, PosterIndex);
@@ -415,14 +416,14 @@ function SavePosterIndex(int PosterIndex)
 		NewGameState = class'XComGameStateContext_ChangeContainer'.static.CreateChangeState("Update Poster Index");
 		NMDUnit = XComGameState_NMD_Unit(NewGameState.ModifyStateObject(class'XComGameState_NMD_Unit', NMDUnit.ObjectID));
 		NMDUnit.SetPosterIndex(PosterIndex, NewGameState);
-		`log("NMD Setting PosterIndex to " $ PosterIndex);
+		//`log("NMD Setting PosterIndex to " $ PosterIndex);
 		`GAMERULES.SubmitGameState(NewGameState);
-	} else `log("NMDUnit SavePosterIndex not found");
+	}// else `log("NMDUnit SavePosterIndex not found");
 }
 
 simulated function bool OnUnrealCommand(int ucmd, int arg)
 {
-	if(!CheckInputIsReleaseOrDirectionRepeat(ucmd, arg))
+	if (!CheckInputIsReleaseOrDirectionRepeat(ucmd, arg))
 		return false;
 
 	switch(ucmd)

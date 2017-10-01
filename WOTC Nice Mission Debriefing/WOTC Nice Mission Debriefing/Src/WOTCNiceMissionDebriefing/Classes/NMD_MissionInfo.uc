@@ -32,6 +32,11 @@ var localized string m_strTooOldDesc;
 var localized string m_strOverqualified;
 var localized string m_strOverqualifiedDesc;
 
+var localized string m_strKills;
+var localized string m_strDamageDealt;
+var localized string m_strShots;
+var localized string m_strOverwatchAccuracy;
+var localized string m_strTilesMoved;
 var localized string m_strHeadshots;
 
 struct EnemyDamageCount
@@ -101,7 +106,7 @@ function AddLootStat(XComGameState_Unit Unit, XComGameState_NMD_Unit NMDUnit)
 	if (Unit.HasBackpack())
 	{
 		BackpackItems = Unit.GetAllItemsInSlot(eInvSlot_Backpack);
-		`log("NMD - " $ Unit.GetFullName() $ " has loot: " $ BackpackItems.Length);
+		//`log("NMD - " $ Unit.GetFullName() $ " has loot: " $ BackpackItems.Length);
 		Stat.SetValue(BackpackItems.Length);
 	}
 

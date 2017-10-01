@@ -2,8 +2,6 @@ class NMD_Stat_Kills extends NMD_BaseStat;
 
 const ID = 'Kills';
 
-var localized string m_strKills;
-
 function InitComponent()
 {
 	Value = -1;
@@ -25,7 +23,7 @@ function int GetValue(int UnitID)
 
 function string GetName()
 {
-	return m_strKills;
+	return class'NMD_MissionInfo'.default.m_strKills;
 }
 
 function name GetType()

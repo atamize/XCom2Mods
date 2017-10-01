@@ -2,8 +2,6 @@ class NMD_Stat_ShotAccuracy extends NMD_BaseStat;
 
 const ID = 'ShotAccuracy';
 
-var localized string m_strShots;
-
 var int Hits;
 var int Attempts;
 
@@ -41,7 +39,7 @@ function int GetValue(int UnitID)
 
 function string GetName()
 {
-	return m_strShots;
+	return class'NMD_MissionInfo'.default.m_strShots;
 }
 
 function string GetDisplayValue()
