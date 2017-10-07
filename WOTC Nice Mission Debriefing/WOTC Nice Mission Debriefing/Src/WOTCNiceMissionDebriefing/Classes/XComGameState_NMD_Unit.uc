@@ -27,6 +27,7 @@ function XComGameState_NMD_Unit InitComponent(XComGameState NewGameState, option
 	CreateOrUpdateStat(class'NMD_Stat_Kills'.const.ID, class'NMD_Stat_Kills', NewGameState);
 	CreateOrUpdateStat(class'NMD_Stat_OverwatchAccuracy'.const._ID, class'NMD_Stat_OverwatchAccuracy', NewGameState);
 	CreateOrUpdateStat(class'NMD_Stat_Headshots'.const.ID, class'NMD_Stat_Headshots', NewGameState);
+	CreateOrUpdateStat(class'NMD_Stat_EnvironmentDamage'.const.ID, class'NMD_Stat_EnvironmentDamage', NewGameState);
 	return self;
 }
 
@@ -38,6 +39,13 @@ function ClearMissionStats(XComGameState NewGameState)
 	for (i = 0; i < StatsRefs.Length; ++i)
 	{
 		Stat = NMD_BaseStat(`XCOMHISTORY.GetGameStateForObjectID(StatsRefs[i].ObjectID));
+		if (Stat == none)
+		{
+			`log("NMD - StatsRefs at " $ i $ " for " $ self.ObjectID $ " is null; removing");
+			StatsRefs.Remove(i--, 1);
+			continue;
+		}
+
 		if (!Stat.IsPersistent())
 		{
 			Stat = NMD_BaseStat(NewGameState.CreateStateObject(class'NMD_BaseStat', Stat.ObjectID));

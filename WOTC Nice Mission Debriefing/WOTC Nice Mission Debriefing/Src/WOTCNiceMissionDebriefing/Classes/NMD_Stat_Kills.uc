@@ -15,7 +15,7 @@ function int GetValue(int UnitID)
 	{
 		Analytics = XComGameState_Analytics(`XCOMHISTORY.GetSingleGameStateObjectForClass(class'XComGameState_Analytics'));
 		Value = int(Analytics.GetTacticalFloatValue("UNIT_" $ UnitID $ "_ACC_UNIT_KILLS"));
-		`log("NMD - getting kills for Unit " $ UnitID);
+		//`log("NMD - getting kills for Unit " $ UnitID);
 	}
 
 	return Value;
