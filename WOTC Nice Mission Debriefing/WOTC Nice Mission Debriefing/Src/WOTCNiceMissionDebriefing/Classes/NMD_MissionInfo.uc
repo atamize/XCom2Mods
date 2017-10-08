@@ -38,6 +38,8 @@ var localized string m_strShots;
 var localized string m_strOverwatchAccuracy;
 var localized string m_strTilesMoved;
 var localized string m_strHeadshots;
+var localized string m_strLootPickedUp;
+var localized string m_strMostHatedUnit;
 
 struct EnemyDamageCount
 {
@@ -101,7 +103,7 @@ function AddLootStat(XComGameState_Unit Unit, XComGameState_NMD_Unit NMDUnit)
 	local array<XComGameState_Item> BackpackItems; 
 
 	Stat = new class'NMD_DynamicStat';
-	Stat.Initialize('LootPickedUp', "LOOT PICKED UP");
+	Stat.Initialize('LootPickedUp', m_strLootPickedUp);
 
 	if (Unit.HasBackpack())
 	{
@@ -132,7 +134,7 @@ function AddMostHatedStat(XComGameState_Unit Unit, XComGameState_NMD_Unit NMDUni
 	History = `XCOMHISTORY;
 	HateCounts.Length = 0;
 	Stat = new class'NMD_DynamicStat';
-	Stat.Initialize('MostHatedUnit', "MOST HATED UNIT");
+	Stat.Initialize('MostHatedUnit', m_strMostHatedUnit);
 
 	for (i = 0; i < NMDUnit.EnemyDamageResults.Length; ++i)
 	{

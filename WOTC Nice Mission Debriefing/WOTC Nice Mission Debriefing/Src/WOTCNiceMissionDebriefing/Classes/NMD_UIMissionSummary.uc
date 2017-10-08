@@ -1,89 +1,20 @@
-class NMD_UIMissionSummary extends UIMissionSummary config(WOTCNiceMissionDebriefing);
+// This is really just a dummy screen whose sole purpose is to process controller input
+// Workaround to overriding UIMissionSummary
+class NMD_UIMissionSummary extends UIScreen;
 
-//var config bool EnableTeamPosterWarning;
+var NMD_UIMissionSummaryListener SummaryListener;
 
-var localized string m_strViewStatsButton;
-//var localized string m_strWarningTitle;
-//var localized string m_strWarningBody;
-
-var UIButton StatsButton;
-
-var bool HasSeenStats;
-
-simulated function InitScreen(XComPlayerController InitController, UIMovie InitMovie, optional name InitName)
+function SetListener(NMD_UIMissionSummaryListener Listener)
 {
-	super.InitScreen(InitController, InitMovie, InitName);
-	
-	HasSeenStats = false;
-
-	m_PosterButton.SetPosition(940, m_PosterButton.Y);
-	//m_PosterButton.OnClickedDelegate = OnMakePosterButton;
-
-	StatsButton = Spawn(class'UIButton', self);
-	StatsButton.ResizeToText = false;
-	StatsButton.InitButton('missionStatsButton', m_strViewStatsButton, OpenStatsButton, eUIButtonStyle_HOTLINK_BUTTON);
-	StatsButton.SetPosition(600, m_PosterButton.Y);
-	StatsButton.SetWidth(m_PosterButton.Width);
-	StatsButton.SetGamepadIcon(class'UIUtilities_Input'.const.ICON_X_SQUARE);
+	SummaryListener = Listener;
 }
 
-/*
-function OnMakePosterButton(UIButton Button)
-{
-	local TDialogueBoxData kConfirmData;
-
-	if (EnableTeamPosterWarning && !HasSeenStats)
-	{
-		kConfirmData.strTitle = m_strWarningTitle;
-		kConfirmData.strText = m_strWarningBody;
-		kConfirmData.strAccept = class'UIUtilities_Text'.default.m_strGenericYes;
-		kConfirmData.strCancel = class'UIUtilities_Text'.default.m_strGenericNo;
-
-		kConfirmData.fnCallback = OnDestructiveActionPopupExitDialog;
-
-		Movie.Pres.UIRaiseDialog(kConfirmData);
-	}
-	else
-	{
-		CloseThenOpenPhotographerScreen();
-	}
-}
-
-function OnDestructiveActionPopupExitDialog(Name eAction)
-{
-	if (eAction == 'eUIAction_Accept')
-	{
-		CloseThenOpenPhotographerScreen();
-	}
-}
-*/
-
-simulated function OpenStatsButton(UIButton button)
-{
-	local UIScreen TempScreen;
-	local XComPresentationLayer Pres;
-	local UIScreenStack ScreenStack;
-	local XComTacticalController LocalController;
-
-	LocalController = XComTacticalController(BATTLE().GetALocalPlayerController());
-	if (LocalController != none && LocalController.PlayerCamera != none && LocalController.PlayerCamera.bEnableFading)
-	{
-		LocalController.ClientSetCameraFade(false);
-	}
-
-	HideObscuringParticleSystems();
-
-	Pres = `PRES;
-	ScreenStack = Pres.ScreenStack;
-
-	if (Pres.m_kTacticalHUD != none )
-		Pres.m_kTacticalHUD.Hide();
-
-	TempScreen = Pres.Spawn(class'NMD_UIMissionDebriefingScreen', Pres);
-	ScreenStack.Push(TempScreen);
-
-	HasSeenStats = true;
-}
+//simulated function OnReceiveFocus()
+//{
+	//`log("NMD - OnReceiveFocus");
+	//SummaryListener.EnableMissionSummaryOnLoseFocus(true);
+	//super.OnReceiveFocus();
+//}
 
 simulated function bool OnUnrealCommand(int ucmd, int arg)
 {
@@ -93,14 +24,30 @@ simulated function bool OnUnrealCommand(int ucmd, int arg)
 	switch(ucmd)
 	{
 		case (class'UIUtilities_Input'.const.FXS_BUTTON_X):
-			OpenStatsButton(none);
+			SummaryListener.OpenStatsButton(none);
+			return true;
+
+		// Consume 'B' button here so there is no UI functionality in Mission Summary
+		case (class'UIUtilities_Input'.const.FXS_BUTTON_B):
+		case (class'UIUtilities_Input'.const.FXS_KEY_ESCAPE):
+		case (class'UIUtilities_Input'.const.FXS_BUTTON_START):
+			// Consume
+			return true;
+		case (class'UIUtilities_Input'.const.FXS_BUTTON_Y):
+			if (!SummaryListener.MissionSummary.BattleData.IsMultiplayer() && !SummaryListener.MissionSummary.bAllSoldiersDead)
+			{
+				SummaryListener.OnMakePosterButton(none);
+			}
+			return true;
+
+		// Consume the 'A' button so that it doesn't cascade down the input chain
+		case (class'UIUtilities_Input'.const.FXS_BUTTON_A):
+		case (class'UIUtilities_Input'.const.FXS_KEY_ENTER):
+		case (class'UIUtilities_Input'.const.FXS_KEY_SPACEBAR):
+			CloseScreen();
+			SummaryListener.MissionSummary.CloseScreen();
 			return true;
 	}
 
 	return super.OnUnrealCommand(ucmd, arg);
-}
-
-defaultProperties
-{
-	HasSeenStats = false
 }

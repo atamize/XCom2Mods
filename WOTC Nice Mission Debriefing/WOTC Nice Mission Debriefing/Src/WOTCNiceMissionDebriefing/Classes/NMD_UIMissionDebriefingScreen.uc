@@ -2,6 +2,8 @@ class NMD_UIMissionDebriefingScreen extends UIScreen config (WOTCNiceMissionDebr
 
 var config array<name> StatsOrder;
 
+var localized string m_strAwards;
+var localized string m_strStats;
 var localized string m_strCreatePhoto;
 var localized string m_strSelectPhoto;
 var localized string m_strPrevious;
@@ -94,7 +96,7 @@ simulated function InitScreen(XComPlayerController InitController, UIMovie InitM
 	// MVP Panel
 	MVPPanel = Spawn(class'UIPanel', Container).InitPanel('MVPPanel');
 	MVPPanel.SetSize(PhotoPanel.Width, Height);
-	MVPPanel.SetPosition(SoldierImage.X + 150 - (MVPPanel.Width / 2), SoldierImage.Y + 490);
+	MVPPanel.SetPosition(SoldierImage.X + 140 - (MVPPanel.Width / 2), SoldierImage.Y + 490);
 
 	MVPImage = Spawn(class'UIImage', MVPPanel).InitImage();
 	MVPTexture = Texture2D'gfxEndGameStats.EndGameStats_I36';
@@ -159,7 +161,7 @@ function InitStatsPanel()
 	StatsBG.LibID = class'UIUtilities_Controls'.const.MC_X2Background;
 	StatsBG.InitBG('StatsBG', 0, 0, StatsPanel.Width, StatsPanel.Height);
 
-	StatsHeader = Spawn(class'UIX2PanelHeader', StatsPanel).InitPanelHeader('', "STATS", "");
+	StatsHeader = Spawn(class'UIX2PanelHeader', StatsPanel).InitPanelHeader('', m_strStats, "");
 	StatsHeader.SetPosition(10, 10);
 	StatsHeader.SetHeaderWidth(StatsPanel.Width - StatsHeader.X - 10);
 
@@ -180,7 +182,7 @@ function InitAwardsPanel()
 	AwardsBG.LibID = class'UIUtilities_Controls'.const.MC_X2Background;
 	AwardsBG.InitBG('StatsBG', 0, 0, AwardsPanel.Width, AwardsPanel.Height);
 
-	AwardsHeader = Spawn(class'UIX2PanelHeader', AwardsPanel).InitPanelHeader('', "AWARDS", "");
+	AwardsHeader = Spawn(class'UIX2PanelHeader', AwardsPanel).InitPanelHeader('', m_strAwards, "");
 	AwardsHeader.SetPosition(10, 10);
 	AwardsHeader.SetHeaderWidth(AwardsPanel.Width - AwardsHeader.X - 10);
 
@@ -348,7 +350,15 @@ function OnNextClick(UIButton Button)
 
 function BackToSummary()
 {
+	local NMD_UIMissionSummary MissionSummary;
+
 	`ScreenStack.PopFirstInstanceOfClass(class'NMD_UIMissionDebriefingScreen', false);
+
+	MissionSummary = NMD_UIMissionSummary(`ScreenStack.GetFirstInstanceOf(class'NMD_UIMissionSummary'));
+	if (MissionSummary != none)
+	{
+		MissionSummary.SummaryListener.EnableMissionSummaryOnLoseFocus(true);
+	}
 }
 
 function OpenCreatePhoto(UIButton button)
@@ -444,6 +454,7 @@ simulated function bool OnUnrealCommand(int ucmd, int arg)
 		case (class'UIUtilities_Input'.const.FXS_BUTTON_A):
 		case (class'UIUtilities_Input'.const.FXS_KEY_ENTER):
 		case (class'UIUtilities_Input'.const.FXS_KEY_SPACEBAR):
+			CloseScreen();
 			NavHelp.OnClickedContinueDelegate();
 			return true;
 

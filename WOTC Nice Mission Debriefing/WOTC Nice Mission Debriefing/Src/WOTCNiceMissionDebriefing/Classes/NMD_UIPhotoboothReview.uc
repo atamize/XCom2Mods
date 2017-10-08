@@ -13,7 +13,7 @@ simulated event OnInit()
 	{
 		SelectPhotoButton = Spawn(class'UILargeButton', self);
 		SelectPhotoButton.LibID = 'X2ContinueButton';
-		SelectPhotoButton.InitLargeButton('SelectPhotoMC', "SELECT PHOTO", , SelectButton, eUILargeButtonStyle_READY);
+		SelectPhotoButton.InitLargeButton('SelectPhotoMC', caps(class'NMD_UIMissionDebriefingScreen'.default.m_strSelectPhoto), , SelectButton, eUILargeButtonStyle_READY);
 		SelectPhotoButton.SetPosition(1325, 925);
 	}
 
