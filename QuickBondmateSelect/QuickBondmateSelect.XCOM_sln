@@ -1,0 +1,21 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# XCOM ModBuddy Solution File, Format Version 11.00
+VisualStudioVersion = 12.0.21005.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{50B8CDEE-AFA6-4163-9644-47DC405052B1}"
+EndProject
+Project("{5DAE07AF-E217-45C1-8DE7-FF99D6011E8A}") = "QuickBondmateSelect", "QuickBondmateSelect\QuickBondmateSelect.x2proj", "{F33F44E1-F008-4031-8F76-64FCFD9A3448}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Default|XCOM 2 = Default|XCOM 2
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F33F44E1-F008-4031-8F76-64FCFD9A3448}.Default|XCOM 2.ActiveCfg = Default|XCOM 2
+		{F33F44E1-F008-4031-8F76-64FCFD9A3448}.Default|XCOM 2.Build.0 = Default|XCOM 2
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
