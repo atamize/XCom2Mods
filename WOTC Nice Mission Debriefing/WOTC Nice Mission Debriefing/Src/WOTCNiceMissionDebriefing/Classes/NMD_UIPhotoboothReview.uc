@@ -20,6 +20,9 @@ simulated event OnInit()
 	MC.BeginFunctionOp("setScreenData");
 	MC.QueueString(m_strPrevious);
 	MC.QueueString(m_strNext);
+	MC.QueueString(m_strDelete);
+	MC.QueueString(m_strFavorite);	
+	MC.QueueString(m_strOpen);
 	MC.EndOp();
 }
 

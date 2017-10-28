@@ -305,7 +305,7 @@ function AddDamageDone(string catToAdd, int dealt, int negated, bool executed, b
 	*/
 }
 
-function NMD_Stat_TilesMoved AddTilesMoved(int Moved, XComGameState NewGameState)
+function NMD_Stat_TilesMoved SetTilesMoved(int Moved, XComGameState NewGameState)
 {
 	local NMD_Stat_TilesMoved Stat;
 	local NMD_BaseStat BaseStat;
@@ -313,7 +313,7 @@ function NMD_Stat_TilesMoved AddTilesMoved(int Moved, XComGameState NewGameState
 	BaseStat = CreateOrUpdateStat(class'NMD_Stat_TilesMoved'.const.ID, class'NMD_Stat_TilesMoved', NewGameState);
 
 	Stat = NMD_Stat_TilesMoved(NewGameState.CreateStateObject(class'NMD_Stat_TilesMoved', BaseStat.ObjectID));
-	Stat.AddValue(Moved);
+	Stat.SetValue(Moved);
 	NewGameState.AddStateObject(Stat);
 
 	return Stat;
