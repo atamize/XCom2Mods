@@ -109,6 +109,9 @@
     <Content Include="Src\WOTCNiceMissionDebriefing\Classes\NMD_Stat_WoundedDamage.uc">
       <SubType>Content</SubType>
     </Content>
+    <Content Include="Src\WOTCNiceMissionDebriefing\Classes\NMD_UIArmory_ScreenListener.uc">
+      <SubType>Content</SubType>
+    </Content>
     <Content Include="Src\WOTCNiceMissionDebriefing\Classes\NMD_UIMissionSummary.uc">
       <SubType>Content</SubType>
     </Content>

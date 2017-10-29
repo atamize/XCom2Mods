@@ -12,7 +12,9 @@ var config array<name> moveShotAbilities;
 static function XComGameState_NMD_Root CheckOrCreateRoot()
 {
 	local XComGameState NewGameState;
-	local XComGameState_NMD_Root RootStats;
+	local XComGameStateContext_ChangeContainer ChangeContainer;
+	local XComGameState_NMD_Root RootStats, NewRoot;
+
 	RootStats = XComGameState_NMD_Root(`XCOMHISTORY.GetSingleGameStateObjectForClass(class'XComGameState_NMD_Root', true));
 	
 	if (RootStats == none)
@@ -25,8 +27,20 @@ static function XComGameState_NMD_Root CheckOrCreateRoot()
 		NewGameState.AddStateObject(RootStats);
 		`XCOMHISTORY.AddGameStateToHistory(NewGameState);
 	}
+	else if (RootStats.ModVersion != class'XComGameState_NMD_Root'.const.CURRENT_VERSION)
+	{
+		ChangeContainer = class'XComGameStateContext_ChangeContainer'.static.CreateEmptyChangeContainer("Checking/Adding RootStats");
+		NewGameState = `XCOMHISTORY.CreateNewGameState(true, ChangeContainer);
+		NewRoot = XComGameState_NMD_Root(NewGameState.CreateStateObject(class'XComGameState_NMD_Root', RootStats.ObjectID));
+		NewRoot.InitComponent();
+		
+		NewGameState.AddStateObject(NewRoot);
+		`XCOMHISTORY.AddGameStateToHistory(NewGameState);
 
-	return rootStats;
+		`log("NMD - UPDATED NMD_ROOT FROM " $ RootStats.ModVersion $ " TO " $ NewRoot.ModVersion $ " ====");
+	}
+
+	return RootStats;
 }
 
 /**
@@ -127,34 +141,20 @@ static function XComGameState_NMD_Unit EnsureHasUnitStats(XComGameState_Unit Uni
 
 static function ResetMissionStats(XComGameState NewGameState)
 {
-	local XComGameState_HeadquartersXCom HQ;
-	local StateObjectReference Ref;
-	local XComGameState_Unit Unit;
-	local XComGameState_NMD_Unit NMDUnit;
-	local XComGameStateHistory History;
-	local ReserveSquad Reserve;
+	//local XComGameState_Unit Unit;
+	local XComGameState_NMD_Unit UnitStats, NMDUnit;
 
-	HQ = class'UIUtilities_Strategy'.static.GetXComHQ(true);
-	if (HQ == none)
-		return;
-
-	History = `XCOMHISTORY;
-
-	foreach HQ.AllSquads(Reserve)
+    foreach `XCOMHISTORY.IterateByClassType(class'XComGameState_NMD_Unit', UnitStats, , true)
 	{
-		`log("NMD - Resetting missions stats for squad of " $ Reserve.SquadMembers.Length);
-		foreach Reserve.SquadMembers(Ref)
+        //check and see if the OwningObject is still alive and exists
+        if (UnitStats.OwningObjectId > 0)
 		{
-			Unit = XComGameState_Unit(History.GetGameStateForObjectId(Ref.ObjectID));
-			NMDUnit = XComGameState_NMD_Unit(Unit.FindComponentObject(class'XComGameState_NMD_Unit'));
-			if (NMDUnit != none)
-			{
-				`log("NMD Clearing mission stats for " $ Unit.GetFullName());
-				NMDUnit = XComGameState_NMD_Unit(NewGameState.ModifyStateObject(class'XComGameState_NMD_Unit', NMDUnit.ObjectID));
-				NMDUnit.ClearMissionStats(NewGameState);
-			}
-		}
-	}
+			//Unit = XComGameState_Unit(`XCOMHISTORY.GetGameStateForObjectID(UnitStats.OwningObjectID));
+			//`log("NMD - clearing stats for unit " $ Unit.GetFullName());
+			NMDUnit = XComGameState_NMD_Unit(NewGameState.ModifyStateObject(class'XComGameState_NMD_Unit', UnitStats.ObjectID));
+			NMDUnit.ClearMissionStats(NewGameState);
+        }
+    }
 }
 
 /**
@@ -166,6 +166,7 @@ static function CleanupDismissedUnits()
     local XComGameState_Unit Unit;
     local XComGameState_NMD_Unit UnitStats;
 	
+	//`log("NMD - Cleanup dismissed units");
     NewGameState = class'XComGameStateContext_ChangeContainer'.static.CreateChangeState("NMD Cleanup");
     foreach `XCOMHISTORY.IterateByClassType(class'XComGameState_NMD_Unit', unitStats, , true)
 	{
@@ -175,7 +176,6 @@ static function CleanupDismissedUnits()
             Unit = XComGameState_Unit(`XCOMHISTORY.GetGameStateForObjectID(unitStats.OwningObjectID));
             if (Unit == none)
 			{
-                //if( DEBUG ) `log("WOTCLifetimeStats_Unit Component has no current owning unit, cleaning up state.");
                 // Remove disconnected officer state
                 NewGameState.RemoveStateObject(UnitStats.ObjectID);
             }
@@ -183,7 +183,6 @@ static function CleanupDismissedUnits()
 			{
                 if (Unit.bRemoved)
 				{
-                    //if( DEBUG ) `log("WOTCLifetimeStats_Unit Owning Unit was removed, Removing unitStats");
                     NewGameState.RemoveStateObject(UnitStats.ObjectID);
                 }
             }
@@ -344,5 +343,18 @@ static function bool IsAbilityAvailable(StateObjectReference StateRef, name Abil
 		}
 	}
 
+	return false;
+}
+
+static function bool IsGameStateInterrupted(XComGameState GameState, optional string Message)
+{
+	if (GameState.GetContext().InterruptionStatus == eInterruptionStatus_Interrupt)
+	{
+		if (len(Message) > 0)
+		{
+			`log("NMD - Game state was interrupted: " $ Message);
+		}
+		return true;
+	}
 	return false;
 }
