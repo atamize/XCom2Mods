@@ -17,7 +17,7 @@ function InitNMD()
 
 	`log("[NMD] - NMD at version: " $ Root.ModVersion);
 
-	Root.ClearStatsOnFirstTurn();
+	//Root.ClearStatsOnFirstTurn();
 	
 	// Make sure everyone on mission has UnitStats
 	class'NMD_Utilities'.static.EnsureSquadHasUnitStats();

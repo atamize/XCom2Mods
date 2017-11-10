@@ -1,15 +1,17 @@
 class XComGameState_NMD_Root extends XComGameState_BaseObject;
 
-const CURRENT_VERSION = "1.0.2";
+const CURRENT_VERSION = "1.0.3";
 const CURRENT_VERSION_ID = 0;
 
 var string ModVersion;
 var int ModVersionId;
+var bool HasClearedStats;
 
 function XComGameState_NMD_Root InitComponent()
 {
 	ModVersion = CURRENT_VERSION;
 	ModVersionId = CURRENT_VERSION_ID;
+	HasClearedStats = false;
 	return self;
 }
 
@@ -75,7 +77,7 @@ function ClearStatsOnFirstTurn()
 			NMDUnit.ClearMissionStats(NewGameState);
 		}
 	}
-	
+
 	History.AddGameStateToHistory(NewGameState);
 }
 
@@ -83,8 +85,11 @@ function EventListenerReturn OnPlayerTurnBegun(Object EventData, Object EventSou
 {
 	local XComTacticalController kTacticalController;
 	local array<XComGameState_Unit> PlayableUnits;
-	local XComGameState_Unit Unit;
-	
+	local XComGameState_Unit Unit;	
+	local XComGameState_Player PlayerState;
+	local XComGameStateHistory History;
+	local XComGameState_NMD_Root RootStats, NewRoot;
+
 	if (class'NMD_Utilities'.static.IsGameStateInterrupted(GameState, "OnPlayerTurnBegun"))
 	{
 		return ELR_NoInterrupt;
@@ -97,6 +102,33 @@ function EventListenerReturn OnPlayerTurnBegun(Object EventData, Object EventSou
 	foreach PlayableUnits(Unit)
 	{
 		class'NMD_Utilities'.static.EnsureHasUnitStats(Unit);
+	}
+
+	History = `XCOMHISTORY;
+
+	// Only clear stats if we are starting a new mission (no turns taken)
+	foreach History.IterateByClassType(class'XComGameState_Player', PlayerState)
+	{
+		if (PlayerState.GetTeam() == eTeam_XCom)
+		{
+			//`log("NMD PlayerTurnCount: " $ PlayerState.PlayerTurnCount);
+			if (PlayerState.PlayerTurnCount > 1)
+			{
+				return ELR_NoInterrupt;
+			}
+			break;
+		}
+	}
+
+	RootStats = XComGameState_NMD_Root(History.GetSingleGameStateObjectForClass(class'XComGameState_NMD_Root', true));
+
+	if (RootStats != none && !RootStats.HasClearedStats)
+	{
+		class'NMD_Utilities'.static.ResetMissionStats(GameState);
+
+		NewRoot = XComGameState_NMD_Root(GameState.ModifyStateObject(class'XComGameState_NMD_Root', RootStats.ObjectID));
+		NewRoot.HasClearedStats = true;
+		GameState.AddStateObject(NewRoot);
 	}
 
 	return ELR_NoInterrupt;
@@ -294,8 +326,8 @@ function EventListenerReturn OnPlayerTurnEnd(Object EventData, Object EventSourc
 
 				if (NumVisibleEnemies > 0)
 				{
-					UnitStats.AddExposure(CoverValue * NumVisibleEnemies, GameState);
 					//`log("NMD: " $ Unit.GetFullName() $ " exposed to " $ NumVisibleEnemies $ " enemies, cover: " $ CoverValue);
+					UnitStats.AddExposure(CoverValue * NumVisibleEnemies, GameState);
 				}
 			}
 		}
@@ -496,4 +528,9 @@ function EventListenerReturn OnBlownUp(Object EventData, Object EventSource, XCo
 	}
 
 	return ELR_NoInterrupt;
+}
+
+defaultproperties
+{
+	HasClearedStats = false
 }
