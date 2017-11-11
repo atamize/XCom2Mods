@@ -48,7 +48,7 @@ function ClearMissionStats(XComGameState NewGameState)
 
 		if (!Stat.IsPersistent())
 		{
-			Stat = NMD_BaseStat(NewGameState.CreateStateObject(class'NMD_BaseStat', Stat.ObjectID));
+			Stat = NMD_BaseStat(NewGameState.ModifyStateObject(class'NMD_BaseStat', Stat.ObjectID));
 			Stat.InitComponent();
 			//`log("NMD - clearing mission stat " $ Stat.GetType());
 			NewGameState.AddStateObject(Stat);

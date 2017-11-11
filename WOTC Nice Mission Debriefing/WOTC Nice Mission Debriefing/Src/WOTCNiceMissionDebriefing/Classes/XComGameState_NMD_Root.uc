@@ -1,6 +1,6 @@
 class XComGameState_NMD_Root extends XComGameState_BaseObject;
 
-const CURRENT_VERSION = "1.0.3";
+const CURRENT_VERSION = "1.0.3a";
 const CURRENT_VERSION_ID = 0;
 
 var string ModVersion;
@@ -122,6 +122,7 @@ function EventListenerReturn OnPlayerTurnBegun(Object EventData, Object EventSou
 
 	RootStats = XComGameState_NMD_Root(History.GetSingleGameStateObjectForClass(class'XComGameState_NMD_Root', true));
 
+	//`log("NMD - First turn: cleared stats? " $ RootStats.HasClearedStats);
 	if (RootStats != none && !RootStats.HasClearedStats)
 	{
 		class'NMD_Utilities'.static.ResetMissionStats(GameState);
@@ -169,7 +170,7 @@ function EventListenerReturn OnUnitMoveFinished(Object EventData, Object EventSo
 		//`log("NMD - unit " $ Unit.GetFullName() $ " moved " $ (Tiles - OldTiles) $ " tiles in concealment");
 	}
 	
-	//`log("NMD - unit " $ Unit.GetFullName() $ " moved " $ Stat.GetValue(Unit.ObjectID) $ " tiles total");
+	//`log("NMD - unit " $ Unit.GetFullName() $ " moved " $ Stat.GetValue(Unit.ObjectID) $ " tiles total. Also " $ UnitStats.GetStat(class'NMD_Stat_Kills'.const.ID).GetValue(Unit.ObjectID) $ " Kills. and Damage Stats Length: " $ UnitStats.EnemyDamageResults.Length);
 
 	return ELR_NoInterrupt;
 }

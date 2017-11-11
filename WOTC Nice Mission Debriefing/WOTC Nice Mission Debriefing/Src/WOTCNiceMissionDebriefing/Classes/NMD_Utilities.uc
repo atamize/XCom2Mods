@@ -27,7 +27,7 @@ static function XComGameState_NMD_Root CheckOrCreateRoot()
 		NewGameState.AddStateObject(RootStats);
 		`XCOMHISTORY.AddGameStateToHistory(NewGameState);
 	}
-	else if (RootStats.ModVersion != class'XComGameState_NMD_Root'.const.CURRENT_VERSION)
+	else
 	{
 		ChangeContainer = class'XComGameStateContext_ChangeContainer'.static.CreateEmptyChangeContainer("Checking/Adding RootStats");
 		NewGameState = `XCOMHISTORY.CreateNewGameState(true, ChangeContainer);
@@ -37,7 +37,10 @@ static function XComGameState_NMD_Root CheckOrCreateRoot()
 		NewGameState.AddStateObject(NewRoot);
 		`XCOMHISTORY.AddGameStateToHistory(NewGameState);
 
-		`log("NMD - UPDATED NMD_ROOT FROM " $ RootStats.ModVersion $ " TO " $ NewRoot.ModVersion $ " ====");
+		if (RootStats.ModVersion != class'XComGameState_NMD_Root'.const.CURRENT_VERSION)
+			`log("NMD - UPDATED NMD_ROOT FROM " $ RootStats.ModVersion $ " TO " $ NewRoot.ModVersion $ " ====");
+		else
+			`log("NMD - Already at version " $ RootStats.ModVersion $ " ====");
 	}
 
 	return RootStats;
