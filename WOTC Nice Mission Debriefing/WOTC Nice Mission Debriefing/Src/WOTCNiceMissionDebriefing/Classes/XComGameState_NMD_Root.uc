@@ -1,6 +1,6 @@
 class XComGameState_NMD_Root extends XComGameState_BaseObject;
 
-const CURRENT_VERSION = "1.0.3a";
+const CURRENT_VERSION = "1.0.3b";
 const CURRENT_VERSION_ID = 0;
 
 var string ModVersion;

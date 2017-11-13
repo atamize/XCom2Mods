@@ -1,9 +1,11 @@
-class NMD_UITacticalHUD_ScreenListener extends UIScreenListener;
+class NMD_UITacticalHUD_ScreenListener extends UIScreenListener config(WOTCNiceMissionDebriefing);
+
+var config float InitializeDelaySeconds;
 
 event OnInit(UIScreen Screen)
 {
 	// Initialize everything after some buffer time
-	`BATTLE.SetTimer(0.5, false, 'InitNMD', self);
+	`BATTLE.SetTimer(InitializeDelaySeconds, false, 'InitNMD', self);
 }
 
 function InitNMD()

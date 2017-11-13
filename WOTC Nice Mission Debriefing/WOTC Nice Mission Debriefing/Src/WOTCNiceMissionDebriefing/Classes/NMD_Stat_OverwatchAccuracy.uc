@@ -6,3 +6,8 @@ function string GetName()
 {
 	return class'NMD_MissionInfo'.default.m_strOverwatchAccuracy;
 }
+
+function name GetType()
+{
+	return _ID;
+}
