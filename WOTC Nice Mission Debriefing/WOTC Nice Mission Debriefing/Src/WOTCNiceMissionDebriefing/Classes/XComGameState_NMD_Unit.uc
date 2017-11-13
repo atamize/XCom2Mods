@@ -48,7 +48,7 @@ function ClearMissionStats(XComGameState NewGameState)
 
 		if (!Stat.IsPersistent())
 		{
-			Stat = NMD_BaseStat(NewGameState.CreateStateObject(class'NMD_BaseStat', Stat.ObjectID));
+			Stat = NMD_BaseStat(NewGameState.ModifyStateObject(class'NMD_BaseStat', Stat.ObjectID));
 			Stat.InitComponent();
 			//`log("NMD - clearing mission stat " $ Stat.GetType());
 			NewGameState.AddStateObject(Stat);
@@ -66,12 +66,17 @@ function AddDynamicStat(NMD_BaseStat Stat)
 function NMD_BaseStat GetStat(name StatType)
 {
 	local int i;
+	local NMD_BaseStat ToReturn;
+	local XComGameStateHistory History;
 
-	for (i = 0; i < StatTypes.Length; ++i)
+	History = `XCOMHISTORY;
+
+	for (i = 0; i < StatsRefs.Length; ++i)
 	{
-		if (StatTypes[i] == StatType)
+		ToReturn = NMD_BaseStat(History.GetGameStateForObjectID(StatsRefs[i].ObjectID));
+		if (ToReturn.GetType() == StatType)
 		{
-			return NMD_BaseStat(`XCOMHISTORY.GetGameStateForObjectID(StatsRefs[i].ObjectID));	
+			return ToReturn;
 		}
 	}
 
@@ -93,7 +98,7 @@ function NMD_BaseStat CreateStat(name Type, class<NMD_BaseStat> StatClass, XComG
 	ToReturn = NMD_BaseStat(NewGameState.CreateStateObject(StatClass));
 	ToReturn.InitComponent();
 	StatsRefs.AddItem(ToReturn.GetReference());
-	StatTypes.AddItem(Type);
+	//StatTypes.AddItem(Type);
 	
 	NewGameState.AddStateObject(ToReturn);
 	return ToReturn;

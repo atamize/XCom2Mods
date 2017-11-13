@@ -27,7 +27,7 @@ static function XComGameState_NMD_Root CheckOrCreateRoot()
 		NewGameState.AddStateObject(RootStats);
 		`XCOMHISTORY.AddGameStateToHistory(NewGameState);
 	}
-	else if (RootStats.ModVersion != class'XComGameState_NMD_Root'.const.CURRENT_VERSION)
+	else
 	{
 		ChangeContainer = class'XComGameStateContext_ChangeContainer'.static.CreateEmptyChangeContainer("Checking/Adding RootStats");
 		NewGameState = `XCOMHISTORY.CreateNewGameState(true, ChangeContainer);
@@ -37,7 +37,10 @@ static function XComGameState_NMD_Root CheckOrCreateRoot()
 		NewGameState.AddStateObject(NewRoot);
 		`XCOMHISTORY.AddGameStateToHistory(NewGameState);
 
-		`log("NMD - UPDATED NMD_ROOT FROM " $ RootStats.ModVersion $ " TO " $ NewRoot.ModVersion $ " ====");
+		if (RootStats.ModVersion != class'XComGameState_NMD_Root'.const.CURRENT_VERSION)
+			`log("NMD - UPDATED NMD_ROOT FROM " $ RootStats.ModVersion $ " TO " $ NewRoot.ModVersion $ " ====");
+		else
+			`log("NMD - Already at version " $ RootStats.ModVersion $ " ====");
 	}
 
 	return RootStats;
@@ -141,18 +144,32 @@ static function XComGameState_NMD_Unit EnsureHasUnitStats(XComGameState_Unit Uni
 
 static function ResetMissionStats(XComGameState NewGameState)
 {
-	//local XComGameState_Unit Unit;
+	local XComGameState_Unit Unit;
 	local XComGameState_NMD_Unit UnitStats, NMDUnit;
+	local XComGameState_HeadquartersXCom HQ;
+	local XComGameStateHistory History;
+	local StateObjectReference Ref;
 
-    foreach `XCOMHISTORY.IterateByClassType(class'XComGameState_NMD_Unit', UnitStats, , true)
+	// Setup shortcut vars
+	HQ = class'UIUtilities_Strategy'.static.GetXComHQ(true);
+	if (HQ == none)
+		return;
+
+	History = `XCOMHISTORY;
+
+    foreach HQ.Crew(Ref)
 	{
-        //check and see if the OwningObject is still alive and exists
-        if (UnitStats.OwningObjectId > 0)
+		Unit = XComGameState_Unit(History.GetGameStateForObjectID(Ref.ObjectID));
+        
+		if (Unit != none)
 		{
-			//Unit = XComGameState_Unit(`XCOMHISTORY.GetGameStateForObjectID(UnitStats.OwningObjectID));
-			//`log("NMD - clearing stats for unit " $ Unit.GetFullName());
-			NMDUnit = XComGameState_NMD_Unit(NewGameState.ModifyStateObject(class'XComGameState_NMD_Unit', UnitStats.ObjectID));
-			NMDUnit.ClearMissionStats(NewGameState);
+			UnitStats = XComGameState_NMD_Unit(Unit.FindComponentObject(class'XComGameState_NMD_Unit'));
+			if (UnitStats != none)
+			{
+				`log("NMD - clearing stats for unit " $ Unit.GetFullName());
+				NMDUnit = XComGameState_NMD_Unit(NewGameState.ModifyStateObject(class'XComGameState_NMD_Unit', UnitStats.ObjectID));
+				NMDUnit.ClearMissionStats(NewGameState);
+			}
         }
     }
 }
