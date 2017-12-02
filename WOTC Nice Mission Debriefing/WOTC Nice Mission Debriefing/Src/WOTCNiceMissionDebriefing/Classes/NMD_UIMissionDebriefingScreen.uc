@@ -166,7 +166,7 @@ function InitStatsPanel()
 	StatsHeader.SetHeaderWidth(StatsPanel.Width - StatsHeader.X - 10);
 
 	StatList = Spawn(class'UIStatList', StatsPanel);
-	StatList.InitStatList('StatList', , 0, StatsHeader.Height, StatsPanel.Width - 20, StatsPanel.Height - StatList.Y);
+	StatList.InitStatList('StatList', , 0, StatsHeader.Height, StatsPanel.Width - 20, StatsPanel.Height - 20);
 }
 
 function InitAwardsPanel()
@@ -280,10 +280,11 @@ function PopulateStats(XComGameState_Unit Unit, XComGameState_NMD_Unit NMDUnit)
 	local array<UISummary_ItemStat> UnitStats;
 	local UISummary_ItemStat AStat;
 	local NMD_BaseStat Stat;
-	local string StatValue;
+	local string StatValue, Label;
 	local NMD_BaseAward Award;
 	local name StatType;
-	local int Value;
+	local int Value, i;
+	local bool AlreadyAdded;
 
 	foreach StatsOrder(StatType)
 	{
@@ -296,7 +297,21 @@ function PopulateStats(XComGameState_Unit Unit, XComGameState_NMD_Unit NMDUnit)
 		if (!Stat.IsVisible())
 			continue;
 
-		AStat.Label = Stat.GetName();
+		Label = Stat.GetName();
+		AlreadyAdded = false;
+		for (i = 0; i < UnitStats.Length; ++i)
+		{
+			if (Label == UnitStats[i].Label)
+			{
+				AlreadyAdded = true;
+				break;
+			}
+		}
+
+		if (AlreadyAdded)
+			continue;
+
+		AStat.Label = Label;
 
 		Value = Stat.GetValue(Unit.ObjectID);
 		StatValue = Stat.GetDisplayValue();
@@ -325,6 +340,9 @@ function PopulateStats(XComGameState_Unit Unit, XComGameState_NMD_Unit NMDUnit)
 
 		AStat.Value = StatValue;
 		UnitStats.AddItem(AStat);
+
+		if (UnitStats.Length >= 12)
+			break;
 	}
 
 	StatList.RefreshData(UnitStats);

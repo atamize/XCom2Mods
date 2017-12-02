@@ -1,6 +1,6 @@
 class XComGameState_NMD_Root extends XComGameState_BaseObject;
 
-const CURRENT_VERSION = "1.0.3b";
+const CURRENT_VERSION = "1.0.4";
 const CURRENT_VERSION_ID = 0;
 
 var string ModVersion;
@@ -120,16 +120,11 @@ function EventListenerReturn OnPlayerTurnBegun(Object EventData, Object EventSou
 		}
 	}
 
-	RootStats = XComGameState_NMD_Root(History.GetSingleGameStateObjectForClass(class'XComGameState_NMD_Root', true));
-
 	//`log("NMD - First turn: cleared stats? " $ RootStats.HasClearedStats);
-	if (RootStats != none && !RootStats.HasClearedStats)
+	if (!HasClearedStats)
 	{
 		class'NMD_Utilities'.static.ResetMissionStats(GameState);
-
-		NewRoot = XComGameState_NMD_Root(GameState.ModifyStateObject(class'XComGameState_NMD_Root', RootStats.ObjectID));
-		NewRoot.HasClearedStats = true;
-		GameState.AddStateObject(NewRoot);
+		HasClearedStats = true;
 	}
 
 	return ELR_NoInterrupt;
