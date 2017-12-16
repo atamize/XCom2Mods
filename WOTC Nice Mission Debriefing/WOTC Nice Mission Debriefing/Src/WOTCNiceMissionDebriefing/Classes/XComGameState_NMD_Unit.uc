@@ -414,6 +414,18 @@ function SetPosterIndex(int Index, XComGameState NewGameState)
 	NewGameState.AddStateObject(Stat);
 }
 
+function SetPosterFilename(string Filename, XComGameState NewGameState)
+{
+	local NMD_PersistentStat_PosterData Stat;
+	local NMD_BaseStat BaseStat;
+	
+	BaseStat = CreateOrUpdateStat(class'NMD_PersistentStat_PosterData'.const.ID, class'NMD_PersistentStat_PosterData', NewGameState);
+
+	Stat = NMD_PersistentStat_PosterData(NewGameState.CreateStateObject(class'NMD_PersistentStat_PosterData', BaseStat.ObjectID));
+	Stat.SetFilename(Filename);
+	NewGameState.AddStateObject(Stat);
+}
+
 defaultproperties
 {
 	multifireIndex = 1;

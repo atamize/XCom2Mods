@@ -1,6 +1,6 @@
 class XComGameState_NMD_Root extends XComGameState_BaseObject;
 
-const CURRENT_VERSION = "1.0.4";
+const CURRENT_VERSION = "1.0.5";
 const CURRENT_VERSION_ID = 0;
 
 var string ModVersion;
@@ -24,8 +24,8 @@ function RegisterAbilityActivated()
 	
 	EventMgr = `XEventMGR;
 	EventMgr.RegisterForEvent(selfObj, 'UnitMoveFinished', OnUnitMoveFinished, ELD_OnStateSubmitted, 0, );
-	EventMgr.RegisterForEvent(selfObj, 'AbilityActivated', OnAbilityActivated, ELD_PreStateSubmitted, 0, );
-	EventMgr.RegisterForEvent(selfObj, 'UnitTakeEffectDamage', OnUnitTakeDamage, ELD_OnStateSubmitted, 0, );
+	EventMgr.RegisterForEvent(selfObj, 'AbilityActivated', OnAbilityActivated, ELD_OnVisualizationBlockStarted, 0, );
+	EventMgr.RegisterForEvent(selfObj, 'UnitTakeEffectDamage', OnUnitTakeDamage, ELD_OnVisualizationBlockStarted, 0, );
 	EventMgr.RegisterForEvent(selfObj, 'UnitChangedTeam', OnUnitChangedTeam, ELD_OnStateSubmitted, 0, );
 	EventMgr.RegisterForEvent(selfObj, 'PlayerTurnBegun', OnPlayerTurnBegun, ELD_OnStateSubmitted, 0);
 	EventMgr.RegisterForEvent(selfObj, 'PlayerTurnEnded', OnPlayerTurnEnd, ELD_OnStateSubmitted, 0);
@@ -88,7 +88,7 @@ function EventListenerReturn OnPlayerTurnBegun(Object EventData, Object EventSou
 	local XComGameState_Unit Unit;	
 	local XComGameState_Player PlayerState;
 	local XComGameStateHistory History;
-	local XComGameState_NMD_Root RootStats, NewRoot;
+	//local XComGameState_NMD_Root RootStats, NewRoot;
 
 	if (class'NMD_Utilities'.static.IsGameStateInterrupted(GameState, "OnPlayerTurnBegun"))
 	{

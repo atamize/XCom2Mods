@@ -375,3 +375,53 @@ static function bool IsGameStateInterrupted(XComGameState GameState, optional st
 	}
 	return false;
 }
+
+static function string GetFilenameFromPhotoIndex(int Index)
+{
+	local array<CampaignPhotoData> PhotoDatabase;
+	local int i;
+	local XComGameState_CampaignSettings SettingsState;
+
+	SettingsState = XComGameState_CampaignSettings(`XCOMHISTORY.GetSingleGameStateObjectForClass(class'XComGameState_CampaignSettings'));
+	PhotoDatabase = `XENGINE.m_kPhotoManager.m_PhotoDatabase;
+
+	for (i = 0; i < PhotoDatabase.Length; ++i)
+	{
+		if (PhotoDatabase[i].CampaignID == SettingsState.GameIndex)
+		{
+			if (Index < PhotoDatabase[i].Posters.Length)
+			{
+				return PhotoDatabase[i].Posters[Index].PhotoFilename;
+			}
+		}
+	}
+
+	return "";
+}
+
+static function Texture2D GetTextureFromPhotoFilename(string Filename)
+{
+	local array<CampaignPhotoData> PhotoDatabase;
+	local int i, j;
+	local XComGameState_CampaignSettings SettingsState;
+
+	SettingsState = XComGameState_CampaignSettings(`XCOMHISTORY.GetSingleGameStateObjectForClass(class'XComGameState_CampaignSettings'));
+	PhotoDatabase = `XENGINE.m_kPhotoManager.m_PhotoDatabase;
+
+	for (i = 0; i < PhotoDatabase.Length; ++i)
+	{
+		if (PhotoDatabase[i].CampaignID == SettingsState.GameIndex)
+		{
+			for (j = 0; j < PhotoDatabase[i].Posters.Length; ++j)
+			{
+				if (PhotoDatabase[i].Posters[j].PhotoFilename == Filename)
+				{
+					return `XENGINE.m_kPhotoManager.GetPosterTexture(SettingsState.GameIndex, j);
+				}
+			}
+		}
+	}
+
+	return none;
+}
+

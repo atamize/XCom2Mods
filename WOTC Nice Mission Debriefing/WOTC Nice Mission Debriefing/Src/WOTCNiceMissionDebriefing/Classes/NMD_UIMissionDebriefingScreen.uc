@@ -198,7 +198,7 @@ function ShowStatsForUnit(int SoldierIndex)
 	local Texture2D SoldierTexture;
 	local X2PhotoBooth_PhotoManager PhotoManager;
 	local XComGameState_NMD_Unit NMDUnit;
-	local NMD_BaseStat PosterData;
+	local NMD_PersistentStat_PosterData PosterData;
 	local NMD_BaseAward Award;
 	local int PosterIndex;
 	local XComGameState_Unit Unit;
@@ -225,14 +225,22 @@ function ShowStatsForUnit(int SoldierIndex)
 
 	if (NMDUnit != none)
 	{
-		PosterData = NMDUnit.GetStat(class'NMD_PersistentStat_PosterData'.const.ID);
-		PosterIndex = PosterData.GetValue(Unit.ObjectID);
-		//`log("NMDUnit found with poster index " $ PosterIndex);
-		if (PosterIndex >= 0 && PosterIndex < PhotoManager.GetNumOfPosterForCampaign(SettingsState.GameIndex, false))
+		PosterData = NMD_PersistentStat_PosterData(NMDUnit.GetStat(class'NMD_PersistentStat_PosterData'.const.ID));
+
+		if (len(PosterData.GetName()) > 0)
 		{
-			SoldierTexture = PhotoManager.GetPosterTexture(SettingsState.GameIndex, PosterIndex);
-			SoldierImage.SetSize(280, 420);
-			SoldierImage.SetPosition(PhotoPanel.X + 10, PhotoPanel.Y + 20);
+			`log("NMD attempting to get poster for filename " $ PosterData.GetName());
+			SoldierTexture = class'NMD_Utilities'.static.GetTextureFromPhotoFilename(PosterData.GetName());
+		}
+
+		if (SoldierTexture == none)
+		{
+			PosterIndex = PosterData.GetValue(Unit.ObjectID);
+			`log("NMD - NMDUnit found with poster index " $ PosterIndex);
+			if (PosterIndex >= 0 && PosterIndex < PhotoManager.GetNumOfPosterForCampaign(SettingsState.GameIndex, false))
+			{
+				SoldierTexture = PhotoManager.GetPosterTexture(SettingsState.GameIndex, PosterIndex);
+			}
 		}
 	}
 
@@ -248,6 +256,11 @@ function ShowStatsForUnit(int SoldierIndex)
 		}
 		SoldierImage.SetSize(256, 256);
 		SoldierImage.SetPosition(PhotoPanel.X + 10, PhotoPanel.Y + (PhotoPanel.Height / 2) - (SoldierImage.Height / 2) - 50);
+	}
+	else
+	{
+		SoldierImage.SetSize(280, 420);
+		SoldierImage.SetPosition(PhotoPanel.X + 10, PhotoPanel.Y + 20);
 	}
 
 	SoldierImage.LoadImage(class'UIUtilities_Image'.static.ValidateImagePath(PathName(SoldierTexture)));
@@ -382,11 +395,44 @@ function BackToSummary()
 function OpenCreatePhoto(UIButton button)
 {
 	local NMD_UIDebriefPhotobooth Photobooth;
+	local XComPresentationLayer Pres;
+	local XComWorldData WorldData;
+	local array<XComGameState_Unit> playerUnits;
+	local int i;
 
 	if (`ScreenStack.IsNotInStack(class'NMD_UIDebriefPhotobooth'))
 	{
-		Photobooth = NMD_UIDebriefPhotobooth(`ScreenStack.Push(Spawn(class'NMD_UIDebriefPhotobooth', `PRES)));
+		Pres = `PRES;
+		if (Pres.m_kTacticalHUD != none)
+			Pres.m_kTacticalHUD.Hide();
+
+		Photobooth = NMD_UIDebriefPhotobooth(`ScreenStack.Push(Spawn(class'NMD_UIDebriefPhotobooth', Pres)));
 		Photobooth.InitPropaganda(UnitRef);
+
+		XGBattle_SP(`BATTLE).GetHumanPlayer().GetOriginalUnits(playerUnits, true, false);
+
+		for (i = 0; i < playerUnits.Length; i++)
+		{
+			XGUnit(playerUnits[i].GetVisualizer()).GetPawn().SetVisible(false);
+		}
+
+		XGBattle_SP(`BATTLE).GetCivilianPlayer().GetUnits(playerUnits);
+
+		for (i = 0; i < playerUnits.Length; i++)
+		{
+			XGUnit(playerUnits[i].GetVisualizer()).GetPawn().SetVisible(false);
+		}
+
+		Pres.ScreenStack.PopFirstInstanceOfClass(class'UISpecialMissionHUD', false);
+		Pres.ScreenStack.PopFirstInstanceOfClass(class'UIUnitFlagManager', false);
+		Pres.GetActionIconMgr().ShowIcons(false);
+
+		WorldData = class'XComWorldData'.static.GetWorldData();
+		if (WorldData != none && WorldData.Volume != none)
+		{
+			WorldData.Volume.BorderComponent.SetCustomHidden(TRUE);
+			WorldData.Volume.BorderComponentDashing.SetCustomHidden(TRUE);
+		}
 	}
 }
 
@@ -437,14 +483,18 @@ function SavePosterIndex(int PosterIndex)
 {
 	local XComGameState_NMD_Unit NMDUnit;
 	local XComGameState NewGameState;
+	local string Filename;
 
 	NMDUnit = MissionInfo.GetNMDUnit(CurrentSoldierIndex);
 	if (NMDUnit != none)
 	{
 		NewGameState = class'XComGameStateContext_ChangeContainer'.static.CreateChangeState("Update Poster Index");
 		NMDUnit = XComGameState_NMD_Unit(NewGameState.ModifyStateObject(class'XComGameState_NMD_Unit', NMDUnit.ObjectID));
-		NMDUnit.SetPosterIndex(PosterIndex, NewGameState);
+		Filename = class'NMD_Utilities'.static.GetFilenameFromPhotoIndex(PosterIndex);
+		NMDUnit.SetPosterFilename(Filename, NewGameState);
+		//NMDUnit.SetPosterIndex(PosterIndex, NewGameState);
 		//`log("NMD Setting PosterIndex to " $ PosterIndex);
+		`log("NMD Setting photo filename to " $ Filename);
 		`GAMERULES.SubmitGameState(NewGameState);
 	}// else `log("NMDUnit SavePosterIndex not found");
 }
