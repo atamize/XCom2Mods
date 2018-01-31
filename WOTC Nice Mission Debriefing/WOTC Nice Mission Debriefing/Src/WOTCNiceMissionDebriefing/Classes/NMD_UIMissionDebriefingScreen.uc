@@ -26,6 +26,7 @@ var UIButton CreatePhotoButton;
 var UIButton SelectPhotoButton;
 var UIButton PreviousButton;
 var UIButton NextButton;
+var UIText PageLabel;
 
 var UIPanel StatsPanel;
 var UIStatList StatList;
@@ -119,16 +120,21 @@ simulated function InitScreen(XComPlayerController InitController, UIMovie InitM
 	PreviousButton = Spawn(class'UIButton', Container);
 	PreviousButton.ResizeToText = false;
 	PreviousButton.InitButton('PreviousButton', m_strPrevious, OnPreviousClick, eUIButtonStyle_HOTLINK_BUTTON);
-	PreviousButton.SetWidth(180);
+	PreviousButton.SetWidth(160);
 	PreviousButton.SetGamepadIcon(class'UIUtilities_Input'.const.ICON_LB_L1);
-	PreviousButton.SetPosition(AwardsPanel.X + 30, Container.Height - 50);
+	PreviousButton.SetPosition(AwardsPanel.X, Container.Height - 50);
 
 	NextButton = Spawn(class'UIButton', Container);
 	NextButton.ResizeToText = false;
 	NextButton.InitButton('NextButton', m_strNext, OnNextClick, eUIButtonStyle_HOTLINK_BUTTON);
-	NextButton.SetWidth(180);
+	NextButton.SetWidth(160);
 	NextButton.SetGamepadIcon(class'UIUtilities_Input'.const.ICON_RB_R1);
-	NextButton.SetPosition(PreviousButton.X + PreviousButton.Width + 30, PreviousButton.Y);
+	NextButton.SetPosition(PreviousButton.X + PreviousButton.Width + 20, PreviousButton.Y);
+
+	PageLabel = Spawn(class'UIText', Container);
+	PageLabel.InitText('pagetext');
+	PageLabel.SetWidth(80);
+	PageLabel.SetPosition(NextButton.X + NextButton.Width + 20, NextButton.Y);
 
 	MissionSummary = UIMissionSummary(`ScreenStack.GetFirstInstanceOf(class'UIMissionSummary'));
 	if (MissionSummary != none)
@@ -198,9 +204,9 @@ function ShowStatsForUnit(int SoldierIndex)
 	local Texture2D SoldierTexture;
 	local X2PhotoBooth_PhotoManager PhotoManager;
 	local XComGameState_NMD_Unit NMDUnit;
-	local NMD_PersistentStat_PosterData PosterData;
+	//local NMD_PersistentStat_PosterData PosterData;
 	local NMD_BaseAward Award;
-	local int PosterIndex;
+	//local int PosterIndex;
 	local XComGameState_Unit Unit;
 
 	Unit = MissionInfo.GetUnit(SoldierIndex);
@@ -223,26 +229,7 @@ function ShowStatsForUnit(int SoldierIndex)
 
 	NMDUnit = MissionInfo.GetNMDUnit(SoldierIndex);
 
-	if (NMDUnit != none)
-	{
-		PosterData = NMD_PersistentStat_PosterData(NMDUnit.GetStat(class'NMD_PersistentStat_PosterData'.const.ID));
-
-		if (len(PosterData.GetName()) > 0)
-		{
-			`log("NMD attempting to get poster for filename " $ PosterData.GetName());
-			SoldierTexture = class'NMD_Utilities'.static.GetTextureFromPhotoFilename(PosterData.GetName());
-		}
-
-		if (SoldierTexture == none)
-		{
-			PosterIndex = PosterData.GetValue(Unit.ObjectID);
-			`log("NMD - NMDUnit found with poster index " $ PosterIndex);
-			if (PosterIndex >= 0 && PosterIndex < PhotoManager.GetNumOfPosterForCampaign(SettingsState.GameIndex, false))
-			{
-				SoldierTexture = PhotoManager.GetPosterTexture(SettingsState.GameIndex, PosterIndex);
-			}
-		}
-	}
+	SoldierTexture = class'NMD_Utilities'.static.GetPhotoForUnit(MissionInfo.GetUnitID(SoldierIndex));
 
 	if (SoldierTexture == none)
 	{
@@ -286,6 +273,8 @@ function ShowStatsForUnit(int SoldierIndex)
 			Spawn(class'UIListItemString', AwardsList.ItemContainer).InitListItem(Award.GetLabel(Unit)).SetTooltipText(Award.Tooltip);
 		}
 	}
+
+	PageLabel.SetText("(" $ (CurrentSoldierIndex + 1) $ " / " $ MissionInfo.UnitInfo.Length $ ")");
 }
 
 function PopulateStats(XComGameState_Unit Unit, XComGameState_NMD_Unit NMDUnit)
@@ -481,22 +470,7 @@ function SetPhotoTexture(Texture2D SoldierTexture)
 
 function SavePosterIndex(int PosterIndex)
 {
-	local XComGameState_NMD_Unit NMDUnit;
-	local XComGameState NewGameState;
-	local string Filename;
-
-	NMDUnit = MissionInfo.GetNMDUnit(CurrentSoldierIndex);
-	if (NMDUnit != none)
-	{
-		NewGameState = class'XComGameStateContext_ChangeContainer'.static.CreateChangeState("Update Poster Index");
-		NMDUnit = XComGameState_NMD_Unit(NewGameState.ModifyStateObject(class'XComGameState_NMD_Unit', NMDUnit.ObjectID));
-		Filename = class'NMD_Utilities'.static.GetFilenameFromPhotoIndex(PosterIndex);
-		NMDUnit.SetPosterFilename(Filename, NewGameState);
-		//NMDUnit.SetPosterIndex(PosterIndex, NewGameState);
-		//`log("NMD Setting PosterIndex to " $ PosterIndex);
-		`log("NMD Setting photo filename to " $ Filename);
-		`GAMERULES.SubmitGameState(NewGameState);
-	}// else `log("NMDUnit SavePosterIndex not found");
+	class'NMD_Utilities'.static.SavePhotoForUnit(MissionInfo.GetUnitID(CurrentSoldierIndex), PosterIndex);
 }
 
 simulated function bool OnUnrealCommand(int ucmd, int arg)

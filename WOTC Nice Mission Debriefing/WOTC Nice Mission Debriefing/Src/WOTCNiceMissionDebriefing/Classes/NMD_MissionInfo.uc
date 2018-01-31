@@ -80,7 +80,7 @@ function Initialize(array<XComGameState_Unit> Squad)
 
 	foreach Squad(Unit)
 	{
-		NMDUnit = XComGameState_NMD_Unit(Unit.FindComponentObject(class'XComGameState_NMD_Unit'));
+		NMDUnit = class'NMD_Utilities'.static.FindUnitStats(Unit);
 		if (NMDUnit != none)
 		{
 			UInfo.Unit = Unit;

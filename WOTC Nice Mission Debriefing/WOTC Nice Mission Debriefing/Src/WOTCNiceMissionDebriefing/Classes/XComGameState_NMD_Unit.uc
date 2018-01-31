@@ -8,6 +8,8 @@ var array<NMD_BaseStat> DynamicStats;
 var int multifireIndex;
 var int multifireHistoryIndex;
 
+var int OwnerID;
+
 struct NMD_DamageResult
 {
 	var int UnitID;
@@ -17,8 +19,9 @@ struct NMD_DamageResult
 
 var array<NMD_DamageResult> EnemyDamageResults;
 
-function XComGameState_NMD_Unit InitComponent(XComGameState NewGameState, optional bool upgrade=false)
+function XComGameState_NMD_Unit InitComponent(XComGameState NewGameState, int OwningID)
 {
+	OwnerID = OwningID;
 	CreateOrUpdateStat(class'NMD_PersistentStat_PosterData'.const.ID, class'NMD_PersistentStat_PosterData', NewGameState);
 
 	CreateOrUpdateStat(class'NMD_Stat_TilesMoved'.const.ID, class'NMD_Stat_TilesMoved', NewGameState);
@@ -41,13 +44,13 @@ function ClearMissionStats(XComGameState NewGameState)
 		Stat = NMD_BaseStat(`XCOMHISTORY.GetGameStateForObjectID(StatsRefs[i].ObjectID));
 		if (Stat == none)
 		{
-			`log("NMD - StatsRefs at " $ i $ " for " $ self.ObjectID $ " is null; removing");
 			StatsRefs.Remove(i--, 1);
 			continue;
 		}
 
 		if (!Stat.IsPersistent())
 		{
+			`log("NMD - Stat " $ Stat.GetType() $ ": " $ Stat.GetDisplayValue());
 			Stat = NMD_BaseStat(NewGameState.ModifyStateObject(class'NMD_BaseStat', Stat.ObjectID));
 			Stat.InitComponent();
 			//`log("NMD - clearing mission stat " $ Stat.GetType());

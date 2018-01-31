@@ -2,6 +2,7 @@ class NMD_Utilities extends Object config (WOTCNiceMissionDebriefing);
 
 const DEBUG=true;
 const DEBUG2=true;
+const METRIC_PHOTO_INDEX="NMD_PHOTO_INDEX";
 
 var config array<name> basicShotAbilities;
 var config array<name> moveShotAbilities;
@@ -95,51 +96,63 @@ static function EnsureHaveUnitStats(array<StateObjectReference> Units)
 	}
 }
 
+static function XComGameState_NMD_Unit FindUnitStats(XComGameState_Unit Unit)
+{
+	local XComGameStateHistory History;
+	local XComGameState_NMD_Unit UnitStats;
+
+	if (!Unit.IsSoldier())
+		return none;
+	
+	History = `XCOMHISTORY;
+	foreach History.IterateByClassType(class'XComGameState_NMD_Unit', UnitStats)
+	{
+		if (Unit.GetReference().ObjectID == UnitStats.OwnerID)
+		{
+			return UnitStats;
+		}
+	}
+
+	return none;
+}
+
 /**
 	Ensures the given unit has UnitStats if he is a soldier
 */
 static function XComGameState_NMD_Unit EnsureHasUnitStats(XComGameState_Unit Unit)
 {
 	// Shortcut variables
-	local XComGameStateHistory History;
+	//local XComGameStateHistory History;
 
 	// To perform the gamestate modification
 	local XComGameState NewGameState;
-	local XComGameStateContext_ChangeContainer ChangeContainer;
 	local XComGameState_NMD_Unit UnitStats;
-	local XComGameState_Unit NewUnit;
-	
-	// Get shortcut vars
-	History = `XCOMHISTORY;
 	
 	// If unit is not a soldier, return
-	if (!unit.IsSoldier())
+	if (!Unit.IsSoldier())
 		return none;
 	
 	// Check if unit has UnitStats
-	UnitStats = XComGameState_NMD_Unit(Unit.FindComponentObject(class'XComGameState_NMD_Unit'));
-	if (unitStats == none)
+	UnitStats = class'NMD_Utilities'.static.FindUnitStats(Unit);
+	
+	if (UnitStats == none)
 	{
 		// If not found, we need to add it
 		//if( DEBUG ) `log("=NMD= Adding UnitStats for " $ unit.GetFullName() $ " =======");
-	
+		// Get shortcut vars
+		//History = `XCOMHISTORY;
+
 		// Setup new game state
-		ChangeContainer = class'XComGameStateContext_ChangeContainer'.static.CreateEmptyChangeContainer("Adding UnitStats to " $ unit.GetFullName());
-		NewGameState = History.CreateNewGameState(true, ChangeContainer);
-		NewUnit = XComGameState_Unit(NewGameState.CreateStateObject(class'XComGameState_Unit', Unit.ObjectID));
+		NewGameState = class'XComGameStateContext_ChangeContainer'.static.CreateChangeState("Adding UnitStats to " $ unit.GetFullName());
 		
 		// Create and add UnitStats
-		UnitStats = XComGameState_NMD_Unit(NewGameState.CreateStateObject(class'XComGameState_NMD_Unit'));
-		UnitStats.InitComponent(NewGameState);
-		NewUnit.AddComponentObject(UnitStats);
+		UnitStats = XComGameState_NMD_Unit(NewGameState.CreateNewStateObject(class'XComGameState_NMD_Unit'));
+		UnitStats.InitComponent(NewGameState, Unit.GetReference().ObjectID);
 		
-		// Add new stats to history
-		NewGameState.AddStateObject(NewUnit);
-		NewGameState.AddStateObject(UnitStats);
-		History.AddGameStateToHistory(NewGameState);
+		`XCOMGAME.GameRuleset.SubmitGameState(NewGameState);
 	}
 
-	return unitStats;
+	return UnitStats;
 }
 
 static function ResetMissionStats(XComGameState NewGameState)
@@ -163,7 +176,7 @@ static function ResetMissionStats(XComGameState NewGameState)
         
 		if (Unit != none)
 		{
-			UnitStats = XComGameState_NMD_Unit(Unit.FindComponentObject(class'XComGameState_NMD_Unit'));
+			UnitStats = FindUnitStats(Unit);
 			if (UnitStats != none)
 			{
 				`log("NMD - clearing stats for unit " $ Unit.GetFullName());
@@ -188,9 +201,9 @@ static function CleanupDismissedUnits()
     foreach `XCOMHISTORY.IterateByClassType(class'XComGameState_NMD_Unit', unitStats, , true)
 	{
         //check and see if the OwningObject is still alive and exists
-        if (UnitStats.OwningObjectId > 0)
+        if (UnitStats.OwnerId > 0)
 		{
-            Unit = XComGameState_Unit(`XCOMHISTORY.GetGameStateForObjectID(unitStats.OwningObjectID));
+            Unit = XComGameState_Unit(`XCOMHISTORY.GetGameStateForObjectID(unitStats.OwnerID));
             if (Unit == none)
 			{
                 // Remove disconnected officer state
@@ -425,3 +438,78 @@ static function Texture2D GetTextureFromPhotoFilename(string Filename)
 	return none;
 }
 
+static function Texture2D GetPhotoForUnit(int UnitID)
+{
+	local string UnitMetric, Suffix, Filename;
+	local XComGameState_Analytics Analytics;
+	local array<CampaignPhotoData> PhotoDatabase;
+	local int i, j, SuffixLength, Zeroes;
+	local XComGameState_CampaignSettings SettingsState;
+
+	SettingsState = XComGameState_CampaignSettings(`XCOMHISTORY.GetSingleGameStateObjectForClass(class'XComGameState_CampaignSettings'));
+	PhotoDatabase = `XENGINE.m_kPhotoManager.m_PhotoDatabase;
+
+	Analytics = XComGameState_Analytics(`XCOMHISTORY.GetSingleGameStateObjectForClass(class'XComGameState_Analytics'));
+
+	UnitMetric = "UNIT_" $ UnitID $ "_" $ METRIC_PHOTO_INDEX;
+	Suffix = Analytics.GetValueAsString(UnitMetric, "");
+	SuffixLength = Len(Suffix);
+
+	if (SuffixLength > 0)
+	{
+		Zeroes = 3 - SuffixLength;
+		for (i = 0; i < Zeroes; ++i)
+		{
+			Suffix = "0" $ Suffix;
+		}
+
+		for (i = 0; i < PhotoDatabase.Length; ++i)
+		{
+			if (PhotoDatabase[i].CampaignID == SettingsState.GameIndex)
+			{
+				for (j = 0; j < PhotoDatabase[i].Posters.Length; ++j)
+				{
+					Filename = PhotoDatabase[i].Posters[j].PhotoFilename;
+					if (Mid(Filename, Len(Filename) - 7, 3) == Suffix)
+					{
+						`log("NMD - found photo for Unit " $ UnitID $ " at index: " $ Suffix);
+						return `XENGINE.m_kPhotoManager.GetPosterTexture(SettingsState.GameIndex, j);
+					}
+				}
+			}
+		}
+	}
+		
+	`log("NMD - Couldn't find photo for Unit " $ UnitID $ " at index: " $ Suffix);
+	return none;
+}
+
+static function SavePhotoForUnit(int UnitID, int PhotoIndex)
+{
+	local string Filename;
+	local XComGameState NewGameState;
+
+	Filename = GetFilenameFromPhotoIndex(PhotoIndex);
+	NewGameState = class'XComGameStateContext_ChangeContainer'.static.CreateChangeState("Analytics Save Photo Index");
+	SavePhotoWithFilenameForUnit(UnitID, Filename, NewGameState);
+}
+
+static function SavePhotoWithFilenameForUnit(int UnitID, string Filename, XComGameState NewGameState, optional bool Submit = true)
+{
+	local string UnitMetric;
+	local int Index;
+	local XComGameState_Analytics Analytics, AnalyticsObject;
+
+	Analytics = XComGameState_Analytics(`XCOMHISTORY.GetSingleGameStateObjectForClass(class'XComGameState_Analytics'));
+	AnalyticsObject = XComGameState_Analytics(NewGameState.ModifyStateObject(class'XComGameState_Analytics', Analytics.ObjectID));
+
+	Index = int(Mid(FileName, Len(Filename) - 6, 3));
+	`log("NMD - saving photo for Unit " $ UnitID $ " with filename " $ Filename $ ", at index: " $ Index);
+	UnitMetric = "UNIT_" $ UnitID $ "_" $ METRIC_PHOTO_INDEX;
+	AnalyticsObject.SetValue(UnitMetric, Index);
+
+	if (Submit)
+	{
+		Analytics.SubmitGameState(NewGameState, AnalyticsObject);
+	}
+}
