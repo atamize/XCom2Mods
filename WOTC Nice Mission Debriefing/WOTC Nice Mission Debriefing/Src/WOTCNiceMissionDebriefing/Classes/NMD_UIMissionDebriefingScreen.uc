@@ -26,6 +26,7 @@ var UIButton CreatePhotoButton;
 var UIButton SelectPhotoButton;
 var UIButton PreviousButton;
 var UIButton NextButton;
+var UIText PageLabel;
 
 var UIPanel StatsPanel;
 var UIStatList StatList;
@@ -119,16 +120,21 @@ simulated function InitScreen(XComPlayerController InitController, UIMovie InitM
 	PreviousButton = Spawn(class'UIButton', Container);
 	PreviousButton.ResizeToText = false;
 	PreviousButton.InitButton('PreviousButton', m_strPrevious, OnPreviousClick, eUIButtonStyle_HOTLINK_BUTTON);
-	PreviousButton.SetWidth(180);
+	PreviousButton.SetWidth(160);
 	PreviousButton.SetGamepadIcon(class'UIUtilities_Input'.const.ICON_LB_L1);
-	PreviousButton.SetPosition(AwardsPanel.X + 30, Container.Height - 50);
+	PreviousButton.SetPosition(AwardsPanel.X, Container.Height - 50);
 
 	NextButton = Spawn(class'UIButton', Container);
 	NextButton.ResizeToText = false;
 	NextButton.InitButton('NextButton', m_strNext, OnNextClick, eUIButtonStyle_HOTLINK_BUTTON);
-	NextButton.SetWidth(180);
+	NextButton.SetWidth(160);
 	NextButton.SetGamepadIcon(class'UIUtilities_Input'.const.ICON_RB_R1);
-	NextButton.SetPosition(PreviousButton.X + PreviousButton.Width + 30, PreviousButton.Y);
+	NextButton.SetPosition(PreviousButton.X + PreviousButton.Width + 20, PreviousButton.Y);
+
+	PageLabel = Spawn(class'UIText', Container);
+	PageLabel.InitText('pagetext');
+	PageLabel.SetWidth(80);
+	PageLabel.SetPosition(NextButton.X + NextButton.Width + 20, NextButton.Y);
 
 	MissionSummary = UIMissionSummary(`ScreenStack.GetFirstInstanceOf(class'UIMissionSummary'));
 	if (MissionSummary != none)
@@ -198,9 +204,9 @@ function ShowStatsForUnit(int SoldierIndex)
 	local Texture2D SoldierTexture;
 	local X2PhotoBooth_PhotoManager PhotoManager;
 	local XComGameState_NMD_Unit NMDUnit;
-	local NMD_BaseStat PosterData;
+	//local NMD_PersistentStat_PosterData PosterData;
 	local NMD_BaseAward Award;
-	local int PosterIndex;
+	//local int PosterIndex;
 	local XComGameState_Unit Unit;
 
 	Unit = MissionInfo.GetUnit(SoldierIndex);
@@ -223,18 +229,7 @@ function ShowStatsForUnit(int SoldierIndex)
 
 	NMDUnit = MissionInfo.GetNMDUnit(SoldierIndex);
 
-	if (NMDUnit != none)
-	{
-		PosterData = NMDUnit.GetStat(class'NMD_PersistentStat_PosterData'.const.ID);
-		PosterIndex = PosterData.GetValue(Unit.ObjectID);
-		//`log("NMDUnit found with poster index " $ PosterIndex);
-		if (PosterIndex >= 0 && PosterIndex < PhotoManager.GetNumOfPosterForCampaign(SettingsState.GameIndex, false))
-		{
-			SoldierTexture = PhotoManager.GetPosterTexture(SettingsState.GameIndex, PosterIndex);
-			SoldierImage.SetSize(280, 420);
-			SoldierImage.SetPosition(PhotoPanel.X + 10, PhotoPanel.Y + 20);
-		}
-	}
+	SoldierTexture = class'NMD_Utilities'.static.GetPhotoForUnit(MissionInfo.GetUnitID(SoldierIndex));
 
 	if (SoldierTexture == none)
 	{
@@ -248,6 +243,11 @@ function ShowStatsForUnit(int SoldierIndex)
 		}
 		SoldierImage.SetSize(256, 256);
 		SoldierImage.SetPosition(PhotoPanel.X + 10, PhotoPanel.Y + (PhotoPanel.Height / 2) - (SoldierImage.Height / 2) - 50);
+	}
+	else
+	{
+		SoldierImage.SetSize(280, 420);
+		SoldierImage.SetPosition(PhotoPanel.X + 10, PhotoPanel.Y + 20);
 	}
 
 	SoldierImage.LoadImage(class'UIUtilities_Image'.static.ValidateImagePath(PathName(SoldierTexture)));
@@ -273,6 +273,8 @@ function ShowStatsForUnit(int SoldierIndex)
 			Spawn(class'UIListItemString', AwardsList.ItemContainer).InitListItem(Award.GetLabel(Unit)).SetTooltipText(Award.Tooltip);
 		}
 	}
+
+	PageLabel.SetText("(" $ (CurrentSoldierIndex + 1) $ " / " $ MissionInfo.UnitInfo.Length $ ")");
 }
 
 function PopulateStats(XComGameState_Unit Unit, XComGameState_NMD_Unit NMDUnit)
@@ -382,11 +384,44 @@ function BackToSummary()
 function OpenCreatePhoto(UIButton button)
 {
 	local NMD_UIDebriefPhotobooth Photobooth;
+	local XComPresentationLayer Pres;
+	local XComWorldData WorldData;
+	local array<XComGameState_Unit> playerUnits;
+	local int i;
 
 	if (`ScreenStack.IsNotInStack(class'NMD_UIDebriefPhotobooth'))
 	{
-		Photobooth = NMD_UIDebriefPhotobooth(`ScreenStack.Push(Spawn(class'NMD_UIDebriefPhotobooth', `PRES)));
+		Pres = `PRES;
+		if (Pres.m_kTacticalHUD != none)
+			Pres.m_kTacticalHUD.Hide();
+
+		Photobooth = NMD_UIDebriefPhotobooth(`ScreenStack.Push(Spawn(class'NMD_UIDebriefPhotobooth', Pres)));
 		Photobooth.InitPropaganda(UnitRef);
+
+		XGBattle_SP(`BATTLE).GetHumanPlayer().GetOriginalUnits(playerUnits, true, false);
+
+		for (i = 0; i < playerUnits.Length; i++)
+		{
+			XGUnit(playerUnits[i].GetVisualizer()).GetPawn().SetVisible(false);
+		}
+
+		XGBattle_SP(`BATTLE).GetCivilianPlayer().GetUnits(playerUnits);
+
+		for (i = 0; i < playerUnits.Length; i++)
+		{
+			XGUnit(playerUnits[i].GetVisualizer()).GetPawn().SetVisible(false);
+		}
+
+		Pres.ScreenStack.PopFirstInstanceOfClass(class'UISpecialMissionHUD', false);
+		Pres.ScreenStack.PopFirstInstanceOfClass(class'UIUnitFlagManager', false);
+		Pres.GetActionIconMgr().ShowIcons(false);
+
+		WorldData = class'XComWorldData'.static.GetWorldData();
+		if (WorldData != none && WorldData.Volume != none)
+		{
+			WorldData.Volume.BorderComponent.SetCustomHidden(TRUE);
+			WorldData.Volume.BorderComponentDashing.SetCustomHidden(TRUE);
+		}
 	}
 }
 
@@ -435,18 +470,7 @@ function SetPhotoTexture(Texture2D SoldierTexture)
 
 function SavePosterIndex(int PosterIndex)
 {
-	local XComGameState_NMD_Unit NMDUnit;
-	local XComGameState NewGameState;
-
-	NMDUnit = MissionInfo.GetNMDUnit(CurrentSoldierIndex);
-	if (NMDUnit != none)
-	{
-		NewGameState = class'XComGameStateContext_ChangeContainer'.static.CreateChangeState("Update Poster Index");
-		NMDUnit = XComGameState_NMD_Unit(NewGameState.ModifyStateObject(class'XComGameState_NMD_Unit', NMDUnit.ObjectID));
-		NMDUnit.SetPosterIndex(PosterIndex, NewGameState);
-		//`log("NMD Setting PosterIndex to " $ PosterIndex);
-		`GAMERULES.SubmitGameState(NewGameState);
-	}// else `log("NMDUnit SavePosterIndex not found");
+	class'NMD_Utilities'.static.SavePhotoForUnit(MissionInfo.GetUnitID(CurrentSoldierIndex), PosterIndex);
 }
 
 simulated function bool OnUnrealCommand(int ucmd, int arg)

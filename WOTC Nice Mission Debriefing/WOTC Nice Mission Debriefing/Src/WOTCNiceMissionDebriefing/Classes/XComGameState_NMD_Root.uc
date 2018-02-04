@@ -1,6 +1,6 @@
 class XComGameState_NMD_Root extends XComGameState_BaseObject;
 
-const CURRENT_VERSION = "1.0.4";
+const CURRENT_VERSION = "1.1.0a";
 const CURRENT_VERSION_ID = 0;
 
 var string ModVersion;
@@ -24,8 +24,8 @@ function RegisterAbilityActivated()
 	
 	EventMgr = `XEventMGR;
 	EventMgr.RegisterForEvent(selfObj, 'UnitMoveFinished', OnUnitMoveFinished, ELD_OnStateSubmitted, 0, );
-	EventMgr.RegisterForEvent(selfObj, 'AbilityActivated', OnAbilityActivated, ELD_PreStateSubmitted, 0, );
-	EventMgr.RegisterForEvent(selfObj, 'UnitTakeEffectDamage', OnUnitTakeDamage, ELD_OnStateSubmitted, 0, );
+	EventMgr.RegisterForEvent(selfObj, 'AbilityActivated', OnAbilityActivated, ELD_OnVisualizationBlockStarted, 0, );
+	EventMgr.RegisterForEvent(selfObj, 'UnitTakeEffectDamage', OnUnitTakeDamage, ELD_OnVisualizationBlockStarted, 0, );
 	EventMgr.RegisterForEvent(selfObj, 'UnitChangedTeam', OnUnitChangedTeam, ELD_OnStateSubmitted, 0, );
 	EventMgr.RegisterForEvent(selfObj, 'PlayerTurnBegun', OnPlayerTurnBegun, ELD_OnStateSubmitted, 0);
 	EventMgr.RegisterForEvent(selfObj, 'PlayerTurnEnded', OnPlayerTurnEnd, ELD_OnStateSubmitted, 0);
@@ -69,7 +69,7 @@ function ClearStatsOnFirstTurn()
 
 	foreach PlayableUnits(Unit)
 	{
-		NMDUnit = XComGameState_NMD_Unit(Unit.FindComponentObject(class'XComGameState_NMD_Unit'));
+		NMDUnit = class'NMD_Utilities'.static.FindUnitStats(Unit);
 		if (NMDUnit != none)
 		{
 			//`log("NMD Clearing mission stats for " $ Unit.GetFullName());
@@ -86,9 +86,9 @@ function EventListenerReturn OnPlayerTurnBegun(Object EventData, Object EventSou
 	local XComTacticalController kTacticalController;
 	local array<XComGameState_Unit> PlayableUnits;
 	local XComGameState_Unit Unit;	
-	local XComGameState_Player PlayerState;
-	local XComGameStateHistory History;
-	local XComGameState_NMD_Root RootStats, NewRoot;
+	//local XComGameState_Player PlayerState;
+	//local XComGameStateHistory History;
+	//local XComGameState_NMD_Root RootStats, NewRoot;
 
 	if (class'NMD_Utilities'.static.IsGameStateInterrupted(GameState, "OnPlayerTurnBegun"))
 	{
@@ -102,29 +102,6 @@ function EventListenerReturn OnPlayerTurnBegun(Object EventData, Object EventSou
 	foreach PlayableUnits(Unit)
 	{
 		class'NMD_Utilities'.static.EnsureHasUnitStats(Unit);
-	}
-
-	History = `XCOMHISTORY;
-
-	// Only clear stats if we are starting a new mission (no turns taken)
-	foreach History.IterateByClassType(class'XComGameState_Player', PlayerState)
-	{
-		if (PlayerState.GetTeam() == eTeam_XCom)
-		{
-			//`log("NMD PlayerTurnCount: " $ PlayerState.PlayerTurnCount);
-			if (PlayerState.PlayerTurnCount > 1)
-			{
-				return ELR_NoInterrupt;
-			}
-			break;
-		}
-	}
-
-	//`log("NMD - First turn: cleared stats? " $ RootStats.HasClearedStats);
-	if (!HasClearedStats)
-	{
-		class'NMD_Utilities'.static.ResetMissionStats(GameState);
-		HasClearedStats = true;
 	}
 
 	return ELR_NoInterrupt;
@@ -162,6 +139,7 @@ function EventListenerReturn OnUnitMoveFinished(Object EventData, Object EventSo
 	if (Unit.IsConcealed())
 	{
 		UnitStats.AddConcealedTilesMoved(Tiles - OldTiles, GameState);
+		GameState.AddStateObject(UnitStats);
 		//`log("NMD - unit " $ Unit.GetFullName() $ " moved " $ (Tiles - OldTiles) $ " tiles in concealment");
 	}
 	
@@ -402,6 +380,8 @@ function XComGameState_NMD_Unit UpdateStats(XComGameState_Unit Unit, XComGameSta
 				UnitStats.AddShotFromElevation(Unit, TargetUnit, GameState);
 			}
 		}
+
+		GameState.AddStateObject(UnitStats);
 	}
 	else
 	{
@@ -419,6 +399,7 @@ function XComGameState_NMD_Unit UpdateStats(XComGameState_Unit Unit, XComGameSta
 			UnitStats = XComGameState_NMD_Unit(GameState.ModifyStateObject(class'XComGameState_NMD_Unit', UnitStats.ObjectID));
 
 			UnitStats.AddOverwatchRun(AbilityContext.IsResultContextHit(), GameState);
+			GameState.AddStateObject(UnitStats);
 		}
 	}
 	
@@ -462,6 +443,7 @@ function EventListenerReturn OnBrokeWindow(Object EventData, Object EventSource,
 
 		//`log("NMD - " $ Unit.GetFullName() $ " broke a damn window");
 		UnitStats.AddEnvironmentDamage(1, GameState);
+		GameState.AddStateObject(UnitStats);
 	}
 	
 	return ELR_NoInterrupt;
@@ -488,6 +470,7 @@ function EventListenerReturn OnKickedDoor(Object EventData, Object EventSource, 
 
 		//`log("NMD - " $ Unit.GetFullName() $ " kicked a damn door");
 		UnitStats.AddEnvironmentDamage(1, GameState);
+		GameState.AddStateObject(UnitStats);
 	}
 	
 	return ELR_NoInterrupt;
@@ -521,6 +504,7 @@ function EventListenerReturn OnBlownUp(Object EventData, Object EventSource, XCo
 
 		//`log("NMD - environmental damage caused by " $ Unit.GetFullName() $ " of magnitude " $ DamageEvent.DamageAmount);
 		UnitStats.AddEnvironmentDamage(DamageEvent.DamageAmount, GameState);
+		GameState.AddStateObject(UnitStats);
 	}
 
 	return ELR_NoInterrupt;

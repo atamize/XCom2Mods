@@ -19,6 +19,9 @@
     <Content Include="Config\XComWOTCNiceMissionDebriefing.ini">
       <SubType>Content</SubType>
     </Content>
+    <Content Include="Localization\WOTCNiceMissionDebriefing.deu">
+      <SubType>Content</SubType>
+    </Content>
     <Content Include="ReadMe.txt" />
     <Content Include="ModPreview.jpg" />
     <Content Include="Config\XComEditor.ini" />
@@ -109,9 +112,6 @@
     <Content Include="Src\WOTCNiceMissionDebriefing\Classes\NMD_Stat_WoundedDamage.uc">
       <SubType>Content</SubType>
     </Content>
-    <Content Include="Src\WOTCNiceMissionDebriefing\Classes\NMD_UIArmory_ScreenListener.uc">
-      <SubType>Content</SubType>
-    </Content>
     <Content Include="Src\WOTCNiceMissionDebriefing\Classes\NMD_UIMissionSummary.uc">
       <SubType>Content</SubType>
     </Content>
@@ -134,9 +134,6 @@
       <SubType>Content</SubType>
     </Content>
     <Content Include="Src\WOTCNiceMissionDebriefing\Classes\NMD_UIMissionDebriefingScreen.uc">
-      <SubType>Content</SubType>
-    </Content>
-    <Content Include="Src\WOTCNiceMissionDebriefing\Classes\NMD_UIPhotoboothReviewListener.uc">
       <SubType>Content</SubType>
     </Content>
     <Content Include="Src\WOTCNiceMissionDebriefing\Classes\X2DownloadableContentInfo_WOTCNiceMissionDebriefing.uc" />
