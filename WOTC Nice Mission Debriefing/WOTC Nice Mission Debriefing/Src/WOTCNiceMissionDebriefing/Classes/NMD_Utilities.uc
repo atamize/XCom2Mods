@@ -472,9 +472,33 @@ static function Texture2D GetPhotoForUnit(int UnitID)
 					Filename = PhotoDatabase[i].Posters[j].PhotoFilename;
 					if (Mid(Filename, Len(Filename) - 7, 3) == Suffix)
 					{
-						`log("NMD - found photo for Unit " $ UnitID $ " at index: " $ Suffix);
-						return `XENGINE.m_kPhotoManager.GetPosterTexture(SettingsState.GameIndex, j);
+						if (PhotoDatabase[i].Posters[j].CharacterIDs.Length == 1 && PhotoDatabase[i].Posters[j].CharacterIDs[0] == UnitID)
+						{
+							`log("NMD - found photo for Unit " $ UnitID $ " at index: " $ Suffix);
+							return `XENGINE.m_kPhotoManager.GetPosterTexture(SettingsState.GameIndex, j);
+						}
+						else
+						{
+							break;
+						}
 					}
+				}
+			}
+		}
+	}
+
+	// Didn't find a suitable photo, so do this
+	for (i = 0; i < PhotoDatabase.Length; ++i)
+	{
+		if (PhotoDatabase[i].CampaignID == SettingsState.GameIndex)	
+		{
+			// Go in reverse order because we want the latest photo taken of this character
+			for (j = PhotoDatabase[i].Posters.Length - 1; j >= 0; --j)
+			{
+				if (PhotoDatabase[i].Posters[j].CharacterIDs.Length == 1 && PhotoDatabase[i].Posters[j].CharacterIDs[0] == UnitID)
+				{
+					`log("NMD - found fallback photo for Unit " $ UnitID);
+					return `XENGINE.m_kPhotoManager.GetPosterTexture(SettingsState.GameIndex, j);
 				}
 			}
 		}
