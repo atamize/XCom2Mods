@@ -1,6 +1,6 @@
 class XComGameState_NMD_Root extends XComGameState_BaseObject;
 
-const CURRENT_VERSION = "1.1.0a";
+const CURRENT_VERSION = "1.1.0b";
 const CURRENT_VERSION_ID = 0;
 
 var string ModVersion;
@@ -27,7 +27,7 @@ function RegisterAbilityActivated()
 	EventMgr.RegisterForEvent(selfObj, 'AbilityActivated', OnAbilityActivated, ELD_OnVisualizationBlockStarted, 0, );
 	EventMgr.RegisterForEvent(selfObj, 'UnitTakeEffectDamage', OnUnitTakeDamage, ELD_OnVisualizationBlockStarted, 0, );
 	EventMgr.RegisterForEvent(selfObj, 'UnitChangedTeam', OnUnitChangedTeam, ELD_OnStateSubmitted, 0, );
-	EventMgr.RegisterForEvent(selfObj, 'PlayerTurnBegun', OnPlayerTurnBegun, ELD_OnStateSubmitted, 0);
+	EventMgr.RegisterForEvent(selfObj, 'PlayerTurnBegun', OnPlayerTurnBegun, ELD_OnVisualizationBlockCompleted, 0);
 	EventMgr.RegisterForEvent(selfObj, 'PlayerTurnEnded', OnPlayerTurnEnd, ELD_OnStateSubmitted, 0);
 	EventMgr.RegisterForEvent(selfObj, 'BreakWindow', OnBrokeWindow, ELD_OnStateSubmitted, 0);
 	EventMgr.RegisterForEvent(selfObj, 'BreakDoor', OnKickedDoor, ELD_OnStateSubmitted, 0);
