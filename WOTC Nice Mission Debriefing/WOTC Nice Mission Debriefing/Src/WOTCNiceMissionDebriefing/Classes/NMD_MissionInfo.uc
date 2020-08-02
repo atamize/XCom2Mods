@@ -108,7 +108,7 @@ function AddLootStat(XComGameState_Unit Unit, XComGameState_NMD_Unit NMDUnit)
 	if (Unit.HasBackpack())
 	{
 		BackpackItems = Unit.GetAllItemsInSlot(eInvSlot_Backpack);
-		//`log("NMD - " $ Unit.GetFullName() $ " has loot: " $ BackpackItems.Length);
+		if (class'NMD_Utilities'.default.bLog) `LOG("NMD - " $ Unit.GetFullName() $ " has loot: " $ BackpackItems.Length);
 		Stat.SetValue(BackpackItems.Length);
 	}
 
@@ -330,7 +330,7 @@ function DetermineAwards()
 
 function int AwardLengthSorter(int i)
 {
-	//`log("NMD - " $ UnitInfo[i].Unit.GetFullName() $ " has awards: " $ UnitInfo[i].Awards.Length);
+	if (class'NMD_Utilities'.default.bLog) `LOG("NMD - " $ UnitInfo[i].Unit.GetFullName() $ " has awards: " $ UnitInfo[i].Awards.Length);
 	return UnitInfo[i].Awards.Length;
 }
 
@@ -340,7 +340,7 @@ function int KillSorter(int i)
 	local int Kills;
 	Index = MVPWinners[i];
 	Kills = UnitInfo[Index].NMDUnit.GetStat(class'NMD_Stat_Kills'.const.ID).GetValue(UnitInfo[Index].Unit.ObjectID);
-	//`log("NMD - Kills for Unit " $ UnitInfo[Index].Unit.GetFullName() $ ": " $ Kills);
+	if (class'NMD_Utilities'.default.bLog) `LOG("NMD - Kills for Unit " $ UnitInfo[Index].Unit.GetFullName() $ ": " $ Kills);
 	return Kills;
 }
 

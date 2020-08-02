@@ -318,7 +318,7 @@ function PopulateStats(XComGameState_Unit Unit, XComGameState_NMD_Unit NMDUnit)
 		Value = Stat.GetValue(Unit.ObjectID);
 		StatValue = Stat.GetDisplayValue();
 
-		//`log("NMD Displaying Stats for " $ Unit.GetFullName() $ ", type: " $ Stat.GetType() $ ", value: " $ Value $ ", ObjectID: " $ Unit.ObjectID);
+		if (class'NMD_Utilities'.default.bLog) `LOG("NMD Displaying Stats for " $ Unit.GetFullName() $ ", type: " $ Stat.GetType() $ ", value: " $ Value $ ", ObjectID: " $ Unit.ObjectID);
 
 		Award = MissionInfo.GetAwardForStat(Stat.GetType());
 		if (Award != none)

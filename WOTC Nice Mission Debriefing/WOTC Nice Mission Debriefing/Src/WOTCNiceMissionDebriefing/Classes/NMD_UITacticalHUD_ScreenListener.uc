@@ -13,13 +13,13 @@ event OnInit(UIScreen Screen)
 
 function InitNMD()
 {
-	`log("[NMD] - NMD Initializing");
+	if (class'NMD_Utilities'.default.bLog) `LOG("[NMD] - NMD Initializing");
 
 	//Root = class'NMD_Utilities'.static.CheckOrCreateRoot();
 	Root.InitComponent();
 	Root.RegisterAbilityActivated();
 
-	`log("[NMD] - NMD at version: " $ Root.ModVersion);
+	if (class'NMD_Utilities'.default.bLog) `LOG("[NMD] - NMD at version: " $ Root.ModVersion);
 
 	//Root.ClearStatsOnFirstTurn();
 	

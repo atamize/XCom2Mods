@@ -24,7 +24,7 @@ class X2DownloadableContentInfo_WOTCNiceMissionDebriefing extends X2Downloadable
 /// </summary>
 //static event OnExitPostMissionSequence()
 //{
-//	`log("NMD - cleaning up units");
+//	if (class'NMD_Utilities'.default.bLog) `LOG("NMD - cleaning up units");
 //	class'NMD_Utilities'.static.CleanupDismissedUnits();
 //	//class'NMD_Utilities'.static.ResetMissionStats();
 //}
@@ -46,7 +46,7 @@ static event OnLoadedSavedGameToStrategy()
 	if (HQ == none)
 		return;
 	
-	`log("NMD - Converting old photo data to use new photo data");
+	if (class'NMD_Utilities'.default.bLog) `LOG("NMD - Converting old photo data to use new photo data");
     NewGameState = class'XComGameStateContext_ChangeContainer'.static.CreateChangeState("NMD Convert old photo data to new system");
 
 	for (i = 0; i < HQ.Crew.Length; i++)
@@ -61,7 +61,7 @@ static event OnLoadedSavedGameToStrategy()
 			{
 				if (Len(Stat.GetName()) > 2)
 				{
-					`log("NMD - save filename " $ Stat.GetName());
+					if (class'NMD_Utilities'.default.bLog) `LOG("NMD - save filename " $ Stat.GetName());
 					class'NMD_Utilities'.static.SavePhotoWithFilenameForUnit(Unit.ObjectId, Stat.GetName(), NewGameState, false);
 				}
 			}

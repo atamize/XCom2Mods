@@ -19,7 +19,19 @@
     <Content Include="Config\XComWOTCNiceMissionDebriefing.ini">
       <SubType>Content</SubType>
     </Content>
+    <Content Include="Localization\WOTCNiceMissionDebriefing.chn">
+      <SubType>Content</SubType>
+    </Content>
     <Content Include="Localization\WOTCNiceMissionDebriefing.deu">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Localization\WOTCNiceMissionDebriefing.esn">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Localization\WOTCNiceMissionDebriefing.kor">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Localization\WOTCNiceMissionDebriefing.rus">
       <SubType>Content</SubType>
     </Content>
     <Content Include="ReadMe.txt" />

@@ -49,7 +49,7 @@ function DetermineWinners(NMD_MissionInfo Info)
 			Pros.AddItem(i);
 		}
 
-		//`log("NMD - grief for " $ Unit.GetFullName() $ ": " $ Grief[i]);
+		if (class'NMD_Utilities'.default.bLog) `LOG("NMD - grief for " $ Unit.GetFullName() $ ": " $ Grief[i]);
 	}
 
 	foreach Pros(i)

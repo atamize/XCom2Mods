@@ -79,7 +79,7 @@ function SelectButton(UIButton Button)
 	local NMD_UIMissionDebriefingScreen NMD;
 
 	SelectedPosterIndex = PosterIndices[m_CurrentPosterIndex-1];
-	`log("NMD Selected poster: " $ SelectedPosterIndex);
+	if (class'NMD_Utilities'.default.bLog) `LOG("NMD Selected poster: " $ SelectedPosterIndex);
 
 	NMD = NMD_UIMissionDebriefingScreen(`ScreenStack.GetLastInstanceOf(class'NMD_UIMissionDebriefingScreen'));
 	if (NMD != none)

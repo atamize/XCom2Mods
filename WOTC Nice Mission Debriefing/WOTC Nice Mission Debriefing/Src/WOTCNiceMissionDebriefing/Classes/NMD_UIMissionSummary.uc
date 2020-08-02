@@ -11,7 +11,7 @@ function SetListener(NMD_UIMissionSummaryListener Listener)
 
 //simulated function OnReceiveFocus()
 //{
-	//`log("NMD - OnReceiveFocus");
+	//if (class'NMD_Utilities'.default.bLog) `LOG("NMD - OnReceiveFocus");
 	//SummaryListener.EnableMissionSummaryOnLoseFocus(true);
 	//super.OnReceiveFocus();
 //}

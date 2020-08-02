@@ -63,10 +63,10 @@ function addShot(bool isHit, EAbilityHitResult hitResult, float toHit, float toC
 	expectedHits  += toHit;
 	expectedCrits += toCrit;
 
-	`log("----NMD AddShot: " $ category $ " ----");
-	`log("numHits     : " $ numHits);
-	`log("numShots : " $ numShots);
-	`log("numMisses     : " $ numMisses);
+	if (class'NMD_Utilities'.default.bLog) `LOG("----NMD AddShot: " $ category $ " ----");
+	if (class'NMD_Utilities'.default.bLog) `LOG("numHits     : " $ numHits);
+	if (class'NMD_Utilities'.default.bLog) `LOG("numShots : " $ numShots);
+	if (class'NMD_Utilities'.default.bLog) `LOG("numMisses     : " $ numMisses);
 }
 
 function addDamageDone(int dealt, int negated, bool executed, bool isDead, int targetId) {
@@ -82,10 +82,10 @@ function addDamageDone(int dealt, int negated, bool executed, bool isDead, int t
 	}
 	
 	
-		`log("----NMD DamageDone: " $ category $ " ----");
-		`log("Dealt     : " $ damageDealt);
-		`log("Mitigated : " $ damageNegated);
-		`log("Kills     : " $ numKills);
+		if (class'NMD_Utilities'.default.bLog) `LOG("----NMD DamageDone: " $ category $ " ----");
+		if (class'NMD_Utilities'.default.bLog) `LOG("Dealt     : " $ damageDealt);
+		if (class'NMD_Utilities'.default.bLog) `LOG("Mitigated : " $ damageNegated);
+		if (class'NMD_Utilities'.default.bLog) `LOG("Kills     : " $ numKills);
 	
 }
 

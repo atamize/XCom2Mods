@@ -1,6 +1,6 @@
 class XComGameState_NMD_Root extends XComGameState_BaseObject;
 
-const CURRENT_VERSION = "1.1.0b";
+const CURRENT_VERSION = "1.1.1";
 const CURRENT_VERSION_ID = 0;
 
 var string ModVersion;
@@ -23,17 +23,17 @@ function RegisterAbilityActivated()
 	selfObj = self;
 	
 	EventMgr = `XEventMGR;
-	EventMgr.RegisterForEvent(selfObj, 'UnitMoveFinished', OnUnitMoveFinished, ELD_OnStateSubmitted, 0, );
-	EventMgr.RegisterForEvent(selfObj, 'AbilityActivated', OnAbilityActivated, ELD_OnVisualizationBlockStarted, 0, );
-	EventMgr.RegisterForEvent(selfObj, 'UnitTakeEffectDamage', OnUnitTakeDamage, ELD_OnVisualizationBlockStarted, 0, );
-	EventMgr.RegisterForEvent(selfObj, 'UnitChangedTeam', OnUnitChangedTeam, ELD_OnStateSubmitted, 0, );
-	EventMgr.RegisterForEvent(selfObj, 'PlayerTurnBegun', OnPlayerTurnBegun, ELD_OnVisualizationBlockCompleted, 0);
-	EventMgr.RegisterForEvent(selfObj, 'PlayerTurnEnded', OnPlayerTurnEnd, ELD_OnStateSubmitted, 0);
-	EventMgr.RegisterForEvent(selfObj, 'BreakWindow', OnBrokeWindow, ELD_OnStateSubmitted, 0);
-	EventMgr.RegisterForEvent(selfObj, 'BreakDoor', OnKickedDoor, ELD_OnStateSubmitted, 0);
-	EventMgr.RegisterForEvent(selfObj, 'OnEnvironmentalDamage', OnBlownUp, ELD_OnStateSubmitted, 0);
+	EventMgr.RegisterForEvent(selfObj, 'UnitMoveFinished', NMD_OnUnitMoveFinished, ELD_OnStateSubmitted, 0, );
+	EventMgr.RegisterForEvent(selfObj, 'AbilityActivated', NMD_OnAbilityActivated, ELD_OnStateSubmitted, 0, );
+	EventMgr.RegisterForEvent(selfObj, 'UnitTakeEffectDamage', NMD_OnUnitTakeDamage, ELD_OnStateSubmitted, 0, );
+	EventMgr.RegisterForEvent(selfObj, 'UnitChangedTeam', NMD_OnUnitChangedTeam, ELD_OnStateSubmitted, 0, );
+	EventMgr.RegisterForEvent(selfObj, 'PlayerTurnBegun', NMD_OnPlayerTurnBegun, ELD_OnStateSubmitted, 0);
+	EventMgr.RegisterForEvent(selfObj, 'PlayerTurnEnded', NMD_OnPlayerTurnEnd, ELD_OnStateSubmitted, 0);
+	EventMgr.RegisterForEvent(selfObj, 'BreakWindow', NMD_OnBrokeWindow, ELD_OnStateSubmitted, 0);
+	EventMgr.RegisterForEvent(selfObj, 'BreakDoor', NMD_OnKickedDoor, ELD_OnStateSubmitted, 0);
+	EventMgr.RegisterForEvent(selfObj, 'OnEnvironmentalDamage', NMD_OnBlownUp, ELD_OnStateSubmitted, 0);
 }
-
+/*
 function ClearStatsOnFirstTurn()
 {
 	local XComGameStateHistory History;
@@ -52,7 +52,7 @@ function ClearStatsOnFirstTurn()
 	{
 		if (PlayerState.GetTeam() == eTeam_XCom)
 		{
-			//`log("NMD PlayerTurnCount: " $ PlayerState.PlayerTurnCount);
+			if (class'NMD_Utilities'.default.bLog) `LOG("NMD PlayerTurnCount: " $ PlayerState.PlayerTurnCount);
 			if (PlayerState.PlayerTurnCount > 1)
 			{
 				return;
@@ -72,7 +72,7 @@ function ClearStatsOnFirstTurn()
 		NMDUnit = class'NMD_Utilities'.static.FindUnitStats(Unit);
 		if (NMDUnit != none)
 		{
-			//`log("NMD Clearing mission stats for " $ Unit.GetFullName());
+			if (class'NMD_Utilities'.default.bLog) `LOG("NMD Clearing mission stats for " $ Unit.GetFullName());
 			NMDUnit = XComGameState_NMD_Unit(NewGameState.ModifyStateObject(class'XComGameState_NMD_Unit', NMDUnit.ObjectID));
 			NMDUnit.ClearMissionStats(NewGameState);
 		}
@@ -80,8 +80,8 @@ function ClearStatsOnFirstTurn()
 
 	History.AddGameStateToHistory(NewGameState);
 }
-
-function EventListenerReturn OnPlayerTurnBegun(Object EventData, Object EventSource, XComGameState GameState, Name EventID, Object callbackData)
+*/
+function EventListenerReturn NMD_OnPlayerTurnBegun(Object EventData, Object EventSource, XComGameState GameState, Name EventID, Object callbackData)
 {
 	local XComTacticalController kTacticalController;
 	local array<XComGameState_Unit> PlayableUnits;
@@ -89,18 +89,34 @@ function EventListenerReturn OnPlayerTurnBegun(Object EventData, Object EventSou
 	//local XComGameState_Player PlayerState;
 	//local XComGameStateHistory History;
 	//local XComGameState_NMD_Root RootStats, NewRoot;
-
+	
 	if (class'NMD_Utilities'.static.IsGameStateInterrupted(GameState, "OnPlayerTurnBegun"))
 	{
 		return ELR_NoInterrupt;
 	}
+	/*
+	PlayerState = XComGameState_Player(EventData);
+	if (PlayerState != none)
+	{
+		History = `XCOMHISTORY;
 
+		foreach History.IterateByClassType(class'XComGameState_Unit', Unit)
+		{
+			if (Unit.ControllingPlayer.ObjectID == PlayerState.ObjectID)
+			{
+				`LOG("Player Turn Begun for unit:" @ Unit.GetFullName() @ Unit.GetMyTemplateName(),, 'IRIDEBUG');
+				class'NMD_Utilities'.static.EnsureHasUnitStats(Unit);
+			}
+		}
+	}*/
+	
 	kTacticalController = XComTacticalController(class'WorldInfo'.static.GetWorldInfo().GetALocalPlayerController());
 	kTacticalController.m_XGPlayer.GetPlayableUnits(PlayableUnits, true);
 
-	//`log("NMD - Turn began with playable units: " $ PlayableUnits.Length);
+	if (class'NMD_Utilities'.default.bLog) `LOG("NMD - Turn began with playable units: " $ PlayableUnits.Length);
 	foreach PlayableUnits(Unit)
 	{
+		if (class'NMD_Utilities'.default.bLog)  `LOG("Player Turn Begun for unit:" @ Unit.GetFullName() @ Unit.GetMyTemplateName(),, 'IRIDEBUG');
 		class'NMD_Utilities'.static.EnsureHasUnitStats(Unit);
 	}
 
@@ -108,8 +124,9 @@ function EventListenerReturn OnPlayerTurnBegun(Object EventData, Object EventSou
 }
 
 
-function EventListenerReturn OnUnitMoveFinished(Object EventData, Object EventSource, XComGameState GameState, Name EventID, Object callbackData)
+function EventListenerReturn NMD_OnUnitMoveFinished(Object EventData, Object EventSource, XComGameState GameState, Name EventID, Object callbackData)
 {
+	local XComGameState NewGameState;
 	local XComGameState_Analytics Analytics;
 	local XComGameState_Unit Unit;
 	local XComGameState_NMD_Unit UnitStats;
@@ -130,26 +147,32 @@ function EventListenerReturn OnUnitMoveFinished(Object EventData, Object EventSo
 	Analytics = XComGameState_Analytics(`XCOMHISTORY.GetSingleGameStateObjectForClass(class'XComGameState_Analytics'));
 	Tiles = int(Analytics.GetTacticalFloatValue("UNIT_" $ Unit.ObjectID $ "_ACC_UNIT_MOVEMENT"));
 
+	//	This will submit a Game State if necessary
 	UnitStats = class'NMD_Utilities'.static.EnsureHasUnitStats(Unit);
-	UnitStats = XComGameState_NMD_Unit(GameState.ModifyStateObject(class'XComGameState_NMD_Unit', UnitStats.ObjectID));
+
+	NewGameState = class'XComGameStateContext_ChangeContainer'.static.CreateChangeState("Adding UnitStats to " $ Unit.GetFullName());
+
+	UnitStats = XComGameState_NMD_Unit(NewGameState.ModifyStateObject(class'XComGameState_NMD_Unit', UnitStats.ObjectID));
 
 	OldTiles = UnitStats.GetStat(class'NMD_Stat_TilesMoved'.const.ID).GetValue(Unit.ObjectID);
-	UnitStats.SetTilesMoved(Tiles, GameState);
+	UnitStats.SetTilesMoved(Tiles, NewGameState);
 
 	if (Unit.IsConcealed())
 	{
-		UnitStats.AddConcealedTilesMoved(Tiles - OldTiles, GameState);
-		GameState.AddStateObject(UnitStats);
-		//`log("NMD - unit " $ Unit.GetFullName() $ " moved " $ (Tiles - OldTiles) $ " tiles in concealment");
+		UnitStats.AddConcealedTilesMoved(Tiles - OldTiles, NewGameState);
+		if (class'NMD_Utilities'.default.bLog) `LOG("NMD - unit " $ Unit.GetFullName() $ " moved " $ (Tiles - OldTiles) $ " tiles in concealment");
 	}
+
+	`XCOMGAME.GameRuleset.SubmitGameState(NewGameState);
 	
-	//`log("NMD - unit " $ Unit.GetFullName() $ " moved " $ Stat.GetValue(Unit.ObjectID) $ " tiles total. Also " $ UnitStats.GetStat(class'NMD_Stat_Kills'.const.ID).GetValue(Unit.ObjectID) $ " Kills. and Damage Stats Length: " $ UnitStats.EnemyDamageResults.Length);
+	//if (class'NMD_Utilities'.default.bLog) `LOG("NMD - unit " $ Unit.GetFullName() $ " moved " $ Stat.GetValue(Unit.ObjectID) $ " tiles total. Also " $ UnitStats.GetStat(class'NMD_Stat_Kills'.const.ID).GetValue(Unit.ObjectID) $ " Kills. and Damage Stats Length: " $ UnitStats.EnemyDamageResults.Length);
 
 	return ELR_NoInterrupt;
 }
 
-function EventListenerReturn OnUnitTakeDamage(Object EventData, Object EventSource, XComGameState GameState, Name EventID, Object callbackData)
+function EventListenerReturn NMD_OnUnitTakeDamage(Object EventData, Object EventSource, XComGameState GameState, Name EventID, Object callbackData)
 {
+	local XComGameState NewGameState;
 	local XComGameStateContext_Ability Context;
 	local XComGameState_NMD_Unit UnitStats;
 	local XComGameState_Unit DamagedUnit, AttackingUnit;
@@ -160,13 +183,13 @@ function EventListenerReturn OnUnitTakeDamage(Object EventData, Object EventSour
 	{
 		return ELR_NoInterrupt;
 	}
-	//if( class'NMD_Utilities'.const.DEBUG ) `log("===============  onUnitTakeDamage ====================");
+	if (class'NMD_Utilities'.default.bLog) `LOG("===============  onUnitTakeDamage ====================");
 	
 	Context = XComGameStateContext_Ability(GameState.GetContext());
 	if (Context == none)
 		return ELR_NoInterrupt;
 
-	//if( class'NMD_Utilities'.const.DEBUG ) `log("===============  onUnitTakeDamage - context ====================");
+	if (class'NMD_Utilities'.default.bLog) `LOG("===============  onUnitTakeDamage - context ====================");
 	
 	AttackingUnit = XComGameState_Unit(`XCOMHISTORY.GetGameStateForObjectID(Context.InputContext.SourceObject.ObjectID));
 	DamagedUnit = XComGameState_Unit(EventSource);
@@ -174,35 +197,48 @@ function EventListenerReturn OnUnitTakeDamage(Object EventData, Object EventSour
 	if (AttackingUnit == none || DamagedUnit == none)
 		return ELR_NoInterrupt;
 
-	//if( class'NMD_Utilities'.const.DEBUG ) `log("===============  onUnitTakeDamage - Units ====================");
+	if (class'NMD_Utilities'.default.bLog) `LOG("===============  onUnitTakeDamage - Units ====================");
 	
+
+	//	This will submit a New Game State, if necessary
 	if (AttackingUnit.IsSoldier())
 		UnitStats = class'NMD_Utilities'.static.EnsureHasUnitStats(AttackingUnit);
 	else
 		return ELR_NoInterrupt;
 
+	NewGameState = class'XComGameStateContext_ChangeContainer'.static.CreateChangeState("Updating Damage Stats for " $ AttackingUnit.GetFullName());
+
+	UnitStats = XComGameState_NMD_Unit(GameState.ModifyStateObject(class'XComGameState_NMD_Unit', UnitStats.ObjectID));
+
+	//	Game State is used for its History Index, so we pass old Game State
 	DamageIndexMod = class'NMD_Utilities'.static.getDamageResultIndexMod(Context.InputContext.AbilityTemplateName, UnitStats, GameState);
 	if (AttackingUnit == none || DamagedUnit == none || DamagedUnit.DamageResults.Length < DamageIndexMod)
 		return ELR_NoInterrupt;
 
-	//if( class'NMD_Utilities'.const.DEBUG ) `log("===============  onUnitTakeDamage - index ====================");
+	if (class'NMD_Utilities'.default.bLog) `LOG("===============  onUnitTakeDamage - index ====================");
 	
-	DamageResult = DamagedUnit.DamageResults[DamagedUnit.DamageResults.Length - DamageIndexMod];
+	//	Sanity Check
+	if (DamagedUnit.DamageResults.Length - DamageIndexMod >= 0)
+	{
+		DamageResult = DamagedUnit.DamageResults[DamagedUnit.DamageResults.Length - DamageIndexMod];
+	}
 	
 	// Setup Unit stats for modification
-	UnitStats = XComGameState_NMD_Unit(GameState.ModifyStateObject(class'XComGameState_NMD_Unit', UnitStats.ObjectID));
+	UnitStats = XComGameState_NMD_Unit(NewGameState.ModifyStateObject(class'XComGameState_NMD_Unit', UnitStats.ObjectID));
 	if (AttackingUnit.IsSoldier())
 	{
 		// Update stats if we were the attacker
-		UnitStats.AddDamageDone(DamagedUnit.GetFullName(), DamageResult.DamageAmount, DamageResult.MitigationAmount, DamageResult.bFreeKill, DamagedUnit.IsDead(), AttackingUnit, damagedUnit, Context, GameState);		
+		UnitStats.AddDamageDone(DamagedUnit.GetFullName(), DamageResult.DamageAmount, DamageResult.MitigationAmount, DamageResult.bFreeKill, DamagedUnit.IsDead(), AttackingUnit, damagedUnit, Context, NewGameState);		
 	}
 
-	//if( class'NMD_Utilities'.const.DEBUG ) `log("===============  onUnitTakeDamage - done ====================");
+	`XCOMGAME.GameRuleset.SubmitGameState(NewGameState);
+
+	if (class'NMD_Utilities'.default.bLog) `LOG("===============  onUnitTakeDamage - done ====================");
 
 	return ELR_NoInterrupt;
 }
 
-function EventListenerReturn OnAbilityActivated(Object EventData, Object EventSource, XComGameState GameState, Name inEventID, Object callbackData)
+function EventListenerReturn NMD_OnAbilityActivated(Object EventData, Object EventSource, XComGameState GameState, Name inEventID, Object callbackData)
 {
 	// The user of this Ability and the Ability in question
 	local XComGameState_Unit Source;
@@ -215,9 +251,10 @@ function EventListenerReturn OnAbilityActivated(Object EventData, Object EventSo
 	// FileWriter for debugging Ability names
 	//local FileWriter fileWriter;
 
-	// Only activate on the 'real' GameState.  Don't really know why I need to do this, but otherwise it double fires this trigger...
-	if (GameState.GetNumGameStateObjects() == 0)
+	if (class'NMD_Utilities'.static.IsGameStateInterrupted(GameState, "OnAbilityActivated"))
+	{
 		return ELR_NoInterrupt;
+	}
 	
 	// Extract Ability and source Unit
 	Ability = XComGameState_Ability(EventData);
@@ -231,19 +268,19 @@ function EventListenerReturn OnAbilityActivated(Object EventData, Object EventSo
 		//	`CHEATMGR.WriteToFilteredLogFile("LifetimeState[AbilityTriggered]: " $ Ability.GetMyTemplateName(), 'XCom_CombatLog');
 		//}
 
-		isShot = class'NMD_Utilities'.static.isShotType(Ability.GetMyTemplateName());
-		isMovement = class'NMD_Utilities'.static.isMoveType(Ability.GetMyTemplateName()) && isFirstTile(source, AbilityContext);
+		isShot = class'NMD_Utilities'.static.isShotType(Ability, AbilityContext);
+		isMovement = class'NMD_Utilities'.static.isMoveType(AbilityContext) && isFirstTile(source, AbilityContext);
 		
 		if (isShot || isMovement)
 			updateStats(source, Ability, AbilityContext, GameState);
 		//else
-			//if( class'NMD_Utilities'.const.DEBUG ) `log("NMD - NotShotType: " $ Ability.GetMyTemplateName());
+			if (class'NMD_Utilities'.default.bLog) `LOG("NMD - NotShotType: " $ Ability.GetMyTemplateName());
 	}
 
 	return ELR_NoInterrupt;
 }
 
-function EventListenerReturn OnUnitChangedTeam(Object EventData, Object EventSource, XComGameState GameState, Name inEventID, Object callbackData)
+function EventListenerReturn NMD_OnUnitChangedTeam(Object EventData, Object EventSource, XComGameState GameState, Name inEventID, Object callbackData)
 {
 	local XComGameState_Unit Source;
 
@@ -254,23 +291,24 @@ function EventListenerReturn OnUnitChangedTeam(Object EventData, Object EventSou
 
 	Source = XComGameState_Unit(EventSource);
 
-	//`log("NMD - Unit " $ Source.GetFullName() $ " changing teams");
+	if (class'NMD_Utilities'.default.bLog) `LOG("NMD - Unit " $ Source.GetFullName() $ " changing teams");
 	
 	if (Source.GetTeam() == eTeam_XCom && Source.IsSoldier())
 	{
-		//`log("    Ensuring has stats");
+		if (class'NMD_Utilities'.default.bLog) `LOG("    Ensuring has stats");
 		class'NMD_Utilities'.static.EnsureHasUnitStats(Source);
 	}
 
 	return ELR_NoInterrupt;
 }
 
-function EventListenerReturn OnPlayerTurnEnd(Object EventData, Object EventSource, XComGameState GameState, Name inEventID, Object callbackData)
+function EventListenerReturn NMD_OnPlayerTurnEnd(Object EventData, Object EventSource, XComGameState GameState, Name inEventID, Object callbackData)
 {	
 	local int NumVisibleEnemies, CoverValue;
 	local XComGameStateHistory History;
 	local XComGameState_Unit Unit;
 	local XComGameState_NMD_Unit UnitStats;
+	local XComGameState NewGameState;
 
 	if (class'NMD_Utilities'.static.IsGameStateInterrupted(GameState, "OnPlayerTurnEnd"))
 	{
@@ -300,8 +338,11 @@ function EventListenerReturn OnPlayerTurnEnd(Object EventData, Object EventSourc
 
 				if (NumVisibleEnemies > 0)
 				{
-					//`log("NMD: " $ Unit.GetFullName() $ " exposed to " $ NumVisibleEnemies $ " enemies, cover: " $ CoverValue);
-					UnitStats.AddExposure(CoverValue * NumVisibleEnemies, GameState);
+					if (class'NMD_Utilities'.default.bLog) `LOG("NMD: " $ Unit.GetFullName() $ " exposed to " $ NumVisibleEnemies $ " enemies, cover: " $ CoverValue);
+					NewGameState = class'XComGameStateContext_ChangeContainer'.static.CreateChangeState("Updating exposure UnitStats for " $ Unit.GetFullName());
+					UnitStats = XComGameState_NMD_Unit(NewGameState.ModifyStateObject(class'XComGameState_NMD_Unit', UnitStats.ObjectID));
+					UnitStats.AddExposure(CoverValue * NumVisibleEnemies, NewGameState);
+					`XCOMGAME.GameRuleset.SubmitGameState(NewGameState);
 				}
 			}
 		}
@@ -313,35 +354,36 @@ function EventListenerReturn OnPlayerTurnEnd(Object EventData, Object EventSourc
 function XComGameState_NMD_Unit UpdateStats(XComGameState_Unit Unit, XComGameState_Ability Ability, XComGameStateContext_Ability AbilityContext, XComGameState GameState)
 {
 	// To perform the GameState modification
-	local XComGameState_NMD_Unit UnitStats;
-	local XComGameState_Unit targetUnit;
-	local ShotBreakdown breakdown, multiBreakdown;
-	local AvailableTarget target;
+	local XComGameState				NewGameState;
+	local XComGameState_NMD_Unit	UnitStats;
+	local XComGameState_Unit		targetUnit;
+	local ShotBreakdown				breakdown, multiBreakdown;
+	local AvailableTarget			target;
 	local int i;
-	local bool IsFriendly;
 
 	if (Unit == none || Ability == none || AbilityContext == none)
 		return none;
 	
-	IsFriendly = class'NMD_Utilities'.static.IsFriendly(Unit);
-	
-	if (IsFriendly)
+	if (class'NMD_Utilities'.static.IsFriendly(Unit))
 	{
 		// Get/Create Unit stats for Unit
+		// This will submit a New Game State, if necessary.
 		UnitStats = class'NMD_Utilities'.static.EnsureHasUnitStats(Unit);
 		if (UnitStats == none)
 			return none;
 
+		NewGameState = class'XComGameStateContext_ChangeContainer'.static.CreateChangeState("Updating UnitStats for " $ Unit.GetFullName());
+
 		// Setup Unitstats to be modified
-		UnitStats = XComGameState_NMD_Unit(GameState.ModifyStateObject(class'XComGameState_NMD_Unit', UnitStats.ObjectID));
+		UnitStats = XComGameState_NMD_Unit(NewGameState.ModifyStateObject(class'XComGameState_NMD_Unit', UnitStats.ObjectID));
 		
 		// Get Unit data
 		Target.PrimaryTarget = AbilityContext.InputContext.PrimaryTarget;
 		Target.AdditionalTargets = AbilityContext.InputContext.MultiTargets;
 		Ability.GetShotBreakdown(target, breakdown);
 	
-			//`log("===== Updating UnitStats for " $ Unit.GetFullName() $ " =======");
-			//`log("Ability: " $ Ability.GetMyTemplateName());
+			if (class'NMD_Utilities'.default.bLog) `LOG("===== Updating UnitStats for " $ Unit.GetFullName() $ " =======");
+			if (class'NMD_Utilities'.default.bLog) `LOG("Ability: " $ Ability.GetMyTemplateName());
 	
 		// Update stats from primary shot
 		TargetUnit = XComGameState_Unit(`XCOMHISTORY.GetGameStateForObjectID(Target.PrimaryTarget.ObjectID));
@@ -350,16 +392,16 @@ function XComGameState_NMD_Unit UpdateStats(XComGameState_Unit Unit, XComGameSta
 									AbilityContext.ResultContext.HitResult,
 									Clamp(breakdown.FinalHitChance, 0, 100),
 									Clamp(breakdown.ResultTable[eHit_Crit], 0, 100),
-									GameState);
+									NewGameState);
 	
-		if (Ability.GetMyTemplateName() == 'OverwatchShot' || Ability.GetMyTemplateName() == 'PistolOverwatchShot')
+		if (IsOverwatchAbility(Ability))
 		{
-			UnitStats.AddOverwatchShot(AbilityContext.IsResultContextHit(), GameState);
+			UnitStats.AddOverwatchShot(AbilityContext.IsResultContextHit(), NewGameState);
 		}
 
 		if (Unit.HasHeightAdvantageOver(TargetUnit, true))
 		{
-			UnitStats.AddShotFromElevation(Unit, TargetUnit, GameState);
+			UnitStats.AddShotFromElevation(Unit, TargetUnit, NewGameState);
 		}
 
 		// Update stats from multi shots
@@ -373,37 +415,51 @@ function XComGameState_NMD_Unit UpdateStats(XComGameState_Unit Unit, XComGameSta
 									AbilityContext.ResultContext.MultiTargetHitResults[i],
 									Clamp(multiBreakdown.FinalHitChance, 0, 100),
 									Clamp(multiBreakdown.ResultTable[eHit_Crit], 0, 100),
-									GameState);
+									NewGameState);
 
 			if (Unit.HasHeightAdvantageOver(TargetUnit, true))
 			{
-				UnitStats.AddShotFromElevation(Unit, TargetUnit, GameState);
+				UnitStats.AddShotFromElevation(Unit, TargetUnit, NewGameState);
 			}
 		}
-
-		GameState.AddStateObject(UnitStats);
+		`XCOMGAME.GameRuleset.SubmitGameState(NewGameState);
 	}
-	else
+	else if (IsOverwatchAbility(Ability))
 	{
-		if (Ability.GetMyTemplateName() == 'OverwatchShot' || Ability.GetMyTemplateName() == 'PistolOverwatchShot')
-		{
-			TargetUnit = XComGameState_Unit(`XCOMHISTORY.GetGameStateForObjectID(AbilityContext.InputContext.PrimaryTarget.ObjectID));
+		TargetUnit = XComGameState_Unit(`XCOMHISTORY.GetGameStateForObjectID(AbilityContext.InputContext.PrimaryTarget.ObjectID));
 
-			//`log("NMD - " $ TargetUnit.GetFullName() $ " taking overwatch from " $ Unit.GetFullName());
+		if (class'NMD_Utilities'.default.bLog) `LOG("NMD - " $ TargetUnit.GetFullName() $ " taking overwatch from " $ Unit.GetFullName());
 
-			UnitStats = class'NMD_Utilities'.static.EnsureHasUnitStats(TargetUnit);
-			if (UnitStats == none)
-				return none;
+		UnitStats = class'NMD_Utilities'.static.EnsureHasUnitStats(TargetUnit);
+		if (UnitStats == none)
+			return none;
 
-			// Setup Unitstats to be modified
-			UnitStats = XComGameState_NMD_Unit(GameState.ModifyStateObject(class'XComGameState_NMD_Unit', UnitStats.ObjectID));
+		NewGameState = class'XComGameStateContext_ChangeContainer'.static.CreateChangeState("Updating UnitStats for " $ TargetUnit.GetFullName());
 
-			UnitStats.AddOverwatchRun(AbilityContext.IsResultContextHit(), GameState);
-			GameState.AddStateObject(UnitStats);
-		}
+		// Setup Unitstats to be modified
+		UnitStats = XComGameState_NMD_Unit(GameState.ModifyStateObject(class'XComGameState_NMD_Unit', UnitStats.ObjectID));
+
+		UnitStats.AddOverwatchRun(AbilityContext.IsResultContextHit(), NewGameState);
+
+		`XCOMGAME.GameRuleset.SubmitGameState(NewGameState);
 	}
-	
+
 	return UnitStats;
+}
+
+static private function bool IsOverwatchAbility(const XComGameState_Ability AbilityState)
+{
+	local X2AbilityTemplate					Template;
+	local X2AbilityToHitCalc_StandardAim	StandardAim;
+
+	Template = AbilityState.GetMyTemplate();
+	if (Template != none)
+	{
+		StandardAim = X2AbilityToHitCalc_StandardAim(Template.AbilityToHitCalc);
+
+		return StandardAim != none && StandardAim.bReactionFire;
+	}
+	return false;
 }
 
 function bool IsFirstTile(XComGameState_Unit Unit, XComGameStateContext_Ability Context)
@@ -422,12 +478,13 @@ function bool IsFirstTile(XComGameState_Unit Unit, XComGameStateContext_Ability 
 	return false;
 }
 
-function EventListenerReturn OnBrokeWindow(Object EventData, Object EventSource, XComGameState GameState, Name inEventID, Object callbackData)
+function EventListenerReturn NMD_OnBrokeWindow(Object EventData, Object EventSource, XComGameState GameState, Name inEventID, Object callbackData)
 {
 	local XComGameState_Unit Unit;
 	local XComGameState_NMD_Unit UnitStats;
+	local XComGameState NewGameState;
 
-	//`log("NMD - a window broke");
+	if (class'NMD_Utilities'.default.bLog) `LOG("NMD - a window broke");
 	if (class'NMD_Utilities'.static.IsGameStateInterrupted(GameState, "OnBrokeWindow"))
 	{
 		return ELR_NoInterrupt;
@@ -441,24 +498,30 @@ function EventListenerReturn OnBrokeWindow(Object EventData, Object EventSource,
 		if (UnitStats == none)
 			return ELR_NoInterrupt;
 
-		//`log("NMD - " $ Unit.GetFullName() $ " broke a damn window");
-		UnitStats.AddEnvironmentDamage(1, GameState);
-		GameState.AddStateObject(UnitStats);
+		if (class'NMD_Utilities'.default.bLog) `LOG("NMD - " $ Unit.GetFullName() $ " broke a damn window");
+		
+		NewGameState = class'XComGameStateContext_ChangeContainer'.static.CreateChangeState("Updating windowbreak UnitStats for " $ Unit.GetFullName());
+		UnitStats = XComGameState_NMD_Unit(NewGameState.ModifyStateObject(class'XComGameState_NMD_Unit', UnitStats.ObjectID));
+
+		UnitStats.AddEnvironmentDamage(1, NewGameState);
+
+		`XCOMGAME.GameRuleset.SubmitGameState(NewGameState);
 	}
 	
 	return ELR_NoInterrupt;
 }
 
-function EventListenerReturn OnKickedDoor(Object EventData, Object EventSource, XComGameState GameState, Name inEventID, Object callbackData)
+function EventListenerReturn NMD_OnKickedDoor(Object EventData, Object EventSource, XComGameState GameState, Name inEventID, Object callbackData)
 {
 	local XComGameState_Unit Unit;
 	local XComGameState_NMD_Unit UnitStats;
+	local XComGameState NewGameState;
 
 	if (class'NMD_Utilities'.static.IsGameStateInterrupted(GameState, "OnKickedDoor"))
 	{
 		return ELR_NoInterrupt;
 	}
-	//`log("NMD - a door was kicked");
+	if (class'NMD_Utilities'.default.bLog) `LOG("NMD - a door was kicked");
 
 	Unit = XComGameState_Unit(EventSource);
 
@@ -468,16 +531,22 @@ function EventListenerReturn OnKickedDoor(Object EventData, Object EventSource, 
 		if (UnitStats == none)
 			return ELR_NoInterrupt;
 
-		//`log("NMD - " $ Unit.GetFullName() $ " kicked a damn door");
-		UnitStats.AddEnvironmentDamage(1, GameState);
-		GameState.AddStateObject(UnitStats);
+		if (class'NMD_Utilities'.default.bLog) `LOG("NMD - " $ Unit.GetFullName() $ " kicked a damn door");
+		NewGameState = class'XComGameStateContext_ChangeContainer'.static.CreateChangeState("Adding UnitStats to " $ Unit.GetFullName());
+		UnitStats = XComGameState_NMD_Unit(NewGameState.ModifyStateObject(class'XComGameState_NMD_Unit', UnitStats.ObjectID));
+
+		UnitStats.AddEnvironmentDamage(1, NewGameState);
+
+		`XCOMGAME.GameRuleset.SubmitGameState(NewGameState);
+
 	}
 	
 	return ELR_NoInterrupt;
 }
 
-function EventListenerReturn OnBlownUp(Object EventData, Object EventSource, XComGameState GameState, Name inEventID, Object callbackData)
+function EventListenerReturn NMD_OnBlownUp(Object EventData, Object EventSource, XComGameState GameState, Name inEventID, Object callbackData)
 {
+	local XComGameState NewGameState;
 	local XComGameState_EnvironmentDamage DamageEvent;
 	local XComGameState_Unit Unit;
 	local XComGameState_NMD_Unit UnitStats;
@@ -489,22 +558,25 @@ function EventListenerReturn OnBlownUp(Object EventData, Object EventSource, XCo
 
 	if (GameState.GetNumGameStateObjects() == 0)
 	{
-		`log("NMD - OnBlownUp NO game state objects");
+		if (class'NMD_Utilities'.default.bLog) `LOG("NMD - OnBlownUp NO game state objects");
 		return ELR_NoInterrupt;
 	}
 
 	DamageEvent = XComGameState_EnvironmentDamage(EventSource);
 	Unit = XComGameState_Unit(`XCOMHISTORY.GetGameStateForObjectID(DamageEvent.DamageCause.ObjectID));
 
-	if (class'NMD_Utilities'.static.IsFriendly(Unit))
+	if (Unit != none && class'NMD_Utilities'.static.IsFriendly(Unit))
 	{
 		UnitStats = class'NMD_Utilities'.static.EnsureHasUnitStats(Unit);
 		if (UnitStats == none)
 			return ELR_NoInterrupt;
 
-		//`log("NMD - environmental damage caused by " $ Unit.GetFullName() $ " of magnitude " $ DamageEvent.DamageAmount);
-		UnitStats.AddEnvironmentDamage(DamageEvent.DamageAmount, GameState);
-		GameState.AddStateObject(UnitStats);
+		if (class'NMD_Utilities'.default.bLog) `LOG("NMD - environmental damage caused by " $ Unit.GetFullName() $ " of magnitude " $ DamageEvent.DamageAmount);
+		NewGameState = class'XComGameStateContext_ChangeContainer'.static.CreateChangeState("Adding UnitStats to " $ Unit.GetFullName());
+		UnitStats = XComGameState_NMD_Unit(NewGameState.ModifyStateObject(class'XComGameState_NMD_Unit', UnitStats.ObjectID));
+		UnitStats.AddEnvironmentDamage(DamageEvent.DamageAmount, NewGameState);
+		
+		`XCOMGAME.GameRuleset.SubmitGameState(NewGameState);
 	}
 
 	return ELR_NoInterrupt;

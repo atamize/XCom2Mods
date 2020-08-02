@@ -1,15 +1,14 @@
 class NMD_Utilities extends Object config (WOTCNiceMissionDebriefing);
 
-const DEBUG=true;
-const DEBUG2=true;
 const METRIC_PHOTO_INDEX="NMD_PHOTO_INDEX";
 
 var config array<name> basicShotAbilities;
-var config array<name> moveShotAbilities;
+
+var config bool bLog;
 
 /**
 	Generates and stores the NMD_Root GameState into History if it does not already exist
-*/
+*//*
 static function XComGameState_NMD_Root CheckOrCreateRoot()
 {
 	local XComGameState NewGameState;
@@ -22,31 +21,30 @@ static function XComGameState_NMD_Root CheckOrCreateRoot()
 	{
 		NewGameState = class'XComGameStateContext_ChangeContainer'.static.CreateChangeState("Adding Root NMD");
 
-		RootStats = XComGameState_NMD_Root(NewGameState.CreateStateObject(class'XComGameState_NMD_Root'));		
+		RootStats = XComGameState_NMD_Root(NewGameState.CreateNewStateObject(class'XComGameState_NMD_Root'));		
 		RootStats.InitComponent();
 		
-		NewGameState.AddStateObject(RootStats);
 		`XCOMHISTORY.AddGameStateToHistory(NewGameState);
 	}
 	else
 	{
 		ChangeContainer = class'XComGameStateContext_ChangeContainer'.static.CreateEmptyChangeContainer("Checking/Adding RootStats");
 		NewGameState = `XCOMHISTORY.CreateNewGameState(true, ChangeContainer);
-		NewRoot = XComGameState_NMD_Root(NewGameState.CreateStateObject(class'XComGameState_NMD_Root', RootStats.ObjectID));
+		NewRoot = XComGameState_NMD_Root(NewGameState.ModifyStateObject(class'XComGameState_NMD_Root', RootStats.ObjectID));
 		NewRoot.InitComponent();
 		
 		NewGameState.AddStateObject(NewRoot);
 		`XCOMHISTORY.AddGameStateToHistory(NewGameState);
 
 		if (RootStats.ModVersion != class'XComGameState_NMD_Root'.const.CURRENT_VERSION)
-			`log("NMD - UPDATED NMD_ROOT FROM " $ RootStats.ModVersion $ " TO " $ NewRoot.ModVersion $ " ====");
+			if (class'NMD_Utilities'.default.bLog) `LOG("NMD - UPDATED NMD_ROOT FROM " $ RootStats.ModVersion $ " TO " $ NewRoot.ModVersion $ " ====");
 		else
-			`log("NMD - Already at version " $ RootStats.ModVersion $ " ====");
+			if (class'NMD_Utilities'.default.bLog) `LOG("NMD - Already at version " $ RootStats.ModVersion $ " ====");
 	}
 
 	return RootStats;
 }
-
+*/
 /**
 	Ensures that all soldiers currently in HQ have UnitStats
 */
@@ -138,16 +136,16 @@ static function XComGameState_NMD_Unit EnsureHasUnitStats(XComGameState_Unit Uni
 	if (UnitStats == none)
 	{
 		// If not found, we need to add it
-		//if( DEBUG ) `log("=NMD= Adding UnitStats for " $ unit.GetFullName() $ " =======");
+		//if( DEBUG ) if (class'NMD_Utilities'.default.bLog) `LOG("=NMD= Adding UnitStats for " $ unit.GetFullName() $ " =======");
 		// Get shortcut vars
 		//History = `XCOMHISTORY;
 
 		// Setup new game state
-		NewGameState = class'XComGameStateContext_ChangeContainer'.static.CreateChangeState("Adding UnitStats to " $ unit.GetFullName());
+		NewGameState = class'XComGameStateContext_ChangeContainer'.static.CreateChangeState("Adding UnitStats to " $ Unit.GetFullName());
 		
 		// Create and add UnitStats
 		UnitStats = XComGameState_NMD_Unit(NewGameState.CreateNewStateObject(class'XComGameState_NMD_Unit'));
-		UnitStats.InitComponent(NewGameState, Unit.GetReference().ObjectID);
+		UnitStats.InitComponent(NewGameState, Unit.ObjectID);
 		
 		`XCOMGAME.GameRuleset.SubmitGameState(NewGameState);
 	}
@@ -179,7 +177,7 @@ static function ResetMissionStats(XComGameState NewGameState)
 			UnitStats = FindUnitStats(Unit);
 			if (UnitStats != none)
 			{
-				`log("NMD - clearing stats for unit " $ Unit.GetFullName());
+				if (class'NMD_Utilities'.default.bLog) `LOG("NMD - clearing stats for unit " $ Unit.GetFullName());
 				NMDUnit = XComGameState_NMD_Unit(NewGameState.ModifyStateObject(class'XComGameState_NMD_Unit', UnitStats.ObjectID));
 				NMDUnit.ClearMissionStats(NewGameState);
 			}
@@ -196,7 +194,7 @@ static function CleanupDismissedUnits()
     local XComGameState_Unit Unit;
     local XComGameState_NMD_Unit UnitStats;
 	
-	//`log("NMD - Cleanup dismissed units");
+	if (class'NMD_Utilities'.default.bLog) `LOG("NMD - Cleanup dismissed units");
     NewGameState = class'XComGameStateContext_ChangeContainer'.static.CreateChangeState("NMD Cleanup");
     foreach `XCOMHISTORY.IterateByClassType(class'XComGameState_NMD_Unit', unitStats, , true)
 	{
@@ -243,30 +241,31 @@ static function int GetDamageResultIndexMod(name Ability, out XComGameState_NMD_
 	return Stats.multifireIndex++;
 }
 
-static function bool IsShotType(name Type)
+static function bool IsShotType(const XComGameState_Ability AbilityState, const XComGameStateContext_Ability AbilityContext)
 {
-	local name BasicShotAbility;
+	local X2AbilityTemplate					Template;
+	local XComGameState_Item				SourceWeapon;
+	local X2AbilityToHitCalc_StandardAim	ToHitCalc;
 
-	foreach default.basicShotAbilities(BasicShotAbility)
-	{
-		if (type == basicShotAbility)
-			return true;
-	}
-	
-	return false;
+	Template = AbilityState.GetMyTemplate();
+	if (Template == none)
+		return false;
+		
+	ToHitCalc = X2AbilityToHitCalc_StandardAim(Template.AbilityToHitCalc);
+	SourceWeapon = AbilityState.GetSourceWeapon();
+
+	return	default.basicShotAbilities.Find(Template.DataName) != INDEX_NONE || // Whitelist configured abilities
+			SourceWeapon != none &&
+			ToHitCalc != none && !ToHitCalc.bMeleeAttack && !ToHitCalc.bGuaranteedHit && !ToHitCalc.bIndirectFire && // Rule out melee and explosives
+			!AbilityState.IsMeleeAbility() && // double check we're not melee
+			Template.Hostility == eHostility_Offensive &&
+			!Template.bStationaryWeapon &&	//	no Gremlin abilities
+			Template.TargetEffectsDealDamage(SourceWeapon, AbilityState); // only damaging abilities
 }
 
-static function bool IsMoveType(name Type)
+static function bool IsMoveType(const XComGameStateContext_Ability AbilityContext)
 {
-	local name MoveShotAbility;
-	
-	foreach default.MoveShotAbilities(MoveShotAbility)
-	{
-		if (Type == MoveShotAbility)
-			return true;
-	}
-	
-	return false;
+	return AbilityContext.InputContext.MovementPaths.Length > 0;
 }
 
 static delegate int IntArrayDelegate(int i);
@@ -366,7 +365,7 @@ static function bool IsAbilityAvailable(StateObjectReference StateRef, name Abil
 		SelectedAbilityState = XComGameState_Ability(History.GetGameStateForObjectID(Action.AbilityObjectRef.ObjectID));
 		SelectedAbilityTemplate = SelectedAbilityState.GetMyTemplate();	
 
-		//`log("    MAVAbility action: " $ SelectedAbilityTemplate.DataName $ ", code: " $ Action.AvailableCode); 
+		if (class'NMD_Utilities'.default.bLog) `LOG("    MAVAbility action: " $ SelectedAbilityTemplate.DataName $ ", code: " $ Action.AvailableCode); 
 		if (SelectedAbilityTemplate.DataName == AbilityName && Action.AvailableCode == 'AA_Success')
 		{
 			return true;
@@ -382,7 +381,7 @@ static function bool IsGameStateInterrupted(XComGameState GameState, optional st
 	{
 		if (len(Message) > 0)
 		{
-			`log("NMD - Game state was interrupted: " $ Message);
+			if (class'NMD_Utilities'.default.bLog) `LOG("NMD - Game state was interrupted: " $ Message);
 		}
 		return true;
 	}
@@ -443,7 +442,7 @@ static function Texture2D GetPhotoForUnit(int UnitID)
 	local string UnitMetric, Suffix, Filename;
 	local XComGameState_Analytics Analytics;
 	local array<CampaignPhotoData> PhotoDatabase;
-	local int i, j, SuffixLength, Zeroes;
+	local int i, j, SuffixLength, Zeroes, k;
 	local XComGameState_CampaignSettings SettingsState;
 
 	SettingsState = XComGameState_CampaignSettings(`XCOMHISTORY.GetSingleGameStateObjectForClass(class'XComGameState_CampaignSettings'));
@@ -472,15 +471,15 @@ static function Texture2D GetPhotoForUnit(int UnitID)
 					Filename = PhotoDatabase[i].Posters[j].PhotoFilename;
 					if (Mid(Filename, Len(Filename) - 7, 3) == Suffix)
 					{
-						if (PhotoDatabase[i].Posters[j].CharacterIDs.Length == 1 && PhotoDatabase[i].Posters[j].CharacterIDs[0] == UnitID)
+						for (k = 0; k < PhotoDatabase[i].Posters[j].CharacterIDs.Length; ++k)
 						{
-							`log("NMD - found photo for Unit " $ UnitID $ " at index: " $ Suffix);
-							return `XENGINE.m_kPhotoManager.GetPosterTexture(SettingsState.GameIndex, j);
+							if (PhotoDatabase[i].Posters[j].CharacterIDs[k] == UnitID)
+							{
+								if (class'NMD_Utilities'.default.bLog) `LOG("NMD - found photo for Unit " $ UnitID $ " at index: " $ Suffix);
+								return `XENGINE.m_kPhotoManager.GetPosterTexture(SettingsState.GameIndex, j);
+							}
 						}
-						else
-						{
-							break;
-						}
+						break;
 					}
 				}
 			}
@@ -497,14 +496,14 @@ static function Texture2D GetPhotoForUnit(int UnitID)
 			{
 				if (PhotoDatabase[i].Posters[j].CharacterIDs.Length == 1 && PhotoDatabase[i].Posters[j].CharacterIDs[0] == UnitID)
 				{
-					`log("NMD - found fallback photo for Unit " $ UnitID);
+					if (class'NMD_Utilities'.default.bLog) `LOG("NMD - found fallback photo for Unit " $ UnitID);
 					return `XENGINE.m_kPhotoManager.GetPosterTexture(SettingsState.GameIndex, j);
 				}
 			}
 		}
 	}
 		
-	`log("NMD - Couldn't find photo for Unit " $ UnitID $ " at index: " $ Suffix);
+	if (class'NMD_Utilities'.default.bLog) `LOG("NMD - Couldn't find photo for Unit " $ UnitID $ " at index: " $ Suffix);
 	return none;
 }
 
@@ -528,7 +527,7 @@ static function SavePhotoWithFilenameForUnit(int UnitID, string Filename, XComGa
 	AnalyticsObject = XComGameState_Analytics(NewGameState.ModifyStateObject(class'XComGameState_Analytics', Analytics.ObjectID));
 
 	Index = int(Mid(FileName, Len(Filename) - 6, 3));
-	`log("NMD - saving photo for Unit " $ UnitID $ " with filename " $ Filename $ ", at index: " $ Index);
+	if (class'NMD_Utilities'.default.bLog) `LOG("NMD - saving photo for Unit " $ UnitID $ " with filename " $ Filename $ ", at index: " $ Index);
 	UnitMetric = "UNIT_" $ UnitID $ "_" $ METRIC_PHOTO_INDEX;
 	AnalyticsObject.SetValue(UnitMetric, Index);
 

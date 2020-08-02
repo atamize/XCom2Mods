@@ -40,7 +40,7 @@ event OnInit(UIScreen Screen)
 // This event is triggered after a screen receives focus
 event OnReceiveFocus(UIScreen Screen)
 {
-	//`log("NMD - Onreceivefocus, waiting: " $ WaitingForTutorialBoxes);
+	if (class'NMD_Utilities'.default.bLog) `LOG("NMD - Onreceivefocus, waiting: " $ WaitingForTutorialBoxes);
 	if (WaitingForTutorialBoxes)
 	{
 		if (UIMissionSummary(Screen) != none)
@@ -55,12 +55,12 @@ function DelayedInit()
 {
 	if (`PRES.ScreenStack.GetScreen(class'UITutorialBox') == none)
 	{
-		//`log("NMD - DelayedInit: no tutorial box");
+		if (class'NMD_Utilities'.default.bLog) `LOG("NMD - DelayedInit: no tutorial box");
 		InitDummyScreen();
 	}
 	else
 	{
-		//`log("NMD - DelayedInit: has tutorial box");
+		if (class'NMD_Utilities'.default.bLog) `LOG("NMD - DelayedInit: has tutorial box");
 		WaitingForTutorialBoxes = true;
 	}
 }
