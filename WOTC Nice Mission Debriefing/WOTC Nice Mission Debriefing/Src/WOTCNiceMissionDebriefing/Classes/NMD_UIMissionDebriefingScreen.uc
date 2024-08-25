@@ -40,6 +40,7 @@ var StateObjectReference UnitRef;
 var int CurrentSoldierIndex;
 
 var NMD_MissionInfo MissionInfo;
+var int PreviousNumberOfPhotos;
 
 simulated function InitScreen(XComPlayerController InitController, UIMovie InitMovie, optional name InitName)
 {
@@ -471,6 +472,36 @@ function SetPhotoTexture(Texture2D SoldierTexture)
 function SavePosterIndex(int PosterIndex)
 {
 	class'NMD_Utilities'.static.SavePhotoForUnit(MissionInfo.GetUnitID(CurrentSoldierIndex), PosterIndex);
+}
+
+simulated function OnReceiveFocus()
+{
+	local X2PhotoBooth_PhotoManager PhotoManager;
+	local XComGameState_CampaignSettings SettingsState;
+	local int CurrentNumberOfPhotos;
+
+	SettingsState = XComGameState_CampaignSettings(`XCOMHISTORY.GetSingleGameStateObjectForClass(class'XComGameState_CampaignSettings'));
+	PhotoManager = `XENGINE.m_kPhotoManager;
+	CurrentNumberOfPhotos = PhotoManager.GetNumOfPosterForCampaign(SettingsState.GameIndex, false);
+
+	if (class'NMD_Utilities'.default.bLog) `LOG("NMD - OnReceiveFocus: current number of posters? " $ CurrentNumberOfPhotos);
+	if (CurrentNumberOfPhotos > PreviousNumberOfPhotos)
+	{
+		SetLatestPhoto();
+	}
+	super.OnReceiveFocus();
+}
+
+simulated function OnLoseFocus()
+{
+	local X2PhotoBooth_PhotoManager PhotoManager;
+	local XComGameState_CampaignSettings SettingsState;
+
+	SettingsState = XComGameState_CampaignSettings(`XCOMHISTORY.GetSingleGameStateObjectForClass(class'XComGameState_CampaignSettings'));
+	PhotoManager = `XENGINE.m_kPhotoManager;
+	PreviousNumberOfPhotos = PhotoManager.GetNumOfPosterForCampaign(SettingsState.GameIndex, false);
+	if (class'NMD_Utilities'.default.bLog) `LOG("NMD - OnLoseFocus - previous number of posters: " $ PreviousNumberOfPhotos);
+	super.OnLoseFocus();
 }
 
 simulated function bool OnUnrealCommand(int ucmd, int arg)

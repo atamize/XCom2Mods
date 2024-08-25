@@ -53,14 +53,6 @@ function UpdateSoldierData()
 
 function CreatePosterCallback(StateObjectReference UnitRef)
 {
-	local NMD_UIMissionDebriefingScreen NMD;
-
-	NMD = NMD_UIMissionDebriefingScreen(`ScreenStack.GetLastInstanceOf(class'NMD_UIMissionDebriefingScreen'));
-	if (NMD != none)
-	{
-		NMD.SetLatestPhoto();
-	}
-
 	bWaitingOnPhoto = false;
 	`PRESBASE.GetPhotoboothMovie().RemoveScreen(`PHOTOBOOTH.m_backgroundPoster);
 	Movie.Pres.UICloseProgressDialog();

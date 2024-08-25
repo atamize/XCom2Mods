@@ -1,0 +1,66 @@
+A follow-up to [url=http://steamcommunity.com/sharedfiles/filedetails/?id=643760572]Mission Award Variety[/url], Nice Mission Debriefing for War of the Chosen shows extended stats and awards for your soldiers at the end of a mission.
+
+[h1]FEATURES[/h1]
+[list]
+[*][b]Stats[/b]
+Kills, Damage Dealt, Shot Accuracy, Overwatch Accuracy, Tiles Moved, Loot picked up, Most Hated Unit, Headshots
+[*][b]Awards[/b]
+Your favorite awards from Mission Award Variety return with more coming in the future
+[*][b]MVP designation[/b]
+One soldier from your squad who went above and beyond will receive this coveted trophy
+[*][b]Photobooth support[/b]
+Create a photo or choose one from your collection and this photo will accompany your soldier's stats until you delete or change it
+[*][b]Controller support[/b]
+Use a controller to navigate through the stats and photobooth options
+[/list]
+
+To access this screen, press the View Mission Debriefing button on the Mission Summary screen (it's next to the Take Mission Photo button):
+[img]https://i.imgur.com/yBHLOrz.png[/img]
+
+[h1]COMPATIBILITY NOTES[/h1]
+Does not override any classes as of version 1.0.1. Extends UITactical_Photobooth when creating a photo within the debriefing screen, so any mod that overrides that will have a conflict (e.g. WC_PhotoReBooth).
+
+Note that I have a UIScreenListener listening to UIPhotoboothReview, so any mods overriding that class could potentially cause issues.
+
+[h1]PHOTOBOOTH NOTES[/h1]
+As of version 1.1.0a, photos can be automatically assigned to soldiers if they've been created via the Armory or otherwise. Saving is done via the Analytics Manager which may not be totally reliable, so it will fall back to an existing photo if it can't save successfully.
+
+[h1]FAQ[/h1]
+[b]Q: What does this award mean?[/b]
+A: Hover your cursor over the award to see the tooltip. You can also see the full list in the localization file (Steam\steamapps\workshop\content\268500\1154827808\Localization\WOTCNiceMissionDebriefing.int).
+
+[b]Q: What do the colors on the stat values mean?[/b]
+A: Green means the soldier led the squad in that stat. Red means they had the least amount of that stat.
+
+[b]Q: A couple soldiers won the same award, should that be possible?[/b]
+A: It's possible that more than one soldier is tied with the same highest value for that award, so they all can receive it.
+
+[b]Q: What happened to X award from Mission Award Variety?[/b]
+A: Not all the awards from Mission Award Variety have made it over, either due to irrelevance or they weren't quite working the way I wanted them to. I'll probably continue bringing them over in some form, but also new ones may take their place.
+
+[b]Q: Do I need to start a new campaign to use this mod?[/b]
+A: No.
+
+[b]Q: Can I suggest a new award?[/b]
+A: Sure, many have been suggested in the Mission Award Variety comments. I tend to be more interested in awards that can be won by any soldier and aren't biased toward a specific class.
+
+[b]Q: Can I rearrange the order the stats appear?[/b]
+A: You can do this in the config file (Steam\steamapps\workshop\content\268500\1154827808\Config\XComWOTCNiceMissionDebriefing.ini).
+
+[b]Q: Why does the Headshots stat not always appear?[/b]
+A: Headshots only get displayed on missions that feature the Lost.
+
+[b]Q: Why is there a warning when I try to make a team poster?[/b]
+A: Because I'm not overriding UIMissionSummary, it's not simple to override the behaviour when you exit the photobooth for the team poster (which immediately transitions to the dropship loading scene). You won't see this warning if you enter the mission debriefing screen first. If you'd rather not see the warning at all, you can edit the config file and set EnableTeamPosterWarning to false.
+
+[b]Q: How come sometimes I can't target an enemy/objective that is in line of sight?[/b]
+A: If this happens, exit and reload your save. If you still can't target, then reload an earlier save where you're out of line of sight to the target, then move into line of sight. I don't know why this happens; it may have something to do with modifying game states because that's the only thing I can think of that this mod does that might affect other systems.
+
+[h1]SPECIAL THANKS[/h1]
+Thanks to Kosmo for the [url=http://steamcommunity.com/sharedfiles/filedetails/?id=1128399324]Lifetime Stats[/url] mod whose code is the basis for this mod's stat tracking.
+
+Robojumper for helping Kosmo with a bug and thereby helping me.
+
+RealityMachina for suggesting a fix for possible crashes.
+
+Iridar for various fixes and improvements in Version 1.1.1.
