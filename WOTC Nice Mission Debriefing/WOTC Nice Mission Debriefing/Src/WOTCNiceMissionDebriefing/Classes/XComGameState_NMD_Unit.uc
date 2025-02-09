@@ -158,6 +158,18 @@ function AddCloseRangeDamage(XComGameState_Unit AttackingUnit, XComGameState_Uni
 	if (class'NMD_Utilities'.default.bLog) `LOG("NMD - Total close range damage for " $ AttackingUnit.GetFullName() $ ": " $ Stat.GetValue(0)); 
 }
 
+function AddDamageDealt(int DamageDealt, XComGameState NewGameState)
+{
+	local NMD_Stat_DamageDealt Stat;
+	local NMD_BaseStat BaseStat;
+
+	BaseStat = CreateOrUpdateStat(class'NMD_Stat_DamageDealt'.const.ID, class'NMD_Stat_DamageDealt', NewGameState);
+
+	Stat = NMD_Stat_DamageDealt(NewGameState.ModifyStateObject(class'NMD_Stat_DamageDealt', BaseStat.ObjectID));
+
+	Stat.AddValue(DamageDealt);
+}
+
 function AddCriticalDamage(int DamageDealt, XComGameState NewGameState)
 {
 	local NMD_Stat_CriticalDamage Stat;
@@ -245,6 +257,8 @@ function AddDamageDone(string catToAdd, int dealt, int negated, bool executed, b
 
 		if (class'NMD_Utilities'.default.bLog) `LOG("NMD - " $ catToAdd $ " dealt damage: " $ dealt $ ", isKill? " $ isKill);
 	}
+
+	AddDamageDealt(Dealt, NewGameState);
 
 	if (Context != none)
 	{

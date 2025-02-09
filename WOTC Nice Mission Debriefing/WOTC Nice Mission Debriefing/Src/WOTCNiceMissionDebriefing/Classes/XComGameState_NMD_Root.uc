@@ -1,11 +1,13 @@
-class XComGameState_NMD_Root extends XComGameState_BaseObject;
+class XComGameState_NMD_Root extends XComGameState_BaseObject config (WOTCNiceMissionDebriefing);
 
-const CURRENT_VERSION = "1.1.2";
+const CURRENT_VERSION = "1.1.3";
 const CURRENT_VERSION_ID = 0;
 
 var string ModVersion;
 var int ModVersionId;
 var bool HasClearedStats;
+
+var config array<name> abilitiesToIgnoreDamageStats;
 
 function XComGameState_NMD_Root InitComponent()
 {
@@ -178,6 +180,7 @@ function EventListenerReturn NMD_OnUnitTakeDamage(Object EventData, Object Event
 	local XComGameState_Unit DamagedUnit, AttackingUnit;
 	local DamageResult DamageResult;
 	local int DamageIndexMod;
+	local name AbilityTemplateName;
 
 	if (class'NMD_Utilities'.static.IsGameStateInterrupted(GameState, "OnUnitTakeDamage"))
 	{
@@ -206,12 +209,20 @@ function EventListenerReturn NMD_OnUnitTakeDamage(Object EventData, Object Event
 	else
 		return ELR_NoInterrupt;
 
+	// Check for abilities that shouldn't count toward damage stats
+	AbilityTemplateName = Context.InputContext.AbilityTemplateName;
+	if (default.abilitiesToIgnoreDamageStats.Find(AbilityTemplateName) != INDEX_NONE)
+	{
+		if (class'NMD_Utilities'.default.bLog) `LOG("NMD ignoring damage from " $ AbilityTemplateName);
+		return ELR_NoInterrupt;
+	}
+
 	NewGameState = class'XComGameStateContext_ChangeContainer'.static.CreateChangeState("Updating Damage Stats for " $ AttackingUnit.GetFullName());
 
-	UnitStats = XComGameState_NMD_Unit(GameState.ModifyStateObject(class'XComGameState_NMD_Unit', UnitStats.ObjectID));
+	UnitStats = XComGameState_NMD_Unit(NewGameState.ModifyStateObject(class'XComGameState_NMD_Unit', UnitStats.ObjectID));
 
 	//	Game State is used for its History Index, so we pass old Game State
-	DamageIndexMod = class'NMD_Utilities'.static.getDamageResultIndexMod(Context.InputContext.AbilityTemplateName, UnitStats, GameState);
+	DamageIndexMod = class'NMD_Utilities'.static.getDamageResultIndexMod(AbilityTemplateName, UnitStats, GameState);
 	if (AttackingUnit == none || DamagedUnit == none || DamagedUnit.DamageResults.Length < DamageIndexMod)
 		return ELR_NoInterrupt;
 
@@ -437,7 +448,7 @@ function XComGameState_NMD_Unit UpdateStats(XComGameState_Unit Unit, XComGameSta
 		NewGameState = class'XComGameStateContext_ChangeContainer'.static.CreateChangeState("Updating UnitStats for " $ TargetUnit.GetFullName());
 
 		// Setup Unitstats to be modified
-		UnitStats = XComGameState_NMD_Unit(GameState.ModifyStateObject(class'XComGameState_NMD_Unit', UnitStats.ObjectID));
+		UnitStats = XComGameState_NMD_Unit(NewGameState.ModifyStateObject(class'XComGameState_NMD_Unit', UnitStats.ObjectID));
 
 		UnitStats.AddOverwatchRun(AbilityContext.IsResultContextHit(), NewGameState);
 
